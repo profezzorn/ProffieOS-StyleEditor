@@ -253,6 +253,7 @@ function initGL()
   FIND("effect_type_links").innerHTML = effect_type_links;
   FIND("template_links").innerHTML = template_links;
   FIND("function_links").innerHTML = function_links;
+  FIND("transition_links").innerHTML = transition_links;
 
   // Bind a vertex buffer with a single triangle
   var buffer = gl.createBuffer();
@@ -683,6 +684,7 @@ var effect_links = "<b>Effects</b><br>";
 var effect_type_links = "<b>Effect Types</b><br>";
 var template_links = "<b>Templates</b><br>";
 var function_links = "<b>Functions</b><br>";
+var transition_links = "<b>Transitions</b><br>";
 var all_colors = {};
 var colorNames = {};
 
@@ -771,6 +773,9 @@ function AddEffect(name) {
 }
 function AddFunction(name) {
   function_links += mkbutton(name);
+}
+function AddTransition(name) {
+  transition_links += mkbutton(name);
 }
 function AddEffectType(name) {
   effect_type_links += "<input type=button class=btn onclick='SetTo(\"EFFECT_"+name+"\")' value='"+enc(name)+"'>\n";
@@ -3028,6 +3033,7 @@ function ReplaceCurrentFocus(str) {
   FIND("effect_type_links").className = type == "EFFECT" ? "normal" : "grayout";
   FIND("template_links").className = type == "COLOR" ? "normal" : "grayout";
   FIND("function_links").className = type == "FUNCTION" ? "normal" : "grayout";
+  FIND("transition_links").className = type == "TRANSITION" ? "normal" : "grayout";
   FIND("expand_button").className = current_style && current_style.isMacro ? "button_on" : "button_off";
 }
 
@@ -3196,6 +3202,7 @@ function DoExpand() {
     <input id=style type=text size=100 onkeydown="if (event.keyCode == 13) Run();"><input name='run' type=button value="Submit" onclick="Run()"><input name='copy' type=button value="Copy" onclick="Copy()"><input type=button name='expand' value="Expand" id='expand_button' onclick="DoExpand()"><br>
     <div id=effect_links></div>
     <div id=color_links></div>
+    <div id=transition_links></div>
     <div id=function_links></div>
     <div id=effect_type_links></div>
     <div id=template_links></div>
