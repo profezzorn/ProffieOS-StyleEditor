@@ -1,0 +1,3223 @@
+<head>
+<style>
+
+.button_on {
+  background: lightblue;
+  color: black;
+}
+
+.button_off {
+  background: lightgray;
+  color: darkgray;
+}
+
+div.grayout input[type=button].btn {
+  background: lightgray;
+  color: darkgray;
+}
+
+div.normal input[type=button].btn {
+  background: lightblue;
+  color: black;
+}
+</style>
+
+<title>Style Editor</title>
+
+<script id="vertex-shader" type="x-shader/x-vertex">
+precision highp float;
+attribute vec2 a_position;
+varying vec2 v_position;
+uniform float u_width;
+uniform float u_height;
+
+void main() {
+    v_position = a_position * vec2(u_width, u_height);
+    gl_Position = vec4(a_position, 0, 1);
+}
+</script>
+
+<script id="fragment-shader" type="x-shader/x-fragment">
+precision highp float;
+uniform float u_value;
+uniform float u_time;
+varying vec2 v_position;
+uniform float u_width;
+uniform float u_height;
+uniform sampler2D sampler;
+
+$VARIABLES$
+
+vec3 A = vec3(0,3,0);
+vec3 B = vec3(0,-4,0);
+
+float get_point(vec3 p) {
+   vec3 pa = p - A, ba = B - A;
+   return clamp( dot(pa,ba)/dot(ba,ba), 0.0, 1.0 );
+}
+
+int get_led(vec3 p) {
+  return int(get_point(p) * 144.0);
+}
+
+float blade(vec3 p, bool tangent) {
+   vec3 pa = p - A, ba = B - A;
+   float h = clamp( dot(pa,ba)/dot(ba,ba), 0.0, 1.0 );
+   vec3 tmp = pa - ba * h;
+   float l2 = dot(tmp, tmp);
+   //   float R = 0.08;
+   float R = 0.09;
+    if (tangent && l2 >= R*R) {
+     return sqrt(l2 - R*R);
+   }  else {
+     return sqrt(l2) - R;
+   }
+}
+
+float handle(vec3 p) {
+   vec2 h = vec2(.15, 0.7);
+   p.y -= 3.65;
+   vec2 d = abs(vec2(length(p.xz),p.y)) - h;
+   return min(max(d.x,d.y),0.0) + length(max(d,0.0));
+}
+
+float map(vec3 p, bool tangent) {
+  return min(blade(p, tangent), handle(p));
+}
+
+
+vec3 getBladeColor(vec3 pos) {
+    return texture2D(sampler, vec2(get_point(pos), 0.5)).rgb;
+}
+
+float march(vec3 start, vec3 dir, out vec3 haze_color) {
+  haze_color = vec3(0,0,0);
+  float dist = 0.0;
+  float last_dist = 0.0;
+  float last_d = 0.0;
+  bool hit = false;
+  float haze = 1.0;
+  for (int i = 0; i < 100; i++) {
+    vec3 p =start + dir * dist;
+    float hilt_dist = handle(p);
+    float blade_dist = blade(p, !hit);
+    float d = min(hilt_dist, blade_dist);
+
+    if (dist > 20.0) return 10000.0;
+    if (d < 0.00001 * dist) {
+      if (d < 0.0) {
+        hit = true;
+//        dist = last_dist + (dist - last_dist) * (last_d / (last_d - d));
+        dist = last_dist;
+        continue;
+      }
+      return dist;
+    }
+    if (get_led(p) > 0) {
+      // haze_color += getBladeColor(p) * clamp(0.002 / (blade_dist*blade_dist), 0.0, 1.0);
+
+      // haze_color += getBladeColor(p) * 0.0005 / (blade_dist*blade_dist*blade_dist) * d;
+
+      float haze_m = clamp(0.004 / (blade_dist*blade_dist), 0.0, 1.0);
+      haze_color += getBladeColor(p) * haze_m * haze;
+      haze *= (1.0 - haze_m);
+    }
+    last_d = d;
+    last_dist = dist;
+    dist += d;
+  }
+  if (hit) return dist;
+  return -1.0;
+}
+
+
+vec3 getNormal(vec3 p) {
+  float E = 0.00001;
+  vec3 X = vec3(E,0.0,0.0);
+  vec3 Y = vec3(0.0,E,0.0);
+  vec3 Z = vec3(0.0,0.0,E);
+//  return normalize(vec3(map(p + X, false) - map(p - X, false),
+//                        map(p + Y, false) - map(p - Y, false),
+//                        map(p + Z, false) - map(p - Z, false)));
+
+  float D = map(p, false);
+  return normalize(vec3(map(p + X, false) - D,
+                        map(p + Y, false) - D,
+                        map(p + Z, false) - D));
+}
+
+	      
+void main() {
+    vec3 light = vec3(-5.0, 5.0, -5.0);
+    vec3 eye = vec3(0.0, 0.0, -5.0);
+    vec3 dir = normalize(
+            vec3((v_position.x) / u_width,
+                 (v_position.y) / u_width, 1.0));
+    mat3 rot = mat3(sin(u_value), 0.0, -cos(u_value),
+                    0.0, 1.0, 0.0,
+                    cos(u_value), 0.0, sin(u_value));
+    float angle = u_value / 7.777;
+    mat3 rot2 = mat3(1.0, 0.0,0.0,
+                    0.0, sin(angle), -cos(angle),
+                    0.0, cos(angle), sin(angle));
+    rot = rot2 * rot;
+    eye = rot * eye;
+    dir = rot * dir;
+//    light = rot * light;
+
+    vec3 haze_color;
+    float x = march(eye, dir, haze_color);
+    vec3 hp = eye + dir * x;
+    vec3 color = vec3(1,1,1);
+    vec3 color2 = getBladeColor(hp);
+    if (blade(hp, false) > handle(hp)) {
+      color = vec3(0.3,0.3,0.3);
+      color2 = vec3(0);
+    }
+   
+    vec3 normal = getNormal(hp);
+    vec3 light_dir = light - hp;
+    float light_dist2 = dot(light_dir, light_dir);
+    light_dir = normalize(light_dir);
+    float l = dot(light_dir, normal) * 5.0;
+
+    l = max(l, 0.0);
+    l /= sqrt(light_dist2);
+    l += 0.1;  // ambient
+    color *= l;
+    color += color2 * 2.0;
+
+    vec3 reflection = reflect(dir, normal);
+    float l2 = max(dot(reflection, light_dir), 0.0);
+    color += vec3(200.0) * pow(l2, 128.0);
+    vec3 haze = vec3(0.01, 0.01, 0.01);
+    float haze_mix = x < 0.0 ? 0.0 : pow(0.95, x);
+    color = haze_mix * color + (1.0 - haze_mix) * haze;
+    color += haze_color;
+
+    // Clip to white
+    color += vec3(dot(max(color - vec3(1), vec3(0)), vec3(0.33)));
+    // color += vec3(dot(max(color - vec3(1), 0.0), vec3(0.299, 0.587, 0.114)));
+    // color += vec3(max(dot(color, vec3(0.299, 0.587, 0.114)) - 1.0, 0.0));
+    
+    color = sqrt(color);
+    gl_FragColor = vec4(color, 1.0);
+}
+</script>
+
+<script>
+var gl = null;
+var shaderProgram = null;
+var t = 0.0;
+
+var width;
+var height;
+
+// Create n textures of about 1MB each.
+function initGL()
+{ 
+  var canvas = FIND("canvas_id");
+
+  width = window.innerWidth;
+  height = window.innerHeight;
+
+  if(window.devicePixelRatio !== undefined) {
+    dpr = window.devicePixelRatio;
+  } else {
+    dpr = 1;
+  }
+
+  width = width * 2 / 3;
+  height /= 2;
+  canvas.width = width * dpr;
+  canvas.height = height * dpr;
+  canvas.style.width = width + 'px';
+  canvas.style.height = height + 'px';
+  
+  gl = canvas.getContext("experimental-webgl", {pixelFormat:"float16", colorSpace: "srgb", antialias:false});
+
+  if (!gl) {
+    throw "Unable to fetch WebGL rendering context for Canvas";
+  }
+
+  var str = new URL(window.location.href).searchParams.get("S");
+  if (!str) {
+    str = "InOutHelper<SimpleClash<Lockup<Blast<Blue,White>,AudioFlicker<Blue,White>>,White>, 300, 800>";
+  }
+  FIND("style").value = str;
+
+  Run();
+
+  FIND("color_links").innerHTML = qlinks;
+  FIND("effect_links").innerHTML = effect_links;
+  FIND("effect_type_links").innerHTML = effect_type_links;
+  FIND("template_links").innerHTML = template_links;
+  FIND("function_links").innerHTML = function_links;
+
+  // Bind a vertex buffer with a single triangle
+  var buffer = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+  var bufferData = new Float32Array([
+       -1.0, -1.0, 1.0, -1.0, -1.0,  1.0, 1.0, 1.0]);
+  gl.bufferData(gl.ARRAY_BUFFER, bufferData, gl.STATIC_DRAW);
+  gl.enableVertexAttribArray(shaderProgram.a_position);
+  gl.vertexAttribPointer(shaderProgram.a_position, 2, gl.FLOAT, false, 0, 0);
+
+  var texture = gl.createTexture();  
+  gl.bindTexture(gl.TEXTURE_2D, texture);
+    
+  // Start the event loop.
+  tick();
+}
+
+
+function compile() {
+  // Create a shader that samples a 2D image.
+  var vertexShader = gl.createShader(gl.VERTEX_SHADER);
+  gl.shaderSource(vertexShader,
+                  FIND("vertex-shader").textContent);
+  gl.compileShader(vertexShader);
+
+  var fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
+  var shader_code = FIND("fragment-shader").textContent;
+
+  variables = [];
+//  shader_code = shader_code.replace("$FUNCTION$", current_style.gencode());
+  shader_code = shader_code.replace("$VARIABLES$", variables.join("\n"));
+  // console.log(shader_code);
+  
+  gl.shaderSource(fragmentShader, shader_code);
+  gl.compileShader(fragmentShader);
+  if (!gl.getShaderParameter(fragmentShader, gl.COMPILE_STATUS)) {
+
+    var v = shader_code.split("\n");
+    for (var i = 0; i < v.length; i++) {
+      console.log( (i+1) + ": " + v[i]);
+  }
+    throw "Could not compile shader:\n\n" + gl.getShaderInfoLog(fragmentShader);
+  }
+
+  shaderProgram = gl.createProgram();
+  gl.attachShader(shaderProgram, vertexShader);
+  gl.attachShader(shaderProgram, fragmentShader);
+  gl.linkProgram(shaderProgram);
+  if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
+    throw "Could not link the shader program!\n\n" + gl.getProgramInfoLog(shaderProgram);
+  }
+  gl.useProgram(shaderProgram);
+
+}
+
+var varnum = 0;
+var variables = [];
+var vartypes = {};
+
+function genvar(t) {
+  varnum++;
+  var variable = "u_" + varnum;
+  variables.push( "uniform " + t + " " + variable + ";");
+  vartypes[variable] = t;
+  return variable;
+}
+
+function setvar(variable, val) {
+  // console.log(variable + " = " + val);
+  if (vartypes[variable] == "float") {
+    gl.uniform1f(gl.getUniformLocation(shaderProgram, variable),  val);
+    return;
+  } 
+  if (vartypes[variable] == "int") {
+    gl.uniform1i(gl.getUniformLocation(shaderProgram, variable),  val);
+    return;
+  }
+  console.log("SETVAR ERROR " + variable);
+}
+
+function Arg(expected_type, arg, default_arg) {
+  //console.log("ARGUMENT: " + expected_type);
+  //console.log(arg);
+  //if (typeof(arg) == "object") console.log(arg.ID);
+  //console.log(default_arg);
+  if (arg == undefined) {
+    if (typeof(default_arg) == "number") {
+      // console.log("DEFAULT ARG" + default_arg);
+      return new INTEGER(default_arg);
+    }
+    if (default_arg != undefined) {
+      // This must copy the argument!
+      return default_arg;
+    }
+    throw "Too few arguments";
+  }
+  if (typeof(arg) != "number" && arg.getType() != expected_type) {
+    throw "Expected " + expected_type;
+  }
+  if (expected_type == "INT" || expected_type == "EFFECT") {
+    return arg;
+  }
+  if (expected_type == "COLOR" || expected_type == "FireConfig" || expected_type == "FUNCTION") {
+    if (typeof(arg) != "object") {
+      throw "Expected a " + expected_type;
+    }
+    return arg;
+  }
+
+  throw "Not INT, COLOR,  EFFECT or FUNCTION";
+}
+
+function IntArg(arg, def_arg) { return Arg("INT", arg, def_arg); }
+function ColorArg(arg, def_arg) { return Arg("COLOR", arg, def_arg); }
+
+var pp_is_url = 0;
+var pp_is_verbose = 0;
+
+var next_id = 1000;
+var style_ids = {};
+
+class ARG {
+  constructor(name, type, comment, default_value) {
+    this.name = name;
+    this.type = type;
+    this.comment = comment;
+    this.default_value = default_value;
+  }
+};
+
+class STYLE {
+  constructor(comment, args) {
+    this.comment = comment;
+    if (args) console.log(args);
+    this.args = args;
+    this.argnum = 0;
+    this.argdefs = [];
+    this.super_short_desc = false;
+    this.ID = next_id;
+    next_id ++;
+  }
+
+  add_arg(name, expected_type, comment, default_value) {
+    if (focus_trace[0] == this.args[this.argnum]) {
+      focus_trace = [this, name, expected_type, focus_trace];
+    }
+    //console.log("add_arg");
+    //console.log(name);
+    //console.log(this.args);
+    try {
+      this[name] = Arg(expected_type, this.args[this.argnum], default_value);
+    } catch(e) {
+      if (typeof(e) == "string")
+	e = e + " for argument " + (this.argnum + 1) + " (" + name + ")";
+      throw e;
+    }
+    this.argnum++;
+    this.argdefs.push(new ARG(name, expected_type, comment, default_value));
+  }
+
+  get_id() {
+    style_ids[this.ID] = this;
+    return this.ID;
+  }
+
+  DOCOPY() {
+    pp_is_url++;
+    var url = this.pp();
+    pp_is_url--;
+    var parser = new Parser(url, classes, identifiers);
+    return parser.parse();
+  }
+
+  DescribeValue(arg) {
+    if (typeof(arg) == "undefined") return "undefined";
+    if (typeof(arg) == "number") {
+      return "" + arg;
+    } else {
+       return arg.pp();
+    }
+  }
+
+  PPURL(name, note) {
+    if (this.super_short_desc) return "$";
+    pp_is_url++;
+    var ret = name;
+    var comma = false;
+    if (arguments.length > 2) {
+      ret += "<";
+      for (var i = 2; i < arguments.length; i += 2) {
+	if (comma) ret += ",";
+	comma = true;
+	ret += this.DescribeValue(arguments[i]);
+      }
+      ret += ">";
+    }
+    pp_is_url--;
+
+    return ret;
+  }
+
+  PP(name, note) {
+    if (pp_is_url) {
+      return this.PPURL.apply(this, arguments);
+    }
+    var id = this.get_id();
+    var ret = "";
+    ret += "<div id=X"+id+" style='border-style:solid;border-width:1px;border-color:gray;' onclick='FocusOn("+id+",event)'>\n";
+    ret += "<span title='"+ note +"'>" + name + "</span>&lt;\n";
+    ret += "<div style='margin-left:1em'>\n";
+    var comma = false;
+    for (var i = 2; i < arguments.length; i += 2) {
+      if (comma) ret += ",<br>";
+      comma = true;
+      var arg = arguments[i];
+      var note = arguments[i+1];
+      if (typeof(arg) == "number") {
+	arg = "" + arg;
+      } else {
+	arg = arg.pp();
+      }
+      if (arg.indexOf("<br>") == -1 && arg.indexOf("<div") == -1) {
+	ret += arg+" /* "+note+" */\n";
+      } else {
+	ret += "/* "+note+" */<br>\n" + arg;
+      }
+    }
+    ret += "</div>&gt;</div>\n";
+
+    return ret;
+  }
+
+  PPshort(name, note) {
+    var url = this.PPURL.apply(this, arguments);
+    if (pp_is_url) return url;
+    var id = this.get_id();
+    var ret = "";
+    ret += "<div id=X"+id+" style='border-style:solid;border-width:1px;border-color:gray;' onclick='FocusOn("+id+",event)'>\n";
+    ret += "<span title='"+ note +"'>" + name + "</span>\n";
+
+    if (arguments.length > 2) {
+      ret += "&lt;";
+      var comma = false;
+      for (var i = 2; i < arguments.length; i += 2) {
+	if (comma) ret += ",";
+	comma = true;
+	var arg = arguments[i];
+	var note = arguments[i+1];
+	if (typeof(arg) == "number") {
+	  ret += "<span title='"+note+"'>"+arg+"</span>";
+	} else {
+	  ret += "<span>/* "+note+" */</span><br>\n";
+	  ret += arg.pp();
+	}
+      }
+      ret += "&gt;";
+    }
+    ret += "</div>\n";
+
+    return ret;
+  }
+
+  SameValue(a, b) {
+    // console.log("SAMEVALUE");
+    // console.log(a);
+    // console.log(b);
+    // console.log(this.DescribeValue(a));
+    // console.log(this.DescribeValue(b));
+    return a == b || this.DescribeValue(a) == this.DescribeValue(b);
+  }
+
+  pp() {
+    var tmp = [this.constructor.name.replace("Class", ""), this.comment];
+    var l = this.argdefs.length;
+    if (pp_is_url && !pp_is_verbose) {
+      // Drop default arguments
+      while (l > 0 && this.argdefs[l-1].default_value != undefined &&
+             this.SameValue(this[this.argdefs[l-1].name], this.argdefs[l-1].default_value)) l--;
+    }
+    for (var i = 0; i < l; i++) {
+      tmp.push(this[this.argdefs[i].name]);
+      tmp.push(this.argdefs[i].comment);
+    }
+    return this.PP.apply(this, tmp);
+  }
+  getType() { return "COLOR"; }
+
+  run(blade) {
+    for (var i = 0; i < this.argdefs.length; i++) {
+      var arg = this[this.argdefs[i].name];
+      if (typeof(arg) == "object") arg.run(blade);
+    }
+  }
+
+  // Doesn't work??
+  toString() { return this.constructor.name + "[id = " + this.ID + "]"; }
+}
+
+class MACRO extends STYLE {
+  SetExpansion(expansion) {
+    this.expansion = expansion;
+  }
+  run(blade) { this.expansion.run(blade); }
+  getInteger(led) { return this.expansion.getInteger(led); }
+  getColor(led) { return this.expansion.getColor(led); }
+  getType() { return this.expansion.getType(); }
+  isMacro() { return true; }
+};
+
+class INTEGER  extends STYLE {
+  constructor(v) {
+    super();
+    this.value = v;
+  }
+  run(blade) {}
+  getInteger(led) { return this.value; }
+  valueOf() { return this.value; }
+  pp() {
+    if (pp_is_url) {
+      if (this.super_short_desc) return "$";
+      return "" + this.value;
+    }
+    return this.PPshort(this.value, "VALUE");
+  }
+  getType() { return "INT"; }
+};
+
+function INT(x) {
+  return new INTEGER(x);
+}
+
+class BINARY extends STYLE {
+  constructor(v) {
+    super();
+    this.value = v;
+  }
+  run(blade) {}
+  getInteger(led) { return this.value; }
+  valueOf() { return this.value; }
+  pp() {
+    if (pp_is_url) {
+      if (this.super_short_desc) return "$";
+      return "0b" +this.value.toString(2);
+    }
+    return this.PPshort("0b" +this.value.toString(2), "VALUE");
+  }
+  getType() { return "INT"; }
+};
+
+class EFFECTClass  extends INTEGER {
+  pp() {
+    var ret = [];
+    if (this.value == 0) ret.push("EFFECT_NONE");
+    if (this.value & EFFECT_CLASH) ret.push("EFFECT_CLASH");
+    if (this.value & EFFECT_BLAST) ret.push("EFFECT_BLAST");
+    if (this.value & EFFECT_FORCE) ret.push("EFFECT_FORCE");
+    if (this.value & EFFECT_STAB) ret.push("EFFECT_STAB");
+    if (this.value & EFFECT_BOOT) ret.push("EFFECT_BOOT");
+    if (this.value & EFFECT_LOCKUP_BEGIN) ret.push("EFFECT_LOCKUP_BEGIN");
+    if (this.value & EFFECT_LOCKUP_END) ret.push("EFFECT_LOCKUP_END");
+    if (this.value & EFFECT_DRAG_BEGIN) ret.push("EFFECT_DRAG_BEGIN");
+    if (this.value & EFFECT_DRAG_END) ret.push("EFFECT_DRAG_END");
+    if (this.value & EFFECT_IGNITION) ret.push("EFFECT_IGNITION");
+    if (this.value & EFFECT_RETRACTION) ret.push("EFFECT_RETRACTION");
+    return this.PPshort(ret.join(" | "), "EFFECT");
+//    return this.PPshort(this.value, "EFFECT");
+  }
+  getType() { return "EFFECT"; }
+};
+
+function EFFECT(v) {
+  return new EFFECTClass(v);
+}
+
+class FUNCTION  extends STYLE {
+  getType() { return "FUNCTION"; }
+};
+
+class CONFIG extends STYLE {
+  PP(name, note) {
+    if (pp_is_url) {
+      return this.PPURL.apply(this, arguments);
+    }
+    var id = this.get_id();
+    var ret = "";
+    ret += "<span title='"+ note +"'>" + name + "</span>&lt;\n";
+    ret += "<div style='margin-left:1em'>\n";
+    var comma = false;
+    for (var i = 2; i < arguments.length; i += 2) {
+      if (comma) ret += ",<br>";
+      comma = true;
+      var arg = arguments[i];
+      var note = arguments[i+1];
+      if (typeof(arg) == "number") {
+	arg = "" + arg;
+      } else {
+	arg = arg.pp();
+      }
+      if (arg.indexOf("<br>") == -1 && arg.indexOf("<div") == -1) {
+	ret += arg+" /* "+note+" */\n";
+      } else {
+	ret += "/* "+note+" */<br>\n" + arg;
+      }
+    }
+    ret += "</div>&gt;\n";
+
+    return ret;
+  }
+  getType() { return "CONFIG"; }
+};
+
+function FixColor(c) {
+  console.log(c)
+  return min(65535, Math.floor(Math.pow(parseInt(c, 16) / 255.0, 2.2) * 65536));
+}
+
+function ClickColor() {
+  var color_button = FIND("COLOR");
+  color_button.addEventListener("input", ClickColor, false);
+  var R = FixColor(color_button.value.substr(1,2));
+  var G = FixColor(color_button.value.substr(3,2));
+  var B = FixColor(color_button.value.substr(5,2));
+  SetTo("Rgb16<"+R+","+G+","+B+">");
+}
+
+var qlinks = "<b>Colors</b> <input type=color id=COLOR value='#ff0000' onclick='ClickColor()' /><br>";
+var effect_links = "<b>Effects</b><br>";
+var effect_type_links = "<b>Effect Types</b><br>";
+var template_links = "<b>Templates</b><br>";
+var function_links = "<b>Functions</b><br>";
+var all_colors = {};
+var colorNames = {};
+
+class RgbClass extends STYLE {
+  constructor(r,g,b) {
+    super();
+    this.r = IntArg(r)/255.0;
+    this.g = IntArg(g)/255.0;
+    this.b = IntArg(b)/255.0;
+    this.name = colorNames[r+","+g+","+b]
+  }
+  run(blade) {}
+  getColor(led) {
+    return this;
+  }
+  pp() {
+    if (this.name) return this.PPshort(this.name,"Color");
+    return this.PPshort("Rgb",  "RGB Color",
+			this.r*255, "Red component",
+			this.g*255, "Green component",
+			this.b*255, "Blue component");
+  }
+  mix(other, blend) {
+    var ret = new RgbClass(0,0,0);
+    ret.r = other.r * blend + this.r * (1.0 - blend);
+    ret.g = other.g * blend + this.g * (1.0 - blend);
+    ret.b = other.b * blend + this.b * (1.0 - blend);
+    return ret;
+  }
+};
+
+function Rgb(r,g,b) {
+  return new RgbClass(r,g,b);
+}
+
+class Rgb16Class extends STYLE {
+  constructor(r,g,b) {
+    super();
+    this.r = IntArg(r)/65535.0;
+    this.g = IntArg(g)/65535.0;
+    this.b = IntArg(b)/65535.0;
+    this.name = colorNames[r+","+g+","+b]
+  }
+  run(blade) {}
+  getColor(led) {
+    return this;
+  }
+  pp() {
+    if (this.name) return this.PPshort(this.name,"Color");
+    return this.PPshort("Rgb16",  "RGB Color",
+			this.r*65535, "Red component",
+			this.g*65535, "Green component",
+			this.b*65535, "Blue component");
+  }
+  mix(other, blend) {
+    var ret = new Rgb16Class(0,0,0);
+    ret.r = other.r * blend + this.r * (1.0 - blend);
+    ret.g = other.g * blend + this.g * (1.0 - blend);
+    ret.b = other.b * blend + this.b * (1.0 - blend);
+    return ret;
+  }
+};
+
+function RgbF(r,g,b) {
+  return new Rgb16Class(r * 65535,g * 65535,b * 65535);
+}
+
+
+function Rgb16(r,g,b) {
+  return new Rgb16Class(r,g,b);
+}
+
+function enc(s) {
+  return s.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+function mkbutton(name) {
+  return "<input type=button class=btn onclick='SetTo(\""+name+"\")' value='"+enc(name)+"'>\n";
+  //  return "<span class=btn onclick='SetTo(\""+name+"\")'>"+enc(name)+"</span>\n";
+}
+function AddTemplate(name) {
+  template_links += mkbutton(name);
+}
+function AddEffect(name) {
+  effect_links += mkbutton(name);
+}
+function AddFunction(name) {
+  function_links += mkbutton(name);
+}
+function AddEffectType(name) {
+  effect_type_links += "<input type=button class=btn onclick='SetTo(\"EFFECT_"+name+"\")' value='"+enc(name)+"'>\n";
+}
+
+function mapcolor(x) {
+  x /= 255.0;
+  x = Math.pow(x, 1.0/2.2);
+  return Math.round(x * 255);
+}
+function mkcolorbutton(name, r, g, b) {
+  r = mapcolor(r);
+  g = mapcolor(g);
+  b = mapcolor(b);
+  var color = "rgb("+r+","+g+","+b+")";
+  if (r == 0 && g == 0 && b == 0) color = "white";
+  return "<input type=button style='background:"+color+"' class=btn onclick='SetTo(\""+name+"\")' value='"+enc(name)+"'>\n";
+}
+function AddColor(name, r, g, b) {
+  colorNames[r+","+g+","+b] = name;
+  qlinks += mkcolorbutton(name, r, g, b);
+  all_colors[name] = new RgbClass(r, g, b);
+}
+
+AddTemplate("InOutHelper<SimpleClash<Lockup<Blast<Blue,White>,AudioFlicker<Blue,White>>,White>, 300, 800>");
+// AddTemplate("StyleFirePtr<Red, Yellow>");
+AddTemplate("InOutHelper<EasyBlade<OnSpark<Green>, White>, 300, 800> >");
+AddTemplate("InOutHelper<EasyBlade<Sparkle<Blue>>, 300, 800> >");
+AddTemplate("IgnitionDelay<500, InOutHelper<EasyBlade<OnSpark<Green>, White>, 300, 800> > >");
+AddTemplate("StyleNormalPtr<AudioFlicker<Yellow, White>, Blue, 300, 800>");
+AddTemplate("InOutSparkTip<EasyBlade<Magenta, White>, 300, 800> >");
+AddTemplate("StyleNormalPtr<Gradient<Red, Blue>, Gradient<Cyan, Yellow>, 300, 800>");
+AddTemplate("StyleNormalPtr<Pulsing<Red, Rgb<50,0,0>, 5000>, White, 300, 800, Red>");
+AddTemplate("StyleRainbowPtr<300, 800>");
+AddTemplate("StyleStrobePtr<White, Rainbow, 15, 300, 800>");
+AddTemplate("StyleFirePtr<Red, Yellow>");
+
+AddEffect("AudioFlicker<White, Blue>");
+AddEffect("Blast<Blue, White>");
+AddEffect("BlastFadeout<Blue, White>");
+AddEffect("Blinking<Red, Blue, 1000, 500>");
+AddEffect("BrownNoiseFlicker<Green, Magenta, 50>");
+AddEffect("ColorCycle<Blue,  0, 1, Cyan,  100, 3000, 5000>");
+AddEffect("ColorSequence<500, Red, Green, Blue>");
+AddEffect("Cylon<Red, 5, 20>");
+AddEffect("Gradient<Blue, Green, Yellow, Red>");
+AddEffect("Gradient<Red, Blue, Green>");
+AddEffect("Gradient<Red, Blue>");
+AddEffect("HumpFlicker<Green, Magenta, 50>");
+AddEffect("InOutHelper<White, 300, 800, Black>");
+AddEffect("InOutSparkTip<Red, 1000, 800, White>");
+AddEffect("LocalizedClash<Red, White>");
+AddEffect("Lockup<Green, Red>");
+AddEffect("Mix<Int<16384>, Red, Blue>");
+AddEffect("OnSpark<Green, White, 200>");
+AddEffect("OriginalBlast<Blue, White>");
+AddEffect("Pulsing<Blue, Red, 800>");
+AddEffect("Rainbow");
+AddEffect("RandomFlicker<Yellow, Blue>");
+AddEffect("RandomPerLEDFlicker<Green, Magenta>");
+AddEffect("RandomBlink<3>");
+AddEffect("Sequence<Red, Black, 100, 37, 0b0001010100011100, 0b0111000111000101, 0b0100000000000000>");
+AddEffect("Rgb16<0,0,50>");
+AddEffect("Rgb<100,100,100>");
+AddEffect("RgbCycle");
+AddEffect("SimpleClash<Red, White, 40>");
+AddEffect("Sparkle<Blue>");
+AddEffect("Stripes<1000, 1000, Cyan, Magenta, Yellow, Blue>");
+AddEffect("Strobe<Black, White, 15, 1>");
+AddEffect("StyleFire<Blue, Cyan>");
+
+AddFunction("BatteryLevel");
+AddFunction("Bump<Int<16384>>");
+AddFunction("Ifon<Int<0>, Int<32768>>");
+AddFunction("InOutFunc<300, 800>");
+AddFunction("Int<32768>");
+AddFunction("ScaleFunc<InOutFunc<300,800>,Int<0>,Int<255>>");
+AddFunction("Sin<Int<10>>");
+AddFunction("Trigger<EFFECT_FORCE, Int<500>, Int<1000>, Int<500>>");
+
+AddColor("AliceBlue", 223, 239, 255);
+AddColor("Aqua", 0, 255, 255);
+AddColor("Aquamarine", 55, 255, 169);
+AddColor("Azure", 223, 255, 255);
+AddColor("Bisque", 255, 199, 142);
+AddColor("Black", 0, 0, 0);
+AddColor("BlanchedAlmond", 255, 213, 157);
+AddColor("Blue", 0, 0, 255);
+AddColor("Chartreuse", 55, 255, 0);
+AddColor("Coral", 255, 55, 19);
+AddColor("Cornsilk", 255, 239, 184);
+AddColor("Cyan", 0, 255, 255);
+AddColor("DarkOrange", 255, 68, 0);
+AddColor("DeepPink", 255, 0, 75);
+AddColor("DeepSkyBlue", 0, 135, 255);
+AddColor("DodgerBlue", 2, 72, 255);
+AddColor("FloralWhite", 255, 244, 223);
+AddColor("GhostWhite", 239, 239, 255);
+AddColor("Green", 0, 255, 0);
+AddColor("GreenYellow", 108, 255, 6);
+AddColor("HoneyDew", 223, 255, 223);
+AddColor("HotPink", 255, 36, 118);
+AddColor("Ivory", 255, 255, 223);
+AddColor("LavenderBlush", 255, 223, 233);
+AddColor("LemonChiffon", 255, 244, 157);
+AddColor("LightCyan", 191, 255, 255);
+AddColor("LightPink", 255, 121, 138);
+AddColor("LightSalmon", 255, 91, 50);
+AddColor("LightYellow", 255, 255, 191);
+AddColor("Magenta", 255, 0, 255);
+AddColor("MintCream", 233, 255, 244);
+AddColor("MistyRose", 255, 199, 193);
+AddColor("Moccasin", 255, 199, 119);
+AddColor("NavajoWhite", 255, 187, 108);
+AddColor("Orange", 255, 97, 0);
+AddColor("OrangeRed", 255, 14, 0);
+AddColor("PapayaWhip", 255, 221, 171);
+AddColor("PeachPuff", 255, 180, 125);
+AddColor("Pink", 255, 136, 154);
+AddColor("Red", 255, 0, 0);
+AddColor("SeaShell", 255, 233, 219);
+AddColor("Snow", 255, 244, 244);
+AddColor("SpringGreen", 0, 255, 55);
+AddColor("SteelBlue", 14, 57, 118);
+AddColor("Tomato", 255, 31, 15);
+AddColor("White", 255, 255, 255);
+AddColor("Yellow", 255, 255, 0);
+
+AddEffectType("CLASH");
+AddEffectType("BLAST");
+AddEffectType("FORCE");
+AddEffectType("STAB");
+AddEffectType("BOOT");
+AddEffectType("LOCKUP_BEGIN");
+AddEffectType("LOCKUP_END");
+AddEffectType("DRAG_BEGIN");
+AddEffectType("DRAG_END");
+AddEffectType("IGNITION");
+AddEffectType("RETRACTION");
+
+var WHITE = Rgb(255,255,255);
+var RED = Rgb(255,0,0);
+var GREEN = Rgb(0,255,0);
+var BLUE = Rgb(0,0,255);
+var YELLOW = Rgb(255,255,0);
+var CYAN = Rgb(0,255,255);
+var MAGENTA = Rgb(255,0,255);
+var WHITE = Rgb(255,255,255);
+var BLACK = Rgb(0,0,0);
+
+
+//--
+class RainbowClass extends STYLE {
+  constructor() {
+    super("Scrolling color rainbow", arguments);
+  }
+  run(blade) {
+    this.m = millis();
+  }
+  getColor(led) {
+    return RgbF(max(0.0, sin( (this.m * 3.0 + led * 50.0) % 1024.0 * Math.PI * 2.0 / 1000.0)),
+                max(0.0, sin( (this.m * 3.0 + led * 50.0 + 1024.0/3.0) % 1024.0 * Math.PI * 2.0 / 1000.0)),
+                max(0.0, sin( (this.m * 3.0 + led * 50.0 + 1024.0 * 2.0/3.0) % 1024.0 * Math.PI * 2.0 / 1000.0)));
+  }
+
+  pp() { return this.PPshort("Rainbow", "Scrolling color rainbow"); }
+};
+
+function Rainbow() {
+  return  new RainbowClass();
+}
+
+var STATE_ON = 0;
+var STATE_LOCKUP = 0;
+var STATE_CLASH = 0;
+var STATE_ROTATE = 0;
+var STATE_NUM_LEDS = 144;
+
+// BladeEffectType 
+const  EFFECT_NONE =  0x0;
+const  EFFECT_CLASH = 1 << 0;
+const  EFFECT_BLAST = 1 << 1;
+const  EFFECT_FORCE = 1 << 2;
+const  EFFECT_STAB =  1 << 3;
+const  EFFECT_BOOT =  1 << 4;
+const  EFFECT_LOCKUP_BEGIN = 1 << 5;
+const  EFFECT_LOCKUP_END = 1 << 6;
+const  EFFECT_DRAG_BEGIN = 1 << 7;
+const  EFFECT_DRAG_END = 1 << 8;
+const  EFFECT_IGNITION = 1 << 9;
+const  EFFECT_RETRACTION = 1 << 10;
+
+
+class BladeEffect {
+  constructor(type, start_micros, location) {
+    this.type = type;
+    this.start_micros = start_micros;
+    this.location = location;
+  }
+};
+
+
+class Range {
+  constructor(start, end) {
+    this.start = start;
+    this.end = end;
+  }
+  Size() { return max(0, this.end - this.start); }
+  Intersect(other) {
+    return new Range(max(this.start, other.start), min(this.end, other.end));
+  }
+};
+
+// TODO
+// Gray out buttons not applicable to the current type.
+// Save -> save to local storage (keep 10?) maybe with images?
+// save as -> save to local storage with name
+// Mix
+
+class ColorCycleClass extends STYLE {
+  constructor(COLOR, percentage, rpm,
+	      ON_COLOR, on_percentage, on_rpm,
+	      fade_time_millis) {
+    super();
+    this.COLOR = ColorArg(COLOR);
+    this.percentage = IntArg(percentage);
+    this.rpm = IntArg(rpm);
+    this.ON_COLOR = ColorArg(ON_COLOR, COLOR.DOCOPY());
+    this.on_percentage = IntArg(on_percentage, percentage);
+    this.on_rpm = IntArg(on_rpm, rpm);
+    this.fade_time_millis = IntArg(fade_time_millis, 1);
+    this.last_micros_ = 0;
+    this.fade_ = 0.0;
+    this.pos_ = 0.0;
+  }
+  run(blade) {
+    this.COLOR.run(blade);
+    this.ON_COLOR.run(blade);
+    var now = millis();
+    var delta = now - this.last_micros_;
+    this.last_micros_ = now;
+    if (delta > 1000) delta = 1;
+    var fade_delta = delta / this.fade_time_millis;
+    if (!blade.is_on()) fade_delta = - fade_delta;
+    this.fade_ = Math.max(0.0, Math.min(1.0, this.fade_ + fade_delta));
+    var rpm = this.rpm * (1.0 - this.fade_) + this.on_rpm * this.fade_;
+    var percentage = this.percentage * (1.0 - this.fade_) + this.on_percentage * this.fade_;
+    this.fraction_ = percentage / 100.0;
+    this.pos_ = ((this.pos_ + delta /  60000.0 * rpm) % 1.0);
+  }
+  getColor(led) {
+    var led_range = new Range(led / 144.0, (led + 1) / 144.0);
+    var black_mix = 0.0;
+    if (this.pos_ + this.fraction_ < 1.0) {
+      black_mix = new Range(this.pos_, this.pos_ + this.fraction_).Intersect(led_range).Size();
+    } else {
+      black_mix = new Range(this.pos_, 1.0).Intersect(led_range).Size() +
+        new Range(0.0, (this.pos_ + this.fraction_) % 1.0).Intersect(led_range).Size();
+    }
+    black_mix *= 144.0;
+    var c = this.COLOR.getColor(led);
+    var on_c = this.ON_COLOR.getColor(led);
+    c = c.mix(on_c, this.fade_);
+    c = BLACK.mix(c, black_mix);
+    return c;
+  }
+  pp() {
+    return this.PP("ColorCycle", "Rotating beam",
+		   this.COLOR, "beam color",
+		   this.percentage, "percentage of blade lit",
+		   this.rpm, "rotation speed",
+		   this.ON_COLOR, "beam color when on",
+		   this.on_percentage, "percentage of blade lit when on",
+		   this.on_rpm, "rotation speed when on",
+		   this.fade_time_millis, "time to transition to/from on state");
+  }
+};
+
+function ColorCycle(COLOR, percentage, rpm,
+	       ON_COLOR, on_percentage, on_rpm,
+	       fade_time_millis) {
+  return new ColorCycleClass(COLOR, percentage, rpm,
+			     ON_COLOR, on_percentage, on_rpm,
+			     fade_time_millis);
+}
+
+
+class CylonClass extends STYLE {
+  constructor(COLOR, percentage, rpm,
+	      ON_COLOR, on_percentage, on_rpm,
+	      fade_time_millis) {
+    super();
+    this.COLOR = ColorArg(COLOR);
+    this.percentage = IntArg(percentage);
+    this.rpm = IntArg(rpm);
+    this.ON_COLOR = ColorArg(ON_COLOR, COLOR.DOCOPY());
+    this.on_percentage = IntArg(on_percentage, percentage);
+    this.on_rpm = IntArg(on_rpm, rpm);
+    this.fade_time_millis = IntArg(fade_time_millis, 1);
+    this.last_micros_ = 0;
+    this.fade_ = 0.0;
+    this.pos_ = 0.0;
+  }
+  run(blade) {
+    this.COLOR.run(blade);
+    this.ON_COLOR.run(blade);
+    var now = millis();
+    var delta = now - this.last_micros_;
+    this.last_micros_ = now;
+    if (delta > 1000) delta = 1;
+    var fade_delta = delta / this.fade_time_millis;
+    if (!blade.is_on()) fade_delta = - fade_delta;
+    this.fade_ = Math.max(0.0, Math.min(1.0, this.fade_ + fade_delta));
+    // setvar(this.MIX, this.fade_);
+    var rpm = this.rpm * (1.0 - this.fade_) + this.on_rpm * this.fade_;
+    var percentage = this.percentage * (1.0 - this.fade_) + this.on_percentage * this.fade_;
+    this.fraction_ = percentage / 100.0;
+    // TODO: FIXME THIS SHOULD BE SIN()
+    this.pos_ = (this.pos_ + delta /  60000.0 * rpm) % 1.0;
+    this.POS = (Math.sin(this.pos_ * Math.PI * 2.0) + 1.0) * (0.5 - percentage/200.0);
+  }
+  getColor(led) {
+    var led_range = new Range(led / 144.0, (led + 1) / 144.0);
+    var black_mix = new Range(this.POS, this.POS + this.fraction_).Intersect(led_range).Size();
+    black_mix *= 144.0;
+    var c = this.COLOR.getColor(led);
+    var on_c = this.ON_COLOR.getColor(led);
+    c = c.mix(on_c, this.fade_);
+    c = BLACK.mix(c, black_mix);
+    return c;
+  }
+  pp() {
+    return this.PP("Cylon", "Rotating beam",
+		   this.COLOR, "beam color",
+		   this.percentage, "percentage of blade lit",
+		   this.rpm, "rotation speed",
+		   this.ON_COLOR, "beam color when on",
+		   this.on_percentage, "percentage of blade lit when on",
+		   this.on_rpm, "rotation speed when on",
+		   this.fade_time_millis, "time to transition to/from on state");
+  }
+};
+
+function Cylon(COLOR, percentage, rpm,
+	       ON_COLOR, on_percentage, on_rpm,
+	       fade_time_millis) {
+  return new CylonClass(COLOR, percentage, rpm,
+			ON_COLOR, on_percentage, on_rpm,
+			fade_time_millis);
+}
+
+class OnSparkClass extends STYLE {
+  constructor(T, SPARK_COLOR, MILLIS) {
+    super();
+    this.T = ColorArg(T);
+    this.SPARK_COLOR = ColorArg(SPARK_COLOR, WHITE);
+    this.MILLIS = IntArg(MILLIS, 200);
+    this.on_ = false;
+    this.on_millis_ = 0;
+  }
+  run(blade) {
+    this.T.run(blade);
+    this.SPARK_COLOR.run(blade);
+
+    var m = millis();
+    if (blade.is_on() != this.on_) {
+      this.on_ = blade.is_on();
+      if (this.on_) this.on_millis_ = m;
+    }
+    var t = m - this.on_millis_;
+    if (t < this.MILLIS) {
+      this.mix_ = 1.0 - t / this.MILLIS;
+    } else {
+      this.mix_ = 0.0;
+    }
+  }
+  getColor(led) {
+    var ret = this.T.getColor(led);
+    var spark = this.SPARK_COLOR.getColor(led);
+    return ret.mix(spark, this.mix_);
+  }
+  pp() {
+    return this.PP("OnSpark", "Shows the spark color for 'MILLIS' milliseconds on startup.",
+		   this.T, "Base color",
+		   this.SPARK_COLOR, "Spark color",
+		   this.MILLIS, "MILLIS");
+  }
+};
+
+function OnSpark(T, SPARK_COLOR, MILLIS) {
+  return new OnSparkClass(T, SPARK_COLOR, MILLIS);
+}
+
+class PulsingClass extends STYLE {
+  constructor(COLOR1, COLOR2, PULSE_MILLIS) {
+    console.log(arguments);
+    super("Pulses between A and B every M milliseconds", Array.from(arguments));
+    this.add_arg("COLOR1", "COLOR", "A");
+    this.add_arg("COLOR2", "COLOR", "B");
+    this.add_arg("PULSE_MILLIS", "INT", "M");
+  }
+  run(blade) {
+    this.COLOR1.run(blade);
+    this.COLOR2.run(blade);
+    this.var_ = 0.5 + 0.5 * Math.sin(millis() * 3.1415 * 2.0/ this.PULSE_MILLIS.getInteger(0));
+  }
+  getColor(led) {
+    var c = this.COLOR1.getColor(led);
+    var c2 = this.COLOR2.getColor(led);
+    return c.mix(c2, this.var_);
+  }
+}
+
+function Pulsing(COLOR1, COLOR2, PULSE_MILLIS) {
+  //console.log(COLOR1);
+  //console.log(COLOR2);
+  //console.log(PULSE_MILLIS);
+  //console.log(arguments);
+  return new PulsingClass(COLOR1, COLOR2, PULSE_MILLIS);
+}
+
+class SparkleClass extends STYLE {
+  constructor(BASE, SPARKLE_COLOR, SPARK_CHANCE_PROMILLE, SPARK_INTENSITY) {
+    super("Sparkles!!", Array.from(arguments));
+    this.add_arg("BASE", "COLOR", "Normal blade color");
+    this.add_arg("SPARKLE_COLOR", "COLOR", "Spark color", Rgb(255,255,255));
+    this.add_arg("SPARK_CHANCE_PROMILLE", "INT", "Chance of new sparks.", 300);
+    this.add_arg("SPARK_INTENSITY", "INT", "Initial spark intensity", 1024);
+    this.sparks = new Uint16Array(144 + 4);
+    this.last_update = 0;
+  }
+  run(blade) {
+    this.BASE.run(blade);
+    this.SPARKLE_COLOR.run(blade);
+    var m = millis();
+    if (m - this.last_update >= 10) {
+      this.last_update = m;
+      var fifo = 0
+      var N = blade.num_leds();
+      for (var i = 2; i <= N + 2; i++) {
+	var x = ((this.sparks[i-1] + this.sparks[i+1]) * 200 + this.sparks[i] * 570) / 1024;
+	this.sparks[i-1] = fifo;
+	fifo = x;
+      }
+      this.sparks[N] = fifo;
+      if (random(1000) < this.SPARK_CHANCE_PROMILLE) {
+	this.sparks[random(blade.num_leds()) + 2] += this.SPARK_INTENSITY;
+      }
+    }
+  }
+  getColor(led) {
+    return this.BASE.getColor(led).mix(this.SPARKLE_COLOR.getColor(led), max(0.0, min(1.0, this.sparks[led + 2]/255.0)));
+  }
+}
+
+function Sparkle(BASE, SPARKLE_COLOR, SPARK_CHANCE_PROMILLE, SPARK_INTENSITY) {
+  return new SparkleClass(BASE, SPARKLE_COLOR, SPARK_CHANCE_PROMILLE, SPARK_INTENSITY);
+}
+    
+class StrobeClass extends STYLE {
+  constructor(T, STROBE_COLOR, STROBE_FREQUENCY, STROBE_MILLIS) {
+    super();
+    this.T = ColorArg(T);
+    this.STROBE_COLOR = ColorArg(STROBE_COLOR);
+    this.STROBE_FREQUENCY = IntArg(STROBE_FREQUENCY);
+    this.STROBE_MILLIS = IntArg(STROBE_MILLIS);
+    this.strobe_ = false;
+    this.strobe_start_ = 0;
+  }
+  run(blade) {
+    this.T.run(blade);
+    this.STROBE_COLOR.run(blade);
+    var m = millis();
+    var timeout = this.strobe_ ?  this.STROBE_MILLIS : (1000 / this.STROBE_FREQUENCY);
+    if (m - this.strobe_start_ > timeout) {
+      this.strobe_start_ += timeout;
+      if (m - this.strobe_start_ > this.STROBE_MILLIS + (1000 / this.STROBE_FREQUENCY))
+	this.strobe_start_ = m;
+      this.strobe_ = !this.strobe_;
+    }
+  }
+  getColor(led) {
+    var c = this.T.getColor(led);
+    var strobe_color = this.STROBE_COLOR.getColor(led);
+    return c.mix(strobe_color, this.strobe_ ? 1.0 : 0.0);
+  }
+  pp() {
+    return this.PP("Strobe", "Stoboscope effect",
+		   this.T, "off color",
+		   this.STROBE_COLOR, "Color",
+		   this.STROBE_FREQUENCY, "Frequency",
+		   this.STROBE_MILLIS, "Strobe length in milliseconds");
+  }
+};
+
+function Strobe(T, STROBE_COLOR, STROBE_FREQUENCY, STROBE_MILLIS) {
+  return new StrobeClass(T, STROBE_COLOR, STROBE_FREQUENCY, STROBE_MILLIS);
+}
+
+class GradientClass extends STYLE {
+  constructor(COLORS) {
+    super("COLOR2 at base, COLOR2 at tip, smooth gradient in between.", COLORS);
+    this.COLORS = COLORS;
+    for (var i = 0; i < this.COLORS.length; i++)
+      this.add_arg("COLOR" + (i + 1), "COLOR", "COLOR " + (i + 1));
+  }
+  run(blade) {
+    for (var i = 0; i < this.COLORS.length; i++)
+      this.COLORS[i].run(blade);
+    this.num_leds_ = 1.0 * blade.num_leds();
+  }
+  getColor(led) {
+    var pos = led / this.num_leds_ * (this.COLORS.length - 1);
+    var N = min(this.COLORS.length -2, Math.floor(pos));
+    return this.COLORS[N].getColor(led).mix(this.COLORS[N+1].getColor(led), pos - N) ;
+  }
+};
+
+function Gradient(A, B, C, D) {
+  return new GradientClass(Array.from(arguments));
+}
+
+
+class MixClass extends STYLE {
+  constructor(ARGS) {
+    super("Mix between colors", ARGS);
+    this.COLORS = Array.from(ARGS).slice(1);
+    this.add_arg("F", "FUNCTION", "0=first color, 32768=last color");
+    for (var i = 1; i < this.COLORS.length + 1; i++)
+      this.add_arg("COLOR" + i, "COLOR", "COLOR " + i);
+  }
+  run(blade) {
+    this.F.run(blade);
+    for (var i = 0; i < this.COLORS.length; i++)
+      this.COLORS[i].run(blade);
+  }
+  getColor(led) {
+    var pos = this.F.getInteger(led) * (this.COLORS.length - 1) / 32768;
+    var N = min(this.COLORS.length -2, Math.floor(pos));
+    return this.COLORS[N].getColor(led).mix(this.COLORS[N+1].getColor(led), pos - N) ;
+  }
+};
+
+function Mix(F, C1, C2) {
+  return new MixClass(Array.from(arguments));
+};
+
+class IgnitionDelayClass extends STYLE {
+  constructor(DELAY_MILLIS, BASE) {
+    super("Delays ignition by DELAY_MILLIS", Array.from(arguments));
+    this.add_arg("DELAY_MILLIS", "INT", "Ignition delay, in milliseconds");
+    this.add_arg("BASE", "COLOR", "Blade style");
+  }
+  is_on() {
+    return this.is_on_;
+  }
+  num_leds() {
+    return this.blade.num_leds()
+  }
+  run(blade) {
+    this.blade = blade;
+    if (blade.is_on()) {
+      if (!this.waiting) {
+	this.waiting = true;
+	this.wait_start_time = millis();
+      }
+      var waited = millis() - this.wait_start_time;
+      if (waited > this.DELAY_MILLIS) {
+	this.is_on_ = true;
+	this.wait_start_time = millis() - this.DELAY_MILLIS - 1;
+      }
+    } else {
+      this.waiting = false;
+      this.is_on_ = false;
+    }
+    this.BASE.run(this)
+  }
+  getColor(led) {
+    return this.BASE.getColor(led);
+  }
+}
+
+function IgnitionDelay(millis, base) {
+  return new IgnitionDelayClass(millis, base);
+}
+
+class RandomBlinkXClass extends STYLE {
+  constructor(MILLIHZ, COLOR1, COLOR2) {
+    super("Blink each LED randomly MILLIHZ times per second.", arguments);
+    this.add_arg("MILLIHZ", "FUNCTION", "how often to blink");
+    this.add_arg("COLOR1", "COLOR", "first color", WHITE.DOCOPY());
+    this.add_arg("COLOR2", "COLOR", "second color", BLACK.DOCOPY());
+  }
+  run(blade) {
+    super.run(blade);
+    this.state = [];
+    for (var i = 0; i < blade.num_leds(); i++) {
+      this.state.push(random(2));
+    }
+  }
+  
+  getColor(led) {
+    return this.state[led] ? this.COLOR1.getColor(led) : this.COLOR2.getColor(led);
+  }
+};
+
+function RandomBlinkX(millihz, c1, c2) {
+  return new RandomBlinkXClass(millihz, c1, c2);
+}
+
+class RandomBlinkClass extends MACRO {
+  constructor(MILLIHZ, COLOR1, COLOR2) {
+    super("Blink each LED randomly MILLIHZ times per second.", arguments);
+    this.add_arg("MILLIHZ", "INT", "how often to blink");
+    this.add_arg("COLOR1", "COLOR", "first color", WHITE.DOCOPY());
+    this.add_arg("COLOR2", "COLOR", "second color", BLACK.DOCOPY());
+    this.SetExpansion(RandomBlinkX(Int(this.MILLIHZ), this.COLOR1, this.COLOR2));
+  }
+};
+
+function RandomBlink(MILLIHZ, COLOR1, COLOR2) {
+  return new RandomBlinkClass(MILLIHZ, COLOR1, COLOR2);
+}
+
+class SequenceClass extends STYLE {
+  constructor(ARGS) {
+    super("Pre-defined sequence", ARGS);
+    this.add_arg("COLOR1", "COLOR", "Color if bit is 1");
+    this.add_arg("COLOR2", "COLOR", "Color if bit is 2");
+    this.add_arg("MILLIS_PER_BIT", "INT", "Milliseconds per bit.");
+    this.add_arg("BITS", "INT", "total bits");
+    for (var i = 0; i < this.BITS; i+= 16) {
+      this.add_arg("BITS"+i, "INT", "Bit sequence " + ((i/16)+1));
+    }
+    this.SEQUENCE = Array.from(ARGS).slice(4);
+  }
+  run(blade) {
+    super.run(blade);
+    var now = millis();
+    var bit = (now / this.MILLIS_PER_BIT) % min(this.BITS, this.SEQUENCE.length * 16);
+    this.on = !!(this.SEQUENCE[bit >> 4] >> ((~bit) & 0xf) & 1)
+  }
+  getColor(led) {
+    return this.on ? this.COLOR1.getColor(led) : this.COLOR2.getColor(led);
+  }
+};
+
+function Sequence(COLOR1, COLOR2, MILLIHZ_PER_BIT, BITS, SEQUENCE) {
+  return new SequenceClass(Array.from(arguments));
+}
+
+class ColorSequenceClass extends STYLE {
+  constructor(ARGS) {
+    super("Pre-defined sequence", ARGS);
+    this.add_arg("MILLIS_PER_COLOR", "INT", "Milliseconds before moving to next color.");
+    this.COLORS = Array.from(ARGS).slice(1);
+    for (var i = 1; i < this.COLORS.length + 1; i++)
+      this.add_arg("COLOR" + i, "COLOR", "COLOR " + i);
+    this.last_micros = 0;
+    this.n = 0;
+  }
+  run(blade) {
+    super.run(blade);
+    var now = micros();
+    var millis_per_color = this.MILLIS_PER_COLOR.getInteger(0);
+    if (now - this.last_micros > millis_per_color * 1000) {
+      if (now - this.last_micros > millis_per_color * 10000) {
+        this.n = 0;
+	this.last_micros = now;
+      } else {
+        this.n = (this.n + 1) % this.COLORS.length;
+        this.last_micros += millis_per_color * 1000;
+      }
+    }
+  }
+  getColor(led) { return this.COLORS[this.n].getColor(led); }
+};
+
+function ColorSequence(MPC, C) {
+  return new ColorSequenceClass(Array.from(arguments));
+};
+
+class StripesXClass extends STYLE {
+  constructor(ARGS) {
+    super("Configurable rainbow", ARGS);
+    this.add_arg("WIDTH", "FUNCTION", "Stripe width");
+    this.add_arg("SPEED", "FUNCTION", "Scroll speed");
+    this.COLORS = ARGS.slice(2);
+    for (var i = 1; i < this.COLORS.length + 1; i++)
+      this.add_arg("COLOR" + i, "COLOR", "COLOR " + i);
+    this.last_micros = 0;
+    this.m = 0;
+  }
+  run(blade) {
+    super.run(blade);
+    var now_micros = micros();
+    var delta_micros = now_micros - this.last_micros;
+    this.last_micros = now_micros;
+    this.m = (this.m + delta_micros * this.SPEED.getInteger(0) / 333) % (this.COLORS.length * 341 * 1024);
+    this.mult = (50000 * 1024 / this.WIDTH.getInteger(0));
+  }
+  GET_COLOR(N, led, p, ret) {
+    if (N >= this.COLORS.length || p < 0) return;
+    if (p > 0 && p < 512) {
+      var tmp = this.COLORS[N].getColor(led);
+      var mul = sin(p * Math.PI / 512.0);
+      ret.r += tmp.r * mul;
+      ret.g += tmp.g * mul;
+      ret.b += tmp.b * mul;
+    }
+    this.GET_COLOR(N+1, led, p - 341, ret);
+  }
+  getColor(led) {
+    var p = ((this.m + led * this.mult) >> 10) % (this.COLORS.length * 341);
+    var ret = Rgb(0,0,0);
+    this.GET_COLOR(0, led, p, ret);
+    this.GET_COLOR(0, led, p + 341 * this.COLORS.length, ret);
+    return ret;
+  }
+}
+
+function StripesX(W,S,C) {
+  return new StripesXClass(Array.from(arguments));
+}
+
+class StripesClass extends MACRO {
+  constructor(ARGS) {
+    super("Configurable rainbow", ARGS);
+    this.add_arg("WIDTH", "INT", "Stripe width");
+    this.add_arg("SPEED", "INT", "Scroll speed");
+    this.COLORS = ARGS.slice(2);
+    for (var i = 1; i < this.COLORS.length + 1; i++)
+      this.add_arg("COLOR" + i, "COLOR", "COLOR " + i);
+
+    this.SetExpansion(new StripesXClass([Int(this.WIDTH), Int(this.SPEED)].concat(this.COLORS)));
+  }
+}
+
+function Stripes(W,S,C) {
+  return new StripesClass(Array.from(arguments));
+}
+
+class AudioFlickerClass extends STYLE {
+  constructor(A, B) {
+    super();
+    this.A = ColorArg(A);
+    this.B = ColorArg(B);
+  }
+  run(blade) {
+    this.A.run(blade);
+    this.B.run(blade);
+    this.var_ = Math.random() * Math.random();
+  }
+  getColor(led) {
+    return this.A.getColor(led).mix(this.B.getColor(led), this.var_)
+  }
+  pp() {
+    return this.PP("AudioFlicker", "Selects between A and B based on audio. Higher volumes means more B.",
+		   this.A, "A",
+		   this.B, "B");
+  }
+};
+
+function AudioFlicker(A, B) {
+  return new AudioFlickerClass(A, B);
+}
+
+class RandomFlickerClass extends STYLE {
+  constructor(A, B) {
+    super();
+    this.A = ColorArg(A);
+    this.B = ColorArg(B);
+  }
+  run(blade) {
+    this.A.run(blade);
+    this.B.run(blade);
+    this.var_ = Math.random() * Math.random();
+  }
+  getColor(led) {
+    return this.A.getColor(led).mix(this.B.getColor(led), this.var_)
+  }
+  pp() {
+    return this.PP("RandomFlicker", "Selects between A and B randomly.",
+		   this.A, "A",
+		   this.B, "B");
+  }
+};
+
+function RandomFlicker(A, B) {
+  return new RandomFlickerClass(A, B);
+}
+
+class RandomPerLEDFlickerClass extends STYLE {
+  constructor(A, B) {
+    super();
+    this.A = ColorArg(A);
+    this.B = ColorArg(B);
+  }
+  run(blade) {
+    this.A.run(blade);
+    this.B.run(blade);
+  }
+  getColor(led) {
+    return this.A.getColor(led).mix(this.B.getColor(led), Math.random());
+  }
+  pp() {
+    return this.PP("RandomPerLEDFlicker", "Selects between A and B randomly.",
+		   this.A, "A",
+		   this.B, "B");
+  }
+};
+
+function RandomPerLEDFlicker(A, B) {
+  return new RandomPerLEDFlickerClass(A, B);
+}
+
+class BrownNoiseFlickerClass extends STYLE {
+  constructor(A, B, grade) {
+    super();
+    this.A = ColorArg(A);
+    this.B = ColorArg(B);
+    this.grade = IntArg(grade, 50);
+  }
+  run(blade) {
+    this.A.run(blade);
+    this.B.run(blade);
+    this.mix = Math.floor(Math.random()*255);
+  }
+  getColor(led) {
+    var ret = this.A.getColor(led).mix(this.B.getColor(led), this.mix / 255.0)
+    this.mix += Math.floor(Math.random() * (this.grade * 2 + 1)) - this.grade;
+    this.mix = max(min(this.mix, 255), 0);
+    return ret;
+  }
+  pp() {
+    return this.PP("BrownNoiseFlicker", "Randomly selects between A and B but keeps nearby pixels similar",
+		   this.A, "A",
+		   this.B, "B",
+		   this.grade, "grade"
+		  );
+  }
+};
+
+function BrownNoiseFlicker(A, B, grade) {
+  return new BrownNoiseFlickerClass(A, B, grade);
+}
+
+class HumpFlickerClass extends STYLE {
+  constructor(A, B, hump_width) {
+    super();
+    this.A = ColorArg(A);
+    this.B = ColorArg(B);
+    this.hump_width = IntArg(hump_width, 50);
+  }
+  run(blade) {
+    this.A.run(blade);
+    this.B.run(blade);
+    this.pos = Math.floor(Math.random() * blade.num_leds());
+  }
+  getColor(led) {
+    var a = this.A.getColor(led);
+    var b = this.B.getColor(led);
+    var m = Math.abs(led - this.pos) * 255 / this.hump_width
+    m = max(min(m, 255), 0);
+    return a.mix(b, m/255.0);
+  }
+  pp() {
+    return this.PP("HumpFlicker", "Randomly selects between A and B but keeps nearby pixels similar",
+		   this.A, "A",
+		   this.B, "B",
+		   this.hump_width, "hump_width"
+		  );
+  }
+};
+
+function HumpFlicker(A, B, hump_width) {
+  return new HumpFlickerClass(A, B, hump_width);
+}
+
+class FireConfigClass extends CONFIG {
+  constructor(INTENSITY_BASE, INTENSITY_RAND, COOLING) {
+    super("Fire configuration", Array.from(arguments));
+    this.add_arg("intensity_base", "INT", "intensity base");
+    this.add_arg("intensity_rand", "INT", "intensity random");
+    this.add_arg("cooling", "INT", "cooling");
+  }
+  getType() { return "FireConfig"; }
+}
+
+function FireConfig(B, R, C) {
+  return new FireConfigClass(B, R, C);
+}
+
+function FireConfigI(B, R, C) {
+  return new FireConfigClass(new INTEGER(B), new INTEGER(R), new INTEGER(C));
+}
+
+const FIRE_STATE_OFF = 0
+const FIRE_STATE_ACTIVATING = 1;
+const FIRE_STATE_ON = 2;
+
+class StyleFireClass extends STYLE {
+  constructor(COLOR1, COLOR2, DELAY, SPEED, NORM, CLASH, LOCK, OFF) {
+    super("Too complicated to describe briefly", Array.from(arguments));
+    this.add_arg("COLOR1", "COLOR", "Warm color");
+    this.add_arg("COLOR2", "COLOR", "Hot color");
+    this.add_arg("DELAY", "INT", "Delay", 0);
+    this.add_arg("SPEED", "INT", "Seeed", 2);
+    this.add_arg("NORM", "FireConfig", "Config when on", FireConfigI(0, 2000, 5));
+    this.add_arg("CLASH", "FireConfig", "Config during clash", FireConfigI(3000, 0, 0));
+    this.add_arg("LOCK", "FireConfig", "Config during lockup", FireConfigI(0, 5000, 10));
+    this.add_arg("OFF", "FireConfig", "Config when off", FireConfigI(0, 0, this.NORM.cooling.value));
+    this.heat = new Uint16Array(144 + 13);
+    this.state = FIRE_STATE_OFF;
+    this.last_update = 0;
+  }
+  On(blade) {
+    if (!blade.is_on()) {
+      this.state = FIRE_STATE_OFF;
+      return false;
+    }
+    if (this.state == FIRE_STATE_OFF) {
+      this.state = FIRE_STATE_ACTIVATING;
+      this.on_time = millis();
+    }
+    if (this.state = FIRE_STATE_ACTIVATING) {
+      if (millis() - this.on_time < this.DELAY) return false;
+      this.state = FIRE_STATE_ON;
+    }
+    return true;
+  }
+  run(blade) {
+    super.run(blade);
+    var m = millis();
+    if (m - this.last_update < 10)
+      return;
+    if (m - this.last_update < 40) {
+      this.last_update += 10;;
+    } else {
+      this.last_update = m;
+    }
+    var num_leds = blade.num_leds();
+    this.num_leds = num_leds;
+    var conf = this.OFF;
+    if (STATE_CLASH) {
+      conf = this.CLASH;
+      STATE_CLASH = 0;
+    } else if (this.On(blade)) {
+      if (STATE_LOCKUP == 0) {
+	conf = this.NORM;
+      } else {
+	conf = this.LOCK;
+      }
+    }
+
+    for (var i = 0; i < this.SPEED; i++) {
+      this.heat[num_leds + i] = conf.intensity_base +
+	random(random(random(conf.intensity_rand)));
+    }
+    for (var i = 0; i < num_leds; i++) {
+      var x = (this.heat[i + this.SPEED-1] * 3 + this.heat[i + this.SPEED] * 10 + this.heat[i + this.SPEED +1] * 3) >> 4;
+      x -= random(conf.cooling);
+      this.heat[i] = max(0, min(x, 65535));
+    }
+  }
+  getColor(led) {
+    var h = this.heat[this.num_leds - 1 - led];
+    if (h < 256) {
+      return  BLACK.mix(this.COLOR1.getColor(led), h / 255.0);
+    } else if (h < 512) {
+      return this.COLOR1.getColor(led).mix(this.COLOR2.getColor(led), (h-256)/255.0);
+    } else if (h < 768) {
+      return this.COLOR2.getColor(led).mix(WHITE, (h - 512) / 255.0);
+    } else {
+      return WHITE;
+    }
+  }
+};
+
+function StyleFire(COLOR1, COLOR2, DELAY, SPEED, NORM, CLASH, LOCK, OFF) {
+  return new StyleFireClass(COLOR1, COLOR2, DELAY, SPEED, NORM, CLASH, LOCK, OFF);
+}
+
+class RgbCycleClass extends STYLE {
+  constructor() {
+    super();
+    this.n = 0;
+  }
+  run(blade) {
+    this.n++;
+    if (this.n >= 3) this.n = 0;
+    if (this.n == 0) this.RET = Rgb(255,0,0);
+    if (this.n == 1) this.RET = Rgb(0,255,0);
+    if (this.n == 2) this.RET = Rgb(0,0,250);
+  }
+  getColor(led) {
+    return this.RET;
+  }
+  pp() {
+    return this.PP("RgbCycle", "alternates betwen red, green and blue.");
+  }
+};
+
+function RgbCycle() {
+  return new RgbCycleClass();
+}
+
+function AddBlast() {
+  blade.addEffect(EFFECT_BLAST, Math.random() * 0.7 + 0.2);
+}
+function AddForce() {
+  blade.addEffect(EFFECT_FORCE, Math.random() * 0.7 + 0.2);
+}
+function AddClash() {
+  blade.addEffect(EFFECT_CLASH, Math.random() * 0.7 + 0.2);
+}
+
+var blast_hump = [ 255,255,252,247,240,232,222,211,
+		   199,186,173,159,145,132,119,106,
+		   94,82,72,62,53,45,38,32,
+		   26,22,18,14,11,9,7,5,0 ];
+
+class BlastClass extends STYLE {
+  constructor(BASE, BLAST, FADEOUT_MS, WAVE_SIZE, WAVE_MS, EFFECT_ARG) {
+    super("Blast effect", Array.from(arguments));
+    this.add_arg("BASE", "COLOR", "base color");
+    this.add_arg("BLAST", "COLOR", "blast color");
+    this.add_arg("FADEOUT_MS", "INT", "fadeout time in milliseconds", 200);
+    this.add_arg("WAVE_SIZE", "INT", "wave size", 100);
+    this.add_arg("WAVE_MS", "INT", "wave speed", 400);
+    this.add_arg("EFFECT", "EFFECT", "effect type", EFFECT(EFFECT_BLAST));
+  }
+  run(blade) {
+    this.BASE.run(blade);
+    this.BLAST.run(blade);
+    this.T = micros();
+    this.num_leds_ = 1.0 * blade.num_leds();
+    this.effects_ = blade.GetEffects();
+  }
+  getColor(led) {
+    var base = this.BASE.getColor(led);
+    var blast = this.BLAST.getColor(led);
+    var b = 0.0;
+    for (var i = 0; i < this.effects_.length; i++) {
+      if ((this.effects_[i].type & this.EFFECT) == 0) continue;
+      var T = (this.T - this.effects_[i].start_micros);
+      var M = 1000 - T / this.FADEOUT_MS;
+      if (M > 0) {
+	var dist = Math.abs(this.effects_[i].location - led / this.num_leds_);
+	var N = Math.floor(Math.abs(dist - T / (this.WAVE_MS * 1000.0)) * this.WAVE_SIZE);
+	if (N < 32) {
+	  b += blast_hump[N] * M / 1000.0 / 255.0;
+	}
+      }
+    }
+    return base.mix(blast, max(min(b, 1.0), 0.0));
+  }
+};
+
+function Blast(BASE, BLAST, FADEOUT_MS, WAVE_SIZE, WAVE_MS, EFFECT) {
+  return new BlastClass(BASE, BLAST, FADEOUT_MS, WAVE_SIZE, WAVE_MS, EFFECT);
+}
+
+class BlastFadeoutClass extends STYLE {
+  constructor(BASE, BLAST, FADEOUT_MS, EFFECT_ARG) {
+    console.log(Array.from(arguments));
+    super("BlastFadeout effect", Array.from(arguments));
+    this.add_arg("BASE", "COLOR", "base color");
+    this.add_arg("BLAST", "COLOR", "blast color");
+    this.add_arg("FADEOUT_MS", "INT", "fadeout time in milliseconds", 200);
+    this.add_arg("EFFECT", "EFFECT", "effect type", EFFECT(EFFECT_BLAST));
+  }
+  run(blade) {
+    this.BASE.run(blade);
+    this.BLAST.run(blade);
+    this.T = micros();
+    this.num_leds_ = 1.0 * blade.num_leds();
+    this.effects_ = blade.GetEffects();
+  }
+  getColor(led) {
+    var base = this.BASE.getColor(led);
+    var blast = this.BLAST.getColor(led);
+    var b = 0.0;
+    for (var i = 0; i < this.effects_.length; i++) {
+      if ((this.effects_[i].type & this.EFFECT) == 0) continue;
+      var T = (this.T - this.effects_[i].start_micros);
+      var M = 1000 - T / this.FADEOUT_MS;
+      if (M > 0) {
+	b += M / 1000.0;
+      }
+    }
+    return base.mix(blast, max(min(b, 1.0), 0.0));
+  }
+};
+
+function BlastFadeout(BASE, BLAST, FADEOUT_MS, EFFECT) {
+  return new BlastFadeoutClass(BASE, BLAST, FADEOUT_MS, EFFECT);
+}
+
+class OriginalBlastClass extends STYLE {
+  constructor(BASE, BLAST, EFFECT_ARG) {
+    super("Original blast effect", Array.from(arguments));
+    this.add_arg("BASE", "COLOR", "base color");
+    this.add_arg("BLAST", "COLOR", "blast color");
+    this.add_arg("EFFECT", "EFFECT", "effect type", EFFECT(EFFECT_BLAST));
+  }
+  run(blade) {
+    this.BASE.run(blade);
+    this.BLAST.run(blade);
+    this.T = micros();
+    this.num_leds_ = 1.0 * blade.num_leds();
+    this.effects_ = blade.GetEffects();
+  }
+  getColor(led) {
+    var base = this.BASE.getColor(led);
+    var blast = this.BLAST.getColor(led);
+    var b = 0.0;
+    for (var i = 0; i < this.effects_.length; i++) {
+      if ((this.effects_[i].type & this.EFFECT) == 0) continue;
+      var x = (this.effects_[i].location - led/this.num_leds_) * 30.0;
+      var T = (this.T - this.effects_[i].start_micros);
+      var t = 0.5 + T / 200000.0;
+      if (x == 0.0) {
+	b += 1.0 / (t * t);
+      } else {
+	b += sin(x / (t*t)) / x;
+      }
+    }
+    return base.mix(blast, min(b, 1.0));
+  }
+};
+
+function OriginalBlast(BASE, BLAST, EFFECT) {
+  return new OriginalBlastClass(BASE, BLAST, EFFECT);
+}
+
+class BlinkingClass extends STYLE {
+  constructor(COLOR1, COLOR2, BLINK_MILLIS, BLINK_PROMILLE) {
+    super("Blinks between A and B", Array.from(arguments));
+    this.add_arg("COLOR1", "COLOR", "A");
+    this.add_arg("COLOR2", "COLOR", "B");
+    this.add_arg("BLINK_MILLIS", "INT", "milliseconds between blinks");
+    this.add_arg("BLINK_PROMILLE", "INT", "0 = off, 1000 = on");
+    this.on_ = false;
+    this.pulse_start_micros_ = 0;
+  }
+  run(blade) {
+    this.COLOR1.run(blade);
+    this.COLOR2.run(blade);
+    this.BLINK_MILLIS.run(blade);
+    this.BLINK_PROMILLE.run(blade);
+    var now = micros();
+    var pulse_millis = this.BLINK_MILLIS.getInteger(0);
+    if (pulse_millis <= 0) return;
+    var pulse_progress_micros = now - this.pulse_start_micros_;
+    if (pulse_progress_micros > pulse_millis * 1000) {
+      // Time to start a new pulse
+      if (pulse_progress_micros < pulse_millis * 2000) {
+	this.pulse_start_micros_ += pulse_millis * 1000;
+      } else {
+	this.pulse_start_micros_ = now;
+      }
+      pulse_progress_micros = now - this.pulse_start_micros_;
+    }
+    var pulse_progress_promille = pulse_progress_micros / pulse_millis;
+    this.on_ = pulse_progress_promille <= this.BLINK_PROMILLE.getInteger(0);
+  }
+  getColor(led) {
+    var a = this.COLOR1.getColor(led);
+    var b = this.COLOR2.getColor(led);
+    return this.on_ ? a : b;
+  }
+};
+
+function Blinking(A, B, BM, BP) {
+  return new BlinkingClass(A, B, BM, BP);
+}
+
+class SimpleClashClass extends STYLE {
+  constructor(T, CLASH, CLASH_MILLIS, EFFECT_ARG) {
+    super("Implements the clash effect", Array.from(arguments));
+    this.add_arg("T", "COLOR", "base color");
+    this.add_arg("CLASH", "COLOR", "Clash color");
+    this.add_arg("CLASH_MILLIS", "INT", "How many MS to show the clash color for.", 40);
+    this.add_arg("EFFECT", "EFFECT", "effect type", EFFECT(EFFECT_CLASH));
+    this.effect_ = new OneshotEffectDetector(this.EFFECT);
+  }
+  run(blade) {
+    this.T.run(blade);
+    this.CLASH.run(blade);
+
+    if (this.effect_.Detect(blade)) this._clashing = true;
+    if (this._clashing && micros() - this.effect_.last_detected_ > this.CLASH_MILLIS * 1000) {
+      this._clashing = false;
+    }
+  }
+  getColor(led) {
+    return this.T.getColor(led).mix(this.CLASH.getColor(led),
+				    this._clashing ? 1.0 : 0.0);
+  }
+};
+
+function SimpleClash(T, CLASH, MILLIS, EF) {
+  return new SimpleClashClass(T, CLASH, MILLIS, EF);
+}
+
+
+class LocalizedClashClass extends STYLE {
+  constructor(T, CLASH_COLOR, CLASH_MILLIS, CLASH_WIDTH_PERCENT, EFFECT_ARG) {
+    super("Localized clash", arguments);
+    this.add_arg("T", "COLOR", "base color");
+    this.add_arg("CLASH_COLOR", "COLOR", "Clash color", WHITE.DOCOPY());
+    this.add_arg("CLASH_MILLIS", "INT", "Clash duration in milliseconds", 40);
+    this.add_arg("CLASH_WIDTH_PERCENT", "INT", "Clash width in percent of entire blade", 50);
+    this.add_arg("EFFECT", "EFFECT", "effect type", EFFECT(EFFECT_CLASH));
+    this.effect_ = new OneshotEffectDetector(this.EFFECT);
+  }
+  run(blade) {
+    this.T.run(blade);
+    this.CLASH_COLOR.run(blade);
+
+    var m = millis();
+    var clashing = 0;
+    var e = this.effect_.Detect(blade);
+    if (e) {
+      this.clash = true;
+      this.mult = blast_hump.length * 2 * 102400 / this.CLASH_WIDTH_PERCENT / blade.num_leds();
+      this.clash_location = e.location * blade.num_leds() * this.mult;
+    } else if (micros() - this.effect_.last_detected_ < this.CLASH_MILLIS.getInteger(0) * 1000) {
+      this.clash = true;
+    } else {
+      this.clash = false;
+    }
+  }
+  getColor(led) {
+    if (this.clash) {
+      var ret = this.T.getColor(led);
+      var dist = Math.floor(Math.abs(led * this.mult - this.clash_location) / 1024);
+      if (dist < blast_hump.length) {
+	ret = ret.mix(this.CLASH_COLOR.getColor(led), blast_hump[dist]/255.0);
+      }
+      return ret;
+    } else {
+      return this.T.getColor(led);
+    }
+  } 
+}
+
+function LocalizedClash(T, CLASH_COLOR, CLASH_MILLIS, CLASH_WIDTH_PERCENT, EF) {
+  return new LocalizedClashClass(T, CLASH_COLOR, CLASH_MILLIS, CLASH_WIDTH_PERCENT, EF);
+}
+
+class LockupClass extends STYLE {
+  constructor(BASE, LOCKUP, DRAG_COLOR) {
+    super("Implements the lockup and drag effects.", arguments);
+    this.add_arg("BASE", "COLOR", "base color");
+    this.add_arg("LOCKUP", "COLOR", "lockup color");
+    this.add_arg("DRAG_COLOR", "COLOR", "drag color", this.LOCKUP.DOCOPY());
+  }
+  run(blade) {
+    this.BASE.run(blade);
+    this.LOCKUP.run(blade);
+    this.DRAG_COLOR.run(blade);
+    if (STATE_LOCKUP == 0) {
+      this.thres = blade.num_leds() * 2;
+    } else if (STATE_LOCKUP == 1) {
+      this.thres = -1;
+    } else if (STATE_LOCKUP == 2) {
+      this.thres = blade.num_leds() * 98 / 100;
+    }
+  }
+    
+  getColor(led) {
+    if (led >= this.thres) {
+      if (STATE_LOCKUP == 2) {
+        return this.DRAG_COLOR.getColor(led);
+      } else {
+	return this.LOCKUP.getColor(led);
+      }
+    } else {
+      return this.BASE.getColor(led);
+    }
+  }
+};
+
+
+function Lockup(BASE, LOCKUP, DRAG) {
+  return new LockupClass(BASE, LOCKUP, DRAG);
+}
+
+const start_millis = new Date().getTime();
+function actual_millis() {
+  return new Date().getTime() - start_millis;
+}
+var current_micros = 0;
+function micros() {
+  return current_micros;
+}
+
+function millis() {
+  return current_micros / 1000;
+}
+
+function fract(v) {
+  return v - Math.floor(v);
+}
+
+function FIND(id) {
+  ret = document.getElementById(id);
+  if (!ret) {
+    console.log("Failed to find " + id);
+  }
+  return ret;
+}
+
+var max = Math.max;
+var min = Math.min;
+var sin = Math.sin;
+function random(i) {
+  return Math.floor(Math.random() * i);
+}
+function clamp(a, b, c) {
+  if (a < b) return b;
+  if (a > c) return c;
+  return a;
+}
+
+class Blade {
+  constructor() {
+    this.effects_ = [];
+  }
+  is_on() {
+    return STATE_ON;
+  }
+  num_leds() {
+    return STATE_NUM_LEDS;
+  }
+  addEffect(type, location) {
+    this.effects_.push(new BladeEffect(type, micros(), location));
+  }
+  GetEffects() {
+    while (this.effects_.length > 0 && micros() - this.effects_[0].start_micros >= 5000000) {
+      this.effects_.shift();
+    }
+    return this.effects_;
+  }
+};
+
+class OneshotEffectDetector {
+  constructor(type) {
+    this.last_detected_ = 0;
+    this.type_ = type;
+  }
+  Detect(blade) {
+    var effects = blade.GetEffects();
+    for (var i = effects.length -1 ; i >=0 ; i--) {
+      if (effects[i].type & this.type_) {
+        if (effects[i].start_micros == this.last_detected_)
+	  return 0;
+	this.last_detected_ = effects[i].start_micros;
+	return effects[i];
+      }
+    }
+    return 0;
+  }
+  getDetected(blade) {
+    var effects = blade.GetEffects();
+    for (var i = effects.length -1 ; i >=0 ; i--)
+      if (effects[i].type & this.type_)
+        if (effects[i].start_micros == this.last_detected_)
+	  return effects[i];
+    return 0;
+  }
+};
+
+var focus_catcher;
+var focus_trace = [undefined];
+
+function Focus(T) {
+  console.log("FOCUS=" + T);
+  console.log(T);
+  focus_catcher = T;
+  focus_trace = [T];
+  return T;
+}
+
+function StylePtr(T) {
+  return T;
+}
+
+class EasyBladeClass extends MACRO {
+  constructor(COLOR, CLASH_COLOR, LOCKUP_FLICKER_COLOR) {
+    super("Adds clash/lockup/blast/drag", arguments);
+    this.add_arg("COLOR","COLOR","Main color");
+    this.add_arg("CLASH_COLOR", "COLOR", "Clash color");
+    this.add_arg("LOCKUP_FLICKER_COLOR", "COLOR", "lockup flicker color", WHITE.DOCOPY());
+
+    this.SetExpansion(
+      SimpleClash(Lockup(Blast(this.COLOR, WHITE.DOCOPY()), AudioFlicker(this.COLOR.DOCOPY(), this.LOCKUP_FLICKER_COLOR)), this.CLASH_COLOR)
+    );
+  }
+};
+
+function EasyBlade(color, clash_color, lockup_flicker_color) {
+  return new EasyBladeClass(color, clash_color, lockup_flicker_color);
+}
+
+class StyleNormalPtrClass extends MACRO {
+  constructor(base_color, clash_color, out_ms, in_ms, lockup_flicker_color, blast_color) {
+    super("Blade to color.", arguments);
+    this.add_arg("BASE_COLOR","COLOR","Main color");
+    this.add_arg("CLASH_COLOR", "COLOR", "Clash color");
+    this.add_arg("OUT_MS", "INT", "extension length in milliseconds");
+    this.add_arg("IN_MS", "INT", "retraction length in milliseconds");
+    this.add_arg("LOCKUP_FLICKER_COLOR", "COLOR", "lockup flicker color", WHITE.DOCOPY());
+    this.add_arg("BLAST_COLOR", "COLOR", "Blast color", WHITE.DOCOPY());
+
+    var tmp = AudioFlicker(this.BASE_COLOR, this.LOCKUP_FLICKER_COLOR);
+    var tmp2 = Blast(this.BASE_COLOR.DOCOPY(), this.BLAST_COLOR);
+    tmp = Lockup(tmp2, tmp);
+    tmp = SimpleClash(tmp, this.CLASH_COLOR);
+    this.SetExpansion(InOutHelper(tmp, this.OUT_MS, this.IN_MS));
+  }
+}
+
+function StyleNormalPtr(base_color, clash_color, out_ms, in_ms, lockup_flicker_color, blast_color) {
+  return new StyleNormalPtrClass(base_color, clash_color, out_ms, in_ms, lockup_flicker_color, blast_color);
+}
+
+class StyleRainbowPtrClass extends MACRO {
+  constructor(OUT_MS, IN_MS, CLASH_COLOR, LOCKUP_FLICKER_COLOR) {
+    super("Rainbow style template", arguments);
+    this.add_arg("OUT_MS", "INT", "extension length in milliseconds");
+    this.add_arg("IN_MS", "INT", "retraction length in milliseconds");
+    this.add_arg("CLASH_COLOR", "COLOR", "Clash color", WHITE.DOCOPY());
+    this.add_arg("LOCKUP_FLICKER_COLOR", "COLOR", "lockup flicker color", WHITE.DOCOPY());
+    
+    var tmp = AudioFlicker(Rainbow(), this.LOCKUP_FLICKER_COLOR);
+    tmp = Lockup(Rainbow(), tmp);
+    tmp = SimpleClash(tmp, this.CLASH_COLOR);
+    this.SetExpansion(InOutHelper(tmp, this.OUT_MS, this.IN_MS));
+  }
+};
+
+function StyleRainbowPtr(out_ms, in_ms, clash_color, lockup_flicker_color) {
+  return new StyleRainbowPtrClass(out_ms, in_ms, clash_color, lockup_flicker_color);
+}
+
+
+class StyleStrobePtrClass extends MACRO {
+  constructor(STROBE_COLOR, CLASH_COLOR, FREQUENCY, OUT_MS, IN_MS) {
+    super("Rainbow style template", arguments);
+    this.add_arg("STROBE_COLOR","COLOR","Strobe color");
+    this.add_arg("CLASH_COLOR", "COLOR", "Clash color");
+    this.add_arg("FREQUENCY", "INT", "frequency");
+    this.add_arg("OUT_MS", "INT", "extension length in milliseconds");
+    this.add_arg("IN_MS", "INT", "retraction length in milliseconds");
+    
+    var strobe = Strobe(BLACK.DOCOPY(), this.STROBE_COLOR, this.FREQUENCY, 1);
+    var fast_strobe = Strobe(BLACK.DOCOPY(), this.STROBE_COLOR.DOCOPY(), this.FREQUENCY * 3, 1);
+    var tmp = Lockup(strobe, fast_strobe);
+    tmp = SimpleClash(tmp, this.CLASH_COLOR);
+    this.SetExpansion(InOutHelper(tmp, this.OUT_MS, this.IN_MS));
+  }
+};
+
+function StyleStrobePtr(strobe_color, clash_color, frequency, out_ms, in_ms) {
+  return new StyleStrobePtrClass(strobe_color, clash_color, frequency, out_ms, in_ms);
+}
+
+class StyleFirePtrClass extends MACRO {
+  constructor(COLOR1, COLOR2,
+		      BLADE_NUM, DELAY, SPEED,
+		      NORM_BASE, NORM_RAND, NORM_COOL,
+		      CLSH_BASE, CLSH_RAND, CLSH_COOL,
+		      LOCK_BASE, LOCK_RAND, LOCK_COOL,
+		      OFF_BASE, OFF_RAND, OFF_COOL) {
+    super("Fire Blade", arguments);
+    this.add_arg("COLOR1", "COLOR", "Warm color.");
+    this.add_arg("COLOR2", "COLOR", "Hot color.");
+    this.add_arg("BLADE_NUM", "INT", "Ignored", INT(1));
+    this.add_arg("DELAY", "INT", "ignition delay", INT(0));
+    this.add_arg("SPEED", "INT", "fire speed", INT(2));
+    this.add_arg("NORM_BASE", "INT", "constant heat added in normal mode", INT(0));
+    this.add_arg("NORM_RAND", "INT", "random heat added in normal mode", INT(2000));
+    this.add_arg("NORM_COOL", "INT", "cooling in normal mode", INT(5));
+
+    this.add_arg("CLSH_BASE", "INT", "constant heat added in clash mode", INT(3000));
+    this.add_arg("CLSH_RAND", "INT", "random heat added in clash mode", INT(0));
+    this.add_arg("CLSH_COOL", "INT", "cooling in clash mode", INT(0));
+
+    this.add_arg("LOCK_BASE", "INT", "constant heat added in lockup mode", INT(0));
+    this.add_arg("LOCK_RAND", "INT", "random heat added in lockup mode", INT(5000));
+    this.add_arg("LOCK_COOL", "INT", "cooling in lockup mode", INT(10));
+
+    this.add_arg("OFF_BASE", "INT", "constant heat added in off mode", INT(0));
+    this.add_arg("OFF_RAND", "INT", "random heat added in off mode", INT(0));
+    this.add_arg("OFF_COOL", "INT", "cooling in off mode", INT(10));
+    this.SetExpansion(StyleFire(
+      this.COLOR1, this.COLOR2,
+      this.DELAY, this.SPEED,
+      FireConfig(this.NORM_BASE, this.NORM_RAND, this.NORM_COOL),
+      FireConfig(this.CLSH_BASE, this.CLSH_RAND, this.CLSH_COOL),
+      FireConfig(this.LOCK_BASE, this.LOCK_RAND, this.LOCK_COOL),
+      FireConfig(this.OFF_BASE, this.OFF_RAND, this.OFF_COOL)));
+  }
+};
+
+function StyleFirePtr(COLOR1, COLOR2,
+		      BLADE_NUM, DELAY, SPEED,
+		      NORM_BASE, NORM_RAND, NORM_COOL,
+		      CLSH_BASE, CLSH_RAND, CLSH_COOL,
+		      LOCK_BASE, LOCK_RAND, LOCK_COOL,
+		      OFF_BASE, OFF_RAND, OFF_COOL) {
+  return new StyleFirePtrClass(COLOR1, COLOR2,
+      BLADE_NUM, DELAY, SPEED,
+      NORM_BASE, NORM_RAND, NORM_COOL,
+      CLSH_BASE, CLSH_RAND, CLSH_COOL,
+      LOCK_BASE, LOCK_RAND, LOCK_COOL,
+      OFF_BASE,  OFF_RAND , OFF_COOL);
+}
+
+class InOutHelperXClass extends STYLE {
+  constructor(T, EXTENSION, OFF_COLOR, ALLOW_DISABLE) {
+    super("0=retracted, 32768=extended", arguments);
+    this.add_arg("T", "COLOR", "base color");
+    this.add_arg("EXTENSION", "FUNCTION", "extension amount");
+    this.add_arg("OFF_COLOR", "COLOR", "color when retracted", BLACK.DOCOPY());
+    this.add_arg("ALLOW_DISABLE", "INT", "allow disable?", 1);
+  }
+  run(blade) {
+    super.run(blade);
+    this.thres = (this.EXTENSION.getInteger(0) * blade.num_leds()) >> 7;
+  }
+  getColor(led) {
+    var black_mix = clamp(this.thres - led * 256, 0, 256);
+    var ret = this.T.getColor(led);
+    var off_color = this.OFF_COLOR.getColor(led);
+    return off_color.mix(ret, black_mix / 256.0);
+  }
+}
+
+function InOutHelperX(T, EX, O, AD) {
+  return new InOutHelperXClass(T, EX, O, AD);
+}
+
+
+//--
+class InOutHelperClass extends MACRO {
+  constructor(T, OUT_MILLIS, IN_MILLIS, OFF_COLOR) {
+    super("Extend/extract blade", arguments);
+    this.add_arg("T", "COLOR", "Base color");
+    this.add_arg("OUT_MILLIS", "INT", "Time to extend.");
+    this.add_arg("IN_MILLIS", "INT", "Time to retract.");
+    this.add_arg("OFF_COLOR", "COLOR", "color when retracted", BLACK.DOCOPY());
+    this.SetExpansion(InOutHelperX(T, InOutFunc(OUT_MILLIS, IN_MILLIS), OFF_COLOR));
+  }
+};
+
+function InOutHelper(T, I, O, OFF) {
+  return new InOutHelperClass(T, I, O, OFF);
+}
+
+
+class InOutSparkTipClass extends STYLE {
+  constructor(T, OUT_MILLIS, IN_MILLIS, OFF_COLOR) {
+    super("Implements extention/retraction", arguments);
+    this.add_arg("T", "COLOR", "base color");
+    this.add_arg("OUT_MILLIS", "INT", "extentions length in ms");
+    this.add_arg("IN_MILLIS", "INT", "retraction length in ms");
+    this.add_arg("SPARK_COLOR", "COLOR", "color of spark tip", WHITE.DOCOPY());
+    this.last_micros_ = 0;
+    this.extension = 0;
+  }
+  run(blade) {
+    this.T.run(blade);
+    this.SPARK_COLOR.run(blade);
+
+    var now = micros();
+    var delta = now - this.last_micros_;
+    this.last_micros_ = now;
+    if (blade.is_on()) {
+      if (this.extension == 0.0) {
+	// We might have been off for a while, so delta might
+	// be insanely high.
+	this.extension = 0.00001;
+      } else {
+	this.extension += delta / (this.OUT_MILLIS * 1000.0);
+	this.extension = Math.min(this.extension, 1.0);
+      }
+    } else {
+      this.extension -= delta / (this.IN_MILLIS * 1000.0);
+      this.extension = Math.max(this.extension, 0.0);
+    }
+    var thres = this.extension * (blade.num_leds() + 5) * 256;
+    this.thres1 = Math.floor(thres);
+    if (blade.is_on()) {
+      this.thres2 = Math.floor(thres) - 1024;
+    } else {
+      this.thres2 = Math.floor(thres) + 1024;
+    }
+  }
+  getColor(led) {
+    var x1 = led + 1 - this.thres1 / 256.0;
+    x1 = min(x1, 1.0);
+    x1 = max(x1, 0.0);
+    var x2 = led + 1 - this.thres2 / 256.0;
+    x2 = min(x2, 1.0);
+    x2 = max(x2, 0.0);
+    var c = this.T.getColor(led);
+    var spark_color = this.SPARK_COLOR.getColor(led);
+    var off = Rgb(0,0,0);
+    return c.mix(spark_color, x2).mix(off, x1);
+  }
+};
+
+function InOutSparkTip(T, I, O, S) {
+  return new InOutSparkTipClass(T, I, O, S);
+}
+
+
+// FUNCTIONS
+
+var BATTERY_LEVEL=24000
+
+class BatteryLevelClass extends FUNCTION {
+  constructor() {
+    super("Returns 0-32768 based on battery leve.", []);
+  }
+  run(blade) {}
+  getInteger(led) { return BATTERY_LEVEL; }
+};
+
+function BatteryLevel() {
+  return new BatteryLevelClass();
+}
+
+class BumpClass extends FUNCTION {
+  constructor() {
+    super("Function returning a bump shape", arguments);
+    this.add_arg("BUMP_POSITION", "FUNCTION", "0=bump at hilt, 32768=bump at tip");
+    this.add_arg("BUMP_WIDTH_FRACTION", "FUNCTION", "bump width", Int(16384));
+  }
+  run(blade) {
+    this.BUMP_POSITION.run(blade);
+    this.BUMP_WIDTH_FRACTION.run(blade);
+    var fraction = this.fraction.getIntger(0);
+    if (fraction == 0) {
+      this.mult = 1;
+      this.location = -10000;
+      return;
+    }
+    this.mult = 32 * 2.0 * 128 * 32768 / fraction / blade.num_leds();
+    this.location = (this.BUMP_POSITION.getInteger(0) * blade.num_leds() * this.mult) / 32768;
+  }
+  getInteger(led) {
+    var dist = Math.abs(led * this.mult - this.location);
+    var p = dist >> 7;
+    if (p >= 32) return 0;
+    m = dist & 0x3f;
+    return blast_hump[p] * (128 - m) + blast_hump[p+1] * m;
+  }
+};
+
+function Bump(P, F) {
+  return new BumpClass(P, F);
+}
+
+/*
+class ChangeSlowlyClass extends FUNCTION {
+  constructor(F, SPEED) {
+    super("Changes F by no more than SPEED values per second.", arguments);
+    this.add_arg("F", "FUNCTION", "Function to moderate");
+    this.add_arg("SPEED", "FUNCTION", "maximum change speed");
+  }
+  run(blade) {
+    this.F.run(blade);
+    this.SPEED.run(blade);
+    var now = micros();
+    var delta = now - this.last_micros;
+    if (delta > 1000000) delta = 1;
+    delta *= this.speed.getInteger(0);
+    delta /= 
+  }
+}
+*/
+
+class IfonClass extends FUNCTION {
+  constructor(A, B) {
+    super("A if on, B if off.", arguments);
+    this.add_arg("A", "FUNCTION", "A");
+    this.add_arg("B", "FUNCTION", "B");
+  }
+  run(blade) {
+    this.A.run(blade);
+    this.B.run(blade);
+    this.on = blade.is_on();
+  }
+  getInteger(led) {
+    if (this.on) return this.A.getInteger(led);
+    return this.B.getInteger(led);
+  }
+};
+
+function Ifon(A, B) { return new IfOnClass(A, B); }
+
+class InOutFuncXClass extends FUNCTION {
+  constructor(OUT_MILLIS, IN_MILLIS) {
+    super("0 when off, 32768 when on, OUT_MILLIS/IN_MILLIS determines speed in between.", arguments);
+    this.add_arg("OUT_MILLIS", "FUNCTION", "millis to ramp up");
+    this.add_arg("IN_MILLIS", "FUNCTION", "millis to ramp down");
+    this.last_micros = 0;
+    this.extension = 0.0;
+  }
+  run(blade) {
+    super.run(blade);
+    var now = micros();
+    var delta = now - this.last_micros;
+    this.last_micros = now;
+    if (blade.is_on()) {
+      if (this.extension == 0.0) {
+        this.extension = 0.00001;
+      } else {
+        this.extension += delta / (this.OUT_MILLIS.getInteger(0) * 1000.0);
+	this.extension = Math.min(this.extension, 1.0);
+      }
+    } else {
+      this.extension -= delta / (this.IN_MILLIS.getInteger(0) * 1000.0);
+      this.extension = Math.max(this.extension, 0.0);
+    }
+    this.ret = this.extension * 32768;
+  }
+  getInteger(led) { return this.ret; }
+};
+
+function InOutFuncX(O, I) {
+  return new InOutFuncXClass(O, I);
+}
+function InOutFunc(O, I) {
+  return InOutFuncX(Int(O), Int(I));
+}
+
+// TODO: InOutFuncTD
+
+class IntClass extends FUNCTION {
+  constructor(N) {
+    super("Constant integer function", arguments);
+    this.add_arg("N","INT","number to return.");
+  }
+  getInteger(led) { return this.N; }
+};
+
+function Int(n) { return new IntClass(n); }
+
+class ScaleFuncClass extends FUNCTION {
+  constructor(F, A, B) {
+    super("Changes values in range 0-32768 to A-B.", arguments);
+    this.add_arg("F","FUNCTION","input");
+    this.add_arg("A","FUNCTION","lower output limit");
+    this.add_arg("B","FUNCTION","upper output limit");
+  }
+  run(blade) {
+    super.run(blade);
+    var a = this.A.getInteger(0);
+    var b = this.B.getInteger(0);
+    this.mul = (b - a) * 16384;
+    this.add = a;
+  }
+  getInteger(led) {
+    return (this.F.getInteger(led) * this.mul >> 14) + this.add;
+  }
+};
+
+function ScaleFunc(F, A, B) { return new ScaleFuncClass(F, A, B); }
+
+
+class SinClass extends FUNCTION {
+  constructor(RPM, LOW, HIGH) {
+     super("Pulses between LOW and HIGH RPM times per minute.", arguments);
+     this.add_arg("RPM", "FUNCTION", "Revolutions per minute");
+     this.add_arg("HIGH", "FUNCTION", "upper output limit", Int(32768));
+     this.add_arg("LOW", "FUNCTION", "lower output limit", Int(0));
+     this.pos = 0.0;
+     this.last_micros = 0;
+  }
+  run(blade) {
+    super.run(blade);
+    var now = micros();
+    var delta = now - this.last_micros;
+    this.last_micros = now;
+    this.pos = fract(this.pos + delta / 60000000.0 * this.RPM.getInteger(0));
+    var high = this.HIGH.getInteger(0);
+    var low = this.LOW.getInteger(0);
+    var tmp = Math.sin(this.pos * Math.PI * 2.0) / 2.0;
+    this.value = Math.floor( (tmp + 0.5) * (high - low) + low );
+  }
+  getInteger(led) { return this.value; }
+};
+
+function Sin(RPM, LOW, HIGH) { return new SinClass(RPM, LOW, HIGH); }
+
+const  TRIGGER_ATTACK = 0;
+const  TRIGGER_SUSTAIN = 1;
+const  TRIGGER_RELEASE = 2;
+const  TRIGGER_OFF = 3;
+
+class TriggerClass extends FUNCTION {
+  constructor(EFFECT, FADE_IN_MILLIS, SUSTAIN_MILLIS, FADE_OUT_MILLIS) {
+    super("When EFFECT occors, ramps up to 32768, stays there for SUSTAIN_MILLIS, then ramps down again.", arguments);
+    this.add_arg("EFFECT", "EFFECT", "Trigger event");
+    this.add_arg("FADE_IN_MILLIS", "FUNCTION", "How long it takes to ramp to 32768");
+    this.add_arg("SUSTAIN_MILLIS", "FUNCTION", "Stay at 32768 for this long.");
+    this.add_arg("FADE_OUT_MILLIS", "FUNCTION", "How long it takes to ramp back down to zero.");
+    this.trigger_state = TRIGGER_OFF;
+    console.log("EFFECT INIT");
+    this.effect = new OneshotEffectDetector(this.EFFECT);
+    this.start_time = 0;
+  }
+  run(blade) {
+    super.run(blade);
+    if (this.effect.Detect(blade)) {
+      this.start_time = micros();
+      this.trigger_state = TRIGGER_ATTACK;
+    }
+    if (this.trigger_state == this.TRIGGER_OFF) {
+      this.value = 0;
+      return;
+    }
+    var t = micros() - this.start_time;
+    while (true) {
+      var micros_for_state = this.get_millis_for_state() * 1000;
+      if (t < micros_for_state) {
+        switch (this.trigger_state) {
+	  case TRIGGER_ATTACK:
+            this.value = t * 32768.0 / micros_for_state;
+	    return;
+          case TRIGGER_SUSTAIN:
+            this.value = 32768;
+	    return;
+          case TRIGGER_RELEASE:
+	    this.value = 32768 - t * 32768 / micros_for_state;
+	    return;
+          case TRIGGER_OFF:
+	    this.value = 0;
+	    return;
+	}
+      }
+      if (this.TRIGGER_STATE >= 3) throw "Weird state?";
+      this.trigger_state++;
+      t -= micros_for_state;
+      this.start_time += micros_for_state;
+    }
+  }
+  get_millis_for_state() {
+    switch (this.trigger_state) {
+      case TRIGGER_ATTACK: return this.FADE_IN_MILLIS.getInteger(0);
+      case TRIGGER_SUSTAIN: return this.SUSTAIN_MILLIS.getInteger(0);
+      case TRIGGER_RELEASE: return this.FADE_OUT_MILLIS.getInteger(0);
+      case TRIGGER_OFF:
+    }
+    return 10000000;
+  }
+  getInteger(led) { return this.value; }
+};
+
+function Trigger(EFFECT, FADE_IN_MILLIS, SUSTAIN_MILLIS, FADE_OUT_MILLIS) {
+  return new TriggerClass(EFFECT, FADE_IN_MILLIS, SUSTAIN_MILLIS, FADE_OUT_MILLIS);
+}
+
+///////
+
+var start = new Date().getTime();
+
+var current_focus;
+var current_focus_url;
+var style_tree;
+
+function newCall(Cls) {
+  return new (Function.prototype.bind.apply(Cls, arguments));
+}
+
+
+  var classes = {
+    AudioFlicker : AudioFlicker,
+    Blast : Blast,
+    BlastFadeout : BlastFadeout,
+    Blinking : Blinking,
+    BrownNoiseFlicker : BrownNoiseFlicker,
+    ColorCycle : ColorCycle,
+    ColorSequence : ColorSequence,
+    Cylon : Cylon,
+    EasyBlade : EasyBlade,
+    FOCUS : Focus,
+    FireConfig : FireConfig,
+    Gradient : Gradient,
+    HumpFlicker : HumpFlicker,
+    IgnitionDelay : IgnitionDelay,
+    InOutHelper : InOutHelper,
+    InOutHelperX : InOutHelperX,
+    InOutSparkTip : InOutSparkTip,
+    LocalizedClash : LocalizedClash,
+    Lockup : Lockup,
+    Mix : Mix,
+    OnSpark : OnSpark,
+    OriginalBlast : OriginalBlast,
+    Pulsing : Pulsing,
+    RandomFlicker : RandomFlicker,
+    RandomPerLEDFlicker : RandomPerLEDFlicker,
+    RandomBlinkX : RandomBlinkX,
+    RandonBlink : RandomBlink,
+    Sequence : Sequence,
+    Rgb : Rgb,
+    Rgb16 : Rgb16,
+    SimpleClash : SimpleClash,
+    Sparkle : Sparkle,
+    Strobe : Strobe,
+    Stripes : Stripes,
+    StripesX : StripesX,
+    StyleFire : StyleFire,
+    StylePtr : StylePtr,
+    StyleFirePtr : StyleFirePtr,
+    StyleNormalPtr : StyleNormalPtr,
+    StyleRainbowPtr : StyleRainbowPtr,
+    StyleStrobePtr : StyleStrobePtr,
+
+    BatteryLevel : BatteryLevel,
+    Bump : Bump,
+    Ifon : Ifon,
+    InOutFunc : InOutFunc,
+    InOutFuncX : InOutFuncX,
+    Int : Int,
+    ScaleFunc : ScaleFunc,
+    Sin : Sin,
+    Trigger : Trigger,
+};
+  var identifiers = {
+      RgbCycle : RgbCycle,
+      Rainbow : Rainbow,
+      WHITE : Rgb.bind(null, 255,255,255),
+      BLACK : Rgb.bind(null, 0,0,0),
+
+      RED : Rgb.bind(null, 255,0,0),
+      GREEN : Rgb.bind(null, 0,255,0),
+      BLUE : Rgb.bind(null, 0,0,255),
+      YELLOW : Rgb.bind(null, 255,255,0),
+      CYAN : Rgb.bind(null, 0,255,255),
+      MAGENTA : Rgb.bind(null, 255,0,255),
+      WHITE : Rgb.bind(null, 255,255,255),
+      BLACK : Rgb.bind(null, 0,0,0),
+
+      AliceBlue : Rgb.bind(null, 223, 239, 255),
+      Aqua : Rgb.bind(null, 0, 255, 255),
+      Aquamarine : Rgb.bind(null, 55, 255, 169),
+      Azure : Rgb.bind(null, 223, 255, 255),
+      Bisque : Rgb.bind(null, 255, 199, 142),
+      Black : Rgb.bind(null, 0, 0, 0),
+      BlanchedAlmond : Rgb.bind(null, 255, 213, 157),
+      Blue : Rgb.bind(null, 0, 0, 255),
+      Chartreuse : Rgb.bind(null, 55, 255, 0),
+      Coral : Rgb.bind(null, 255, 55, 19),
+      Cornsilk : Rgb.bind(null, 255, 239, 184),
+      Cyan : Rgb.bind(null, 0, 255, 255),
+      DarkOrange : Rgb.bind(null, 255, 68, 0),
+      DeepPink : Rgb.bind(null, 255, 0, 75),
+      DeepSkyBlue : Rgb.bind(null, 0, 135, 255),
+      DodgerBlue : Rgb.bind(null, 2, 72, 255),
+      FloralWhite : Rgb.bind(null, 255, 244, 223),
+      Fuchsia : Rgb.bind(null, 255, 0, 255),
+      GhostWhite : Rgb.bind(null, 239, 239, 255),
+      Green : Rgb.bind(null, 0, 255, 0),
+      GreenYellow : Rgb.bind(null, 108, 255, 6),
+      HoneyDew : Rgb.bind(null, 223, 255, 223),
+      HotPink : Rgb.bind(null, 255, 36, 118),
+      Ivory : Rgb.bind(null, 255, 255, 223),
+      LavenderBlush : Rgb.bind(null, 255, 223, 233),
+      LemonChiffon : Rgb.bind(null, 255, 244, 157),
+      LightCyan : Rgb.bind(null, 191, 255, 255),
+      LightPink : Rgb.bind(null, 255, 121, 138),
+      LightSalmon : Rgb.bind(null, 255, 91, 50),
+      LightYellow : Rgb.bind(null, 255, 255, 191),
+      Lime : Rgb.bind(null, 0, 255, 0),
+      Magenta : Rgb.bind(null, 255, 0, 255),
+      MintCream : Rgb.bind(null, 233, 255, 244),
+      MistyRose : Rgb.bind(null, 255, 199, 193),
+      Moccasin : Rgb.bind(null, 255, 199, 119),
+      NavajoWhite : Rgb.bind(null, 255, 187, 108),
+      Orange : Rgb.bind(null, 255, 97, 0),
+      OrangeRed : Rgb.bind(null, 255, 14, 0),
+      PapayaWhip : Rgb.bind(null, 255, 221, 171),
+      PeachPuff : Rgb.bind(null, 255, 180, 125),
+      Pink : Rgb.bind(null, 255, 136, 154),
+      Red : Rgb.bind(null, 255, 0, 0),
+      SeaShell : Rgb.bind(null, 255, 233, 219),
+      Snow : Rgb.bind(null, 255, 244, 244),
+      SpringGreen : Rgb.bind(null, 0, 255, 55),
+      SteelBlue : Rgb.bind(null, 14, 57, 118),
+      Tomato : Rgb.bind(null, 255, 31, 15),
+      White : Rgb.bind(null, 255, 255, 255),
+      Yellow : Rgb.bind(null, 255, 255, 0),
+
+  EFFECT_NONE :  EFFECT.bind(null, 0x0),
+  EFFECT_CLASH : EFFECT.bind(null, 1 << 0),
+  EFFECT_BLAST : EFFECT.bind(null, 1 << 1),
+  EFFECT_FORCE : EFFECT.bind(null, 1 << 2),
+  FFECT_STAB :   EFFECT.bind(null, 1 << 3),
+  EFFECT_BOOT :  EFFECT.bind(null, 1 << 4),
+  EFFECT_LOCKUP_BEGIN : EFFECT.bind(null, 1 << 5),
+  EFFECT_LOCKUP_END :   EFFECT.bind(null, 1 << 6),
+  EFFECT_DRAG_BEGIN :   EFFECT.bind(null, 1 << 7),
+  EFFECT_DRAG_END :     EFFECT.bind(null, 1 << 8),
+  EFFECT_IGNITION :     EFFECT.bind(null, 1 << 9),
+  EFFECT_RETRACTION :   EFFECT.bind(null, 1 << 10),
+};
+
+
+
+class Parser {
+  constructor(str, classes, identifiers) {
+    console.log("PARSING: " + str);
+    this.str = str;
+    this.pos = 0;
+    this.classes = classes;
+    this.identifiers = identifiers;
+  }
+  peek() {
+    if (this.pos >= this.str.length) return ""
+    return this.str[this.pos]
+  }
+  skipspace() {
+    while (this.peek() == ' ' || this.peek() == '\t') this.pos++;
+  }
+
+  identifier() {
+    var ret = "";
+    while (true) {
+      var c = this.peek();
+      if ((c >= 'a' && c <= 'z') ||
+	  (c >= 'A' && c <= 'Z') ||
+	  (c >= '0' && c <= '9') || c == '_') {
+	ret += c;
+	this.pos++;
+      } else {
+	return ret;
+      }
+    }
+  }
+
+  // recursive descent parser
+  parse_atom() {
+    this.skipspace();
+    var id = this.identifier();
+    if (id == "") {
+      throw "Expected identifier or number";
+    }
+    if ((id[0] >= '0' && id[0] <= '9')) {
+      if (id.slice(0,2) == "0b") {
+        return new BINARY(parseInt(id.slice(2), 2));
+      }
+      return new INTEGER(parseInt(id));
+    }
+    this.skipspace();
+    var args = 0;
+    if (this.peek() == "<") {
+      this.pos++;
+      this.skipspace();
+      args = [null];
+      while (true) {
+	args.push(this.parse());
+	this.skipspace();
+	if (this.peek() == '>') {
+	  this.pos++;
+	  break;
+	}
+	if (this.peek() == "") {
+	  throw "Missing > or ,";
+	}
+	if (this.peek() != ',') {
+	  throw "Comma expected";
+	}
+	this.pos++;
+	this.skipspace();
+      }
+    }
+    if (this.identifiers[id]) {
+      if (args != 0) {
+	throw "Unexpected arguments";
+      }
+      return this.identifiers[id]();
+    }
+    if (this.classes[id]) {
+      console.log(id);
+      console.log(this.classes[id]);
+      console.log(args);
+      if (args == 0) args = [null];
+      // var ret = new (Function.prototype.bind.apply(this.classes[id], args));
+      var ret;
+      try {
+	ret = classes[id].apply(args[0], args.slice(1));
+      } catch(e) {
+	if (typeof(e) == "string")
+	  e = id +":" + e;
+	throw e;
+      }
+      // console.log(ret);
+      return ret;
+    }
+    throw  "Unknown identifier:" + id;
+  }
+
+  parse_unary() {
+    this.skipspace();
+    if (this.peek() == '-') {
+      this.pos++;
+      var ret = this.parse_atom();
+      if (ret.getType() != "INT")
+        throw "Expected integer, got " + ret.getType();
+      ret.value = - ret.value;
+      return ret;
+    }
+    return this.parse_atom();
+  }
+
+  parse() {
+    var ret = this.parse_unary();
+    this.skipspace();
+    while (this.peek() == '|') {
+      this.pos++;
+      ret.value |= this.parse_unary();
+      this.skipspace();
+    }
+    //console.log("PARSE, returns ID " + ret.get_id());
+    // console.log(ret);
+    //    console.trace();
+    return ret;
+  }
+};
+
+var current_style = InOutHelper(SimpleClash(Lockup(new BlastClass(BLUE, WHITE), new AudioFlickerClass(BLUE, WHITE)), WHITE, 40), 300, 800);
+//var current_style = InOutHelper(SimpleClash(Lockup(new BlastClass(new RainbowClass(), WHITE), new AudioFlickerClass(BLUE, WHITE)), WHITE, 40), 300, 800);
+var blade = new Blade();
+var rotate_start;
+var last_micros;
+
+function drawScene() {
+  last_micros = current_micros;
+  current_micros = actual_millis() * 1000;
+  current_style.run(blade);
+  num_leds = blade.num_leds()
+  var pixels = new Uint8Array(num_leds * 4 * 2);
+  if (current_style.getColor) {
+    for (var i = 0; i < num_leds; i++) {
+        c = current_style.getColor(i);
+        pixels[i*4 + 0] = Math.round(c.r * 255);
+        pixels[i*4 + 1] = Math.round(c.g * 255);
+        pixels[i*4 + 2] = Math.round(c.b * 255);
+        pixels[i*4 + 3] = 255;
+    }
+    if (last_micros != 0) {
+      current_micros += (current_micros - last_micros) / 2;
+    }
+    current_style.run(blade);
+    for (var i = 0; i < num_leds; i++) {
+        c = current_style.getColor(i);
+        pixels[i*4 + 0 + num_leds * 4] = Math.round(c.r * 255);
+        pixels[i*4 + 1 + num_leds * 4] = Math.round(c.g * 255);
+        pixels[i*4 + 2 + num_leds * 4] = Math.round(c.b * 255);
+       pixels[i*4 + 3 + num_leds * 4] = 255;
+    }
+  }
+  // TODO: Generate mipmaps, then adjust level based on distance from blade
+  gl.texImage2D(
+      gl.TEXTURE_2D,
+      0,	// level
+      gl.RGBA,  // internalFormat
+      num_leds, 2,   // width, height
+      0,        // border
+      gl.RGBA,   // source format
+      gl.UNSIGNED_BYTE, // source type
+      pixels);
+
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+
+  // Draw these textures to the screen, offset by 1 pixel increments
+  gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+  gl.viewport(0, 0, width * dpr, height * dpr);
+  gl.clearColor(0.0, 1.0, 0.0, 1.0);
+  gl.clear(gl.COLOR_BUFFER_BIT);
+
+  gl.viewport(0, 0, width * dpr, height * dpr);
+  if (STATE_ROTATE) {
+    gl.uniform1f(gl.getUniformLocation(shaderProgram, "u_value"), 
+		 (new Date().getTime() - rotate_start) / 3000.0);
+  } else {
+    rotate_start = new Date().getTime();
+    gl.uniform1f(gl.getUniformLocation(shaderProgram, "u_value"), 0.0);
+  }
+  gl.uniform1f(gl.getUniformLocation(shaderProgram, "u_time"), 
+               (new Date().getTime() - start) / 1000.0);
+  gl.uniform1f(gl.getUniformLocation(shaderProgram, "u_width"), width);
+  gl.uniform1f(gl.getUniformLocation(shaderProgram, "u_height"), height);
+  gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+
+  t += 1;
+}
+
+function tick() {
+  window.requestAnimationFrame(tick);
+  drawScene();
+}
+var overall_string;
+
+function ReplaceCurrentFocus(str) {
+  current_focus_url = str;
+
+  if (current_focus) {
+    current_focus.super_short_desc = true;
+    pp_is_url++;
+    pp_is_verbose++;
+    var url = style_tree.pp();
+    console.log("FOCUS URL: " + url);
+    pp_is_url--;
+    pp_is_verbose--;
+    current_focus.super_short_desc = false;
+    str = url.replace("$", "FOCUS<" + str + ">");
+  }
+
+  current_focus = 0;
+  focus_catcher = 0;
+  console.log(str);
+  var parser = new Parser(str, classes, identifiers);
+  style_tree = parser.parse();
+  FIND("pp").innerHTML = style_tree.pp();
+  if (focus_catcher) {
+    current_focus = focus_catcher;
+    var id = current_focus.get_id();
+    var container = FIND("X"+id);
+    if (!container) {
+      console.log("Lost focus when parsing " + str);
+      console.log(focus_trace);
+    }
+    container.style.backgroundColor = 'lightblue';
+  } else {
+    console.log("No focus catcher found!!");
+  }
+  var type = "COLOR";
+  if (current_focus && current_style && current_focus != current_style) {
+    type = current_style.getType();
+  }
+  console.log("TYPE = " + type);
+  FIND("color_links").className = type == "COLOR" ? "normal" : "grayout";
+  FIND("effect_links").className = type == "COLOR" ? "normal" : "grayout";
+  FIND("effect_type_links").className = type == "EFFECT" ? "normal" : "grayout";
+  FIND("template_links").className = type == "COLOR" ? "normal" : "grayout";
+  FIND("function_links").className = type == "FUNCTION" ? "normal" : "grayout";
+  FIND("expand_button").className = current_style && current_style.isMacro ? "button_on" : "button_off";
+}
+
+
+function Run() {
+  var sty = FIND("style");
+  var err = FIND("error_message");
+  var str = sty.value;
+  var parser = new Parser(str,
+			  classes,
+			  identifiers);
+  err.innerHTML = "";
+  try {
+    current_style = parser.parse();
+  }
+  catch(e) {
+    console.log(e);
+    console.log(e.stack);
+    console.log(typeof(e));
+      if (typeof(e) == "string") {
+
+	err.innerHTML = e;
+	sty.focus();
+	sty.setSelectionRange(parser.pos, parser.pos);
+
+	parser = new Parser("BLACK",
+			    classes,
+			    identifiers);
+	current_style = parser.parse();
+	compile();
+	return;
+      } else {
+	throw e;
+      }
+  }
+  ReplaceCurrentFocus(str);
+  compile();
+}
+
+function PopState(event) {
+  if (event.state) {
+    FIND("style").value = event.state;
+    Run();
+  }
+}
+
+function SetTo(str) {
+  console.log(str);
+  var old = FIND("style").value;
+  var url = new URL(window.location.href);
+  url.searchParams.set("S", str);
+
+  // FIXME: Use pushState and fix back arrow
+  window.history.replaceState(old, "Style Editor", window.location.href);
+  window.history.pushState(str, "Style Editor", url);
+  window.onpopstate = PopState;
+			   
+  FIND("style").value = str;
+  Run();
+}
+
+function FocusOn(id, event) {
+  console.log("FOCUSON: " + id);
+  event.stopPropagation();
+  var style = style_ids[id];
+  console.log(id);
+  console.log(style);
+  current_focus = style;
+  var container = FIND("X"+id);
+  console.log(container);
+  container.style.backgroundColor = 'lightblue';
+  pp_is_url++;
+  var url = style.pp();
+  pp_is_url--;
+  console.log(url);
+  current_focus_url = url;
+  SetTo(url);
+  return true;
+}
+
+function ClickRotate() {
+  STATE_ROTATE = !STATE_ROTATE;
+  var rotate_button = FIND("ROTATE_BUTTON");
+  rotate_button.style.backgroundColor = STATE_ROTATE ? "lightblue" : "";
+  console.log("ROTATE");
+}
+
+function ClickPower() {
+  STATE_ON = !STATE_ON; STATE_LOCKUP=0;
+  var power_button = FIND("POWER_BUTTON");
+  power_button.style.backgroundColor = STATE_ON ? "lightblue" : "";
+  console.log("POWER");
+  blade.addEffect(STATE_ON ? EFFECT_IGNITION : EFFECT_RETRACTION, Math.random() * 0.7 + 0.2);
+}
+
+function ClickLockup() {
+  STATE_LOCKUP = STATE_LOCKUP == 1 ? 0 : 1;
+  var button = FIND("LOCKUP_BUTTON");
+  button.style.backgroundColor = STATE_LOCKUP == 1 ? "lightblue" : "";
+  var button = FIND("DRAG_BUTTON");
+  button.style.backgroundColor = STATE_LOCKUP == 2 ? "lightblue" : "";
+  blade.addEffect(STATE_LOCKUP ? EFFECT_LOCKUP_BEGIN : EFFECT_LOCKUP_END, Math.random() * 0.7 + 0.2);
+}
+
+function ClickDrag() {
+  STATE_LOCKUP = STATE_LOCKUP == 2 ? 0 : 2;
+  var button = FIND("LOCKUP_BUTTON");
+  button.style.backgroundColor = STATE_LOCKUP == 1 ? "lightblue" : "";
+  var button = FIND("DRAG_BUTTON");
+  button.style.backgroundColor = STATE_LOCKUP == 2 ? "lightblue" : "";
+  blade.addEffect(STATE_LOCKUP ? EFFECT_DRAG_BEGIN : EFFECT_DRAG_END, 1.0);
+}
+
+function ClickInhilt() {
+  STATE_NUM_LEDS = 145 - STATE_NUM_LEDS;
+  var button = FIND("INHILT_BUTTON");
+  button.style.backgroundColor = STATE_NUM_LEDS == 1 ? "lightblue" : "";
+}
+
+
+function Copy() {
+  var copyText = FIND("style");
+  if(copyText.value.includes("StylePtr") ||
+     copyText.value.includes("StyleNormalPtr") ||
+     copyText.value.includes("StyleFirePtr") ||
+     copyText.value.includes("StyleRainbowPtr"))
+    {
+      if(!copyText.value.endsWith("()"))
+	copyText.value = copyText.value + "()";
+    }
+  else{
+    copyText.value = "StylePtr<" + copyText.value + ">" + "()";
+  }
+  copyText.select();
+  document.execCommand("copy");
+  // alert("Copy to Clipboard" + copyText.value);
+  // myAlertTop("Copy to Clipboard");
+}
+
+function DoExpand() {
+  pp_is_url++;
+  var url = current_style.expansion.pp();
+  pp_is_url--;
+  SetTo(url);
+}
+
+</script>
+</head>
+
+<body onload="initGL()">
+<table>
+<tr>
+  <td valign=top width=50%>
+    <canvas id="canvas_id" width=256px height=256px style="width:256px; height:256px;"> </canvas>
+    <br>
+    <input id=POWER_BUTTON name=on type=button value="Power" onclick="ClickPower();" >
+    <input name=clash type=button value="Clash" onclick="AddClash();" >
+    <input name=blast type=button value="Blast" onclick="AddBlast()"; >
+    <input name=force type=button value="Force" onclick="AddForce()"; >
+    <input id=LOCKUP_BUTTON name=lockup type=button value="Lockup" onclick="ClickLockup()" >
+    <input id=DRAG_BUTTON name=drag type=button value="Drag"  onclick="ClickDrag()" >
+    <input id=ROTATE_BUTTON name=rotate type=button value="Rotate"  onclick="ClickRotate()" >
+    <input id=INHILT_BUTTON name=inhilt type=button value="Inhilt"  onclick="ClickInhilt()" >
+    <span id=error_message></span>
+    <br>
+    <input id=style type=text size=100 onkeydown="if (event.keyCode == 13) Run();"><input name='run' type=button value="Submit" onclick="Run()"><input name='copy' type=button value="Copy" onclick="Copy()"><input type=button name='expand' value="Expand" id='expand_button' onclick="DoExpand()"><br>
+    <div id=effect_links></div>
+    <div id=color_links></div>
+    <div id=function_links></div>
+    <div id=effect_type_links></div>
+    <div id=template_links></div>
+    <div>
+      <font face="helvetica,arial" size=-1>
+      This page has been accessed <accessed type=comma_grouped> times since
+ 	<accessed since part=month type=string>
+         <accessed since part=date type=ordered>,
+         <accessed since part=year>.<br>
+      Last modified:
+ 	<modified part=month type=string>
+         <modified part=date type=ordered>,
+         <modified part=year>
+      </font>
+    </div>
+  </td>
+  <td valign=top>
+    <div style="width: 100%; height: 99vh; overflow-y: scroll;">
+      <b>Structured view, click to edit</b>
+      <div id=pp></div>
+    </div>
+  </td>
+  </tr>
+</table>
+</body>
