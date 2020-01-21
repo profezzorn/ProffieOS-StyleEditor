@@ -851,6 +851,8 @@ AddEffect("Stripes<1000, 1000, Cyan, Magenta, Yellow, Blue>");
 AddEffect("Strobe<Black, White, 15, 1>");
 AddEffect("StyleFire<Blue, Cyan>");
 
+AddTransition("TrInstant");
+
 AddFunction("BatteryLevel");
 AddFunction("Bump<Int<16384>>");
 AddFunction("Ifon<Int<0>, Int<32768>>");
@@ -2400,6 +2402,21 @@ function InOutSparkTip(T, I, O, S) {
   return new InOutSparkTipClass(T, I, O, S);
 }
 
+// TRANSITIONS
+
+class TrInstantClass extends TRANSITION {
+  constructor() {
+    super("Instant transition");
+  }
+  run(blade) {}
+  begin() {}
+  done() { return true; }
+  getColor(A, B, led) { return B; }  
+};
+
+function TrInstant() {
+  return new TrInstantClass();
+}
 
 // FUNCTIONS
 
@@ -2704,6 +2721,8 @@ function newCall(Cls) {
     StyleNormalPtr : StyleNormalPtr,
     StyleRainbowPtr : StyleRainbowPtr,
     StyleStrobePtr : StyleStrobePtr,
+
+    TrInstant : TrInstant,
 
     BatteryLevel : BatteryLevel,
     Bump : Bump,
