@@ -356,14 +356,17 @@ function Arg(expected_type, arg, default_arg) {
   if (expected_type == "INT" || expected_type == "EFFECT") {
     return arg;
   }
-  if (expected_type == "COLOR" || expected_type == "FireConfig" || expected_type == "FUNCTION") {
+  if (expected_type == "COLOR" ||
+     expected_type == "FireConfig" ||
+     expected_type == "TRANSITION" ||
+     expected_type == "FUNCTION") {
     if (typeof(arg) != "object") {
       throw "Expected a " + expected_type;
     }
     return arg;
   }
 
-  throw "Not INT, COLOR,  EFFECT or FUNCTION";
+  throw "Not INT, COLOR,  EFFECT, FUNCTION or TRANSITION";
 }
 
 function IntArg(arg, def_arg) { return Arg("INT", arg, def_arg); }
@@ -822,6 +825,7 @@ AddEffect("Blast<Blue, White>");
 AddEffect("BlastFadeout<Blue, White>");
 AddEffect("Blinking<Red, Blue, 1000, 500>");
 AddEffect("BrownNoiseFlicker<Green, Magenta, 50>");
+AddEffect("ColorChange<TrInstant, Red, Green, Blue>");
 AddEffect("ColorCycle<Blue,  0, 1, Cyan,  100, 3000, 5000>");
 AddEffect("ColorSequence<500, Red, Green, Blue>");
 AddEffect("Cylon<Red, 5, 20>");
@@ -2402,6 +2406,49 @@ function InOutSparkTip(T, I, O, S) {
   return new InOutSparkTipClass(T, I, O, S);
 }
 
+class ColorChangeClass extends STYLE {
+  constructor(ARGS) {
+    super("Change color based on variation", ARGS);
+    this.COLORS = Array.from(ARGS).slice(1);
+    this.add_arg("TRANSITION", "TRANSITION","Transition");
+    for (var i = 1; i < this.COLORS.length + 1; i++)
+      this.add_arg("COLOR" + i, "COLOR", "COLOR " + i);
+    this.variation = this.getVariation();
+    this.old_variation = this.getVariation();
+  }
+  getVariation() {
+    return Variant() % this.COLORS.length
+  }
+  run(blade) {
+    for (var i = 0; i < this.COLORS.length; i++)
+      this.COLORS[i].run(blade);
+    if (this.getVariation() != this.variation) {
+      // Start transition
+      this.old_variation = this.variation;
+      this.variation = this.getVariation();
+      this.TRANSITION.begin();
+    }
+    if (this.variation != this.old_variation) {
+      this.TRANSITION.run(blade);
+      if (this.TRANSITION.done()) {
+        this.old_variation = this.variation;
+      }
+    }
+  }
+  getColor(led) {
+    var ret = this.COLORS[this.variation].getColor(led);
+    if (this.variation != this.old_variation) {
+      var old = this.COLORS[this.old_variation].getColor(led);
+      ret = this.TRANSITION.getColor(old, ret, led);
+    }
+    return ret;
+  }
+};
+
+function ColorChange(T, A, B) {
+  return new ColorChangeClass(Array.from(arguments));
+}
+
 // TRANSITIONS
 
 class TrInstantClass extends TRANSITION {
@@ -2686,6 +2733,7 @@ function newCall(Cls) {
     Blinking : Blinking,
     BrownNoiseFlicker : BrownNoiseFlicker,
     ColorCycle : ColorCycle,
+    ColorChange : ColorChange,
     ColorSequence : ColorSequence,
     Cylon : Cylon,
     EasyBlade : EasyBlade,
