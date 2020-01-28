@@ -561,9 +561,11 @@ class MACRO extends STYLE {
   }
   run(blade) { this.expansion.run(blade); }
   getInteger(led) { return this.expansion.getInteger(led); }
-  getColor(led) { return this.expansion.getColor(led); }
+  getColor(A,B,C) { return this.expansion.getColor(A,B,C); }
   getType() { return this.expansion.getType(); }
   isMacro() { return true; }
+  begin() { this.expansion.begin(); }
+  done() { return this.expansion.done(); }
 };
 
 class INTEGER  extends STYLE {
@@ -856,6 +858,8 @@ AddEffect("Strobe<Black, White, 15, 1>");
 AddEffect("StyleFire<Blue, Cyan>");
 
 AddTransition("TrInstant");
+AddTransition("TrFade<100>");
+AddTransition("TrDelay<500>");
 
 AddFunction("BatteryLevel");
 AddFunction("Bump<Int<16384>>");
@@ -2461,9 +2465,73 @@ class TrInstantClass extends TRANSITION {
   getColor(A, B, led) { return B; }  
 };
 
-function TrInstant() {
-  return new TrInstantClass();
+function TrInstant() { return new TrInstantClass(); }
+
+class TRANSITION_BASE extends TRANSITION {
+  begin() {
+    this.start_millis_ = millis();
+    this.len_ = this.MILLIS.getInteger(0);
+  }
+  done() {
+    return (millis() - this.start_millis_) > this.len_;
+  }
+};
+
+class TrFadeXClass extends TRANSITION_BASE {
+  constructor(MILLIS) {
+    super("Fading transition", arguments);
+    this.add_arg("MILLIS","FUNCTION", "Fade time in milliseconds.");
+  }
+  run(blade) {
+    this.MILLIS.run(blade);
+    if (this.done()) {
+      this.fade_ = 1.0;
+    } else {
+      this.fade_ = (millis() - this.start_millis_) / this.len_;
+    }
+  }
+  getColor(A, B, led) {
+    return A.mix(B, this.fade_);
+  }
+};
+
+function TrFadeX(MILLIS) { return new TrFadeXClass(MILLIS); }
+
+class TrFadeClass extends MACRO {
+  constructor(MILLIS) {
+    super("Fading transition", arguments);
+    this.add_arg("MILLIS","INT", "Fade time in milliseconds.");
+    this.SetExpansion(TrFadeX(Int(MILLIS)));
+  }
 }
+
+function TrFade(MILLIS) { return new TrFadeClass(MILLIS); }
+
+class TrDelayXClass extends TRANSITION_BASE {
+  constructor(MILLIS) {
+    super("Delay transition", arguments);
+    this.add_arg("MILLIS", "FUNCTION", "Delay time in milliseconds");
+  }
+  run(blade) {
+    this.MILLIS.run(blade);
+  }
+  getColor(A, B, led) {
+    if (this.done()) return B;
+    return A;
+  }
+}
+
+function TrDelayX(MILLIS) { return new TrDelayXClass(MILLIS); }
+
+class TrDelayClass extends MACRO {
+  constructor(MILLIS) {
+    super("Delay transition", arguments);
+    this.add_arg("MILLIS", "INT", "Delay time in milliseconds.");
+    this.SetExpansion(TrDelayX(Int(MILLIS)));
+  }
+}
+
+function TrDelay(MILLIS) { return new TrDelayClass(MILLIS); }
 
 // FUNCTIONS
 
@@ -2771,6 +2839,10 @@ function newCall(Cls) {
     StyleStrobePtr : StyleStrobePtr,
 
     TrInstant : TrInstant,
+    TrFade : TrFade,
+    TrFadeX : TrFadeX,
+    TrDelay : TrDelay,
+    TrDelayX : TrDelayX,
 
     BatteryLevel : BatteryLevel,
     Bump : Bump,
@@ -2993,12 +3065,16 @@ var last_micros;
 function drawScene() {
   last_micros = current_micros;
   current_micros = actual_millis() * 1000;
-  current_style.run(blade);
   num_leds = blade.num_leds()
   var pixels = new Uint8Array(num_leds * 4 * 2);
-  if (current_style.getColor) {
+  var S = current_style;
+  if (S.getType && S.getType() == "TRANSITION") {
+    // S = TransitionLoop(S, RED, BLUE);
+  }
+  if (S.getColor && S.getType && S.getType() == "COLOR") {
+    S.run(blade);
     for (var i = 0; i < num_leds; i++) {
-        c = current_style.getColor(i);
+        c = S.getColor(i);
         pixels[i*4 + 0] = Math.round(c.r * 255);
         pixels[i*4 + 1] = Math.round(c.g * 255);
         pixels[i*4 + 2] = Math.round(c.b * 255);
@@ -3007,9 +3083,9 @@ function drawScene() {
     if (last_micros != 0) {
       current_micros += (current_micros - last_micros) / 2;
     }
-    current_style.run(blade);
+    S.run(blade);
     for (var i = 0; i < num_leds; i++) {
-        c = current_style.getColor(i);
+        c = S.getColor(i);
         pixels[i*4 + 0 + num_leds * 4] = Math.round(c.r * 255);
         pixels[i*4 + 1 + num_leds * 4] = Math.round(c.g * 255);
         pixels[i*4 + 2 + num_leds * 4] = Math.round(c.b * 255);
