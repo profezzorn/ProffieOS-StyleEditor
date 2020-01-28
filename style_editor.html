@@ -860,6 +860,7 @@ AddEffect("StyleFire<Blue, Cyan>");
 AddTransition("TrInstant");
 AddTransition("TrFade<100>");
 AddTransition("TrDelay<500>");
+AddTransition("TrBoing<300, 2>");
 
 AddFunction("BatteryLevel");
 AddFunction("Bump<Int<16384>>");
@@ -2533,6 +2534,42 @@ class TrDelayClass extends MACRO {
 
 function TrDelay(MILLIS) { return new TrDelayClass(MILLIS); }
 
+class TrBoingXClass extends TRANSITION_BASE {
+  constructor(MILLIS, N) {
+    super("Boing transition", arguments);
+    this.add_arg("MILLIS", "FUNCTION", "Boing time in milliseconds");
+    this.add_arg("N", "INT", "Number of back-and-forth");
+  }
+  run(blade) {
+    this.MILLIS.run(blade);
+    if (this.done()) {
+      this.fade_ = 1.0;
+    } else {
+      this.fade_ = (millis() - this.start_millis_) * (2 * this.N.getInteger(0) + 1) / this.len_;
+      this.fade_ = this.fade_ % 2.0;
+      if (this.fade_ > 1.0) {
+        this.fade_ = 1.0 - this.fade_;
+      }
+    }
+  }
+  getColor(A, B, led) {
+    return A.mix(B, this.fade_);
+  }
+}
+
+function TrBoingX(MILLIS, N) { return new TrBoingXClass(MILLIS, N); }
+
+class TrBoingClass extends MACRO {
+  constructor(MILLIS, N) {
+    super("Boing transition", arguments);
+    this.add_arg("MILLIS", "INT", "Boing time in milliseconds.");
+    this.add_arg("N", "INT", "Number of back-and-forth");
+    this.SetExpansion(TrBoingX(Int(MILLIS), N));
+  }
+}
+
+function TrBoing(MILLIS, N) { return new TrBoingClass(MILLIS, N); }
+
 // FUNCTIONS
 
 var BATTERY_LEVEL=24000
@@ -2843,6 +2880,8 @@ function newCall(Cls) {
     TrFadeX : TrFadeX,
     TrDelay : TrDelay,
     TrDelayX : TrDelayX,
+    TrBoing : TrBoing,
+    TrBoingX : TrBoingX,
 
     BatteryLevel : BatteryLevel,
     Bump : Bump,
