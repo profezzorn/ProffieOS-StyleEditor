@@ -861,6 +861,8 @@ AddTransition("TrInstant");
 AddTransition("TrFade<100>");
 AddTransition("TrDelay<500>");
 AddTransition("TrBoing<300, 2>");
+AddTransition("TrWipe<500>");
+AddTransition("TrWipeIn<500>");
 
 AddFunction("BatteryLevel");
 AddFunction("Bump<Int<16384>>");
@@ -2570,6 +2572,75 @@ class TrBoingClass extends MACRO {
 
 function TrBoing(MILLIS, N) { return new TrBoingClass(MILLIS, N); }
 
+
+class TrWipeXClass extends TRANSITION_BASE {
+  constructor(MILLIS) {
+    super("Wipe transition", arguments);
+    this.add_arg("MILLIS", "FUNCTION", "Wipe time in milliseconds");
+  }
+  run(blade) {
+    this.MILLIS.run(blade);
+    this.num_leds_ = blade.num_leds();
+    if (this.done()) {
+      this.fade_ = this.num_leds_;
+    } else {
+      this.fade_ = (millis() - this.start_millis_) * this.num_leds_ /  this.len_;
+    }
+  }
+  getColor(A, B, led) {
+    var mix = (new Range(0, this.fade_).Intersect(new Range(led, (led + 1)))).Size();
+    return A.mix(B, mix);
+  }
+}
+
+function TrWipeX(MILLIS) { return new TrWipeXClass(MILLIS); }
+
+class TrWipeClass extends MACRO {
+  constructor(MILLIS) {
+    super("Wipe transition", arguments);
+    this.add_arg("MILLIS", "INT", "Wipe time in milliseconds.");
+    this.SetExpansion(TrWipeX(Int(MILLIS)));
+  }
+}
+
+function TrWipe(MILLIS) { return new TrWipeClass(MILLIS); }
+
+class TrWipeInXClass extends TRANSITION_BASE {
+  constructor(MILLIS) {
+    super("WipeIn transition", arguments);
+    this.add_arg("MILLIS", "FUNCTION", "WipeIn time in milliseconds");
+  }
+  run(blade) {
+    this.MILLIS.run(blade);
+    this.num_leds_ = blade.num_leds();
+    if (this.done()) {
+      this.fade_ = new Range(0, this.num_leds_);
+    } else {
+      this.fade_ = new Range(this.num_leds_-
+                             (millis() - this.start_millis_) * this.num_leds_ /  this.len_,
+			     this.num_leds_);
+    }
+  }
+  getColor(A, B, led) {
+    var mix = this.fade_.Intersect(new Range(led, (led + 1))).Size();
+    return A.mix(B, mix);
+  }
+}
+
+function TrWipeInX(MILLIS) { return new TrWipeInXClass(MILLIS); }
+
+class TrWipeInClass extends MACRO {
+  constructor(MILLIS) {
+    super("WipeIn transition", arguments);
+    this.add_arg("MILLIS", "INT", "WipeIn time in milliseconds.");
+    this.SetExpansion(TrWipeInX(Int(MILLIS)));
+  }
+}
+
+function TrWipeIn(MILLIS) { return new TrWipeInClass(MILLIS); }
+
+
+
 // FUNCTIONS
 
 var BATTERY_LEVEL=24000
@@ -2882,6 +2953,10 @@ function newCall(Cls) {
     TrDelayX : TrDelayX,
     TrBoing : TrBoing,
     TrBoingX : TrBoingX,
+    TrWipe : TrWipe,
+    TrWipeX : TrWipeX,
+    TrWipeIn : TrWipeIn,
+    TrWipeInX : TrWipeInX,
 
     BatteryLevel : BatteryLevel,
     Bump : Bump,
