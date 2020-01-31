@@ -856,6 +856,7 @@ AddEffect("Sparkle<Blue>");
 AddEffect("Stripes<1000, 1000, Cyan, Magenta, Yellow, Blue>");
 AddEffect("Strobe<Black, White, 15, 1>");
 AddEffect("StyleFire<Blue, Cyan>");
+AddEffect("TransitionLoop<Blue, TrConcat<TrFade<200>, Red, TrFade<200>>>");
 
 AddTransition("TrInstant");
 AddTransition("TrFade<100>");
@@ -864,6 +865,7 @@ AddTransition("TrBoing<300, 2>");
 AddTransition("TrWipe<500>");
 AddTransition("TrWipeIn<500>");
 AddTransition("TrColorCycle<3000>");
+AddTransition("TrConcat<TrFade<100>, White, TrFade<100>>");
 
 AddFunction("BatteryLevel");
 AddFunction("Bump<Int<16384>>");
@@ -2457,6 +2459,25 @@ function ColorChange(T, A, B) {
   return new ColorChangeClass(Array.from(arguments));
 }
 
+class TransitionLoopClass extends STYLE {
+  constructor(COLOR, TRANSITION) {
+    super("Continiously loop a transition",arguments);
+    this.add_arg("COLOR", "COLOR", "Color");
+    this.add_arg("TRANSITION", "TRANSITION", "Transition");
+    this.TRANSITION.begin();
+  }
+  run(blade) {
+    super.run(blade);
+    if (this.TRANSITION.done()) this.TRANSITION.begin();
+  }
+  getColor(led) {
+    var ret = this.COLOR.getColor(led);
+    return this.TRANSITION.getColor(ret, ret, led);
+  }
+};
+
+function TransitionLoop(C, T) { return new TransitionLoopClass(C, T); }
+
 // TRANSITIONS
 
 class TrInstantClass extends TRANSITION {
@@ -2485,6 +2506,7 @@ class TrFadeXClass extends TRANSITION_BASE {
   constructor(MILLIS) {
     super("Fading transition", arguments);
     this.add_arg("MILLIS","FUNCTION", "Fade time in milliseconds.");
+    this.len_ = 0;
   }
   run(blade) {
     this.MILLIS.run(blade);
@@ -2515,6 +2537,7 @@ class TrDelayXClass extends TRANSITION_BASE {
   constructor(MILLIS) {
     super("Delay transition", arguments);
     this.add_arg("MILLIS", "FUNCTION", "Delay time in milliseconds");
+    this.len_ = 0;
   }
   run(blade) {
     this.MILLIS.run(blade);
@@ -2542,6 +2565,7 @@ class TrBoingXClass extends TRANSITION_BASE {
     super("Boing transition", arguments);
     this.add_arg("MILLIS", "FUNCTION", "Boing time in milliseconds");
     this.add_arg("N", "INT", "Number of back-and-forth");
+    this.len_ = 0;
   }
   run(blade) {
     this.MILLIS.run(blade);
@@ -2578,6 +2602,7 @@ class TrWipeXClass extends TRANSITION_BASE {
   constructor(MILLIS) {
     super("Wipe transition", arguments);
     this.add_arg("MILLIS", "FUNCTION", "Wipe time in milliseconds");
+    this.len_ = 0;
   }
   run(blade) {
     this.MILLIS.run(blade);
@@ -2610,6 +2635,7 @@ class TrWipeInXClass extends TRANSITION_BASE {
   constructor(MILLIS) {
     super("WipeIn transition", arguments);
     this.add_arg("MILLIS", "FUNCTION", "WipeIn time in milliseconds");
+    this.len_ = 0;
   }
   run(blade) {
     this.MILLIS.run(blade);
@@ -2648,6 +2674,7 @@ class TrColorCycleClass extends TRANSITION_BASE {
     this.add_arg("END_RPM", "INT", "RPM at the end of transition", 6000);
     this.pos_ = 0.0;
     this.last_micros_ = 0.0;
+    this.len_ = 0;
   }
   run(blade) {
     super.run(blade);
@@ -2692,6 +2719,40 @@ class TrColorCycleClass extends TRANSITION_BASE {
 
 function TrColorCycle(MILLIS, START_RPM, END_RPM) { return new TrColorCycleClass(MILLIS, START_RPM, END_RPM); }
 
+class TrConcatClass extends TRANSITION {
+  constructor(ARGS) {
+    super("Concatenate transitions", ARGS);
+    this.ARGS = Array.from(ARGS);
+    this.add_arg("TRANSITION", "TRANSITION","Transition");
+    for (var i = 1; i < this.ARGS.length / 2; i++) {
+      this.add_arg("COLOR" + i, "COLOR", "Color " + i);
+      this.add_arg("TRANSITION" + i, "TRANSITION", "Transiton " + i);
+    }
+    this.pos_ = this.ARGS.length - 1;
+  }
+  begin() {
+    this.pos_ = 0;
+    this.ARGS[0].begin();
+  }
+  done() {
+    return this.pos_ == this.ARGS.length - 1 && this.ARGS[this.pos_].done();
+  }
+  run(blade) {
+    while (this.pos_ < this.ARGS.length - 1 && this.ARGS[this.pos_].done()) {
+      this.pos_ += 2;
+      this.ARGS[this.pos_].begin();
+    }
+    super.run(blade);
+  }
+  getColor(A, B, led) {
+    if (this.done()) return B;
+    if (this.pos_ != 0) A = this.ARGS[this.pos_-1].getColor(led);
+    if (this.pos_ != this.ARGS.length - 1) B = this.ARGS[this.pos_+1].getColor(led);
+    return this.ARGS[this.pos_].getColor(A, B, led);
+  }
+};
+
+function TrConcat(ARGS) { return new TrConcatClass(arguments); }
 
 // FUNCTIONS
 
@@ -2997,6 +3058,7 @@ function newCall(Cls) {
     StyleNormalPtr : StyleNormalPtr,
     StyleRainbowPtr : StyleRainbowPtr,
     StyleStrobePtr : StyleStrobePtr,
+    TransitionLoop : TransitionLoop,
 
     TrInstant : TrInstant,
     TrFade : TrFade,
@@ -3010,6 +3072,7 @@ function newCall(Cls) {
     TrWipeIn : TrWipeIn,
     TrWipeInX : TrWipeInX,
     TrColorCycle : TrColorCycle,
+    TrConcat : TrConcat,
 
     BatteryLevel : BatteryLevel,
     Bump : Bump,
@@ -3229,14 +3292,23 @@ var blade = new Blade();
 var rotate_start;
 var last_micros;
 
+var last_style;
+var show_style;
+
 function drawScene() {
   last_micros = current_micros;
   current_micros = actual_millis() * 1000;
   num_leds = blade.num_leds()
   var pixels = new Uint8Array(num_leds * 4 * 2);
   var S = current_style;
-  if (S.getType && S.getType() == "TRANSITION") {
-    // S = TransitionLoop(S, RED, BLUE);
+  if (S != last_style) {
+    last_style = S;
+    if (S.getType && S.getType() == "TRANSITION") {
+      S = TransitionLoop(Rgb(0,0,0), TrConcat(TrDelay(500), Rgb(255,0,0), S, Rgb(0,0,255), TrInstant()));
+    }
+    show_style = S;
+  } else {
+    S = show_style;
   }
   if (S.getColor && S.getType && S.getType() == "COLOR") {
     S.run(blade);
