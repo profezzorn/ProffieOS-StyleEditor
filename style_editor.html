@@ -859,7 +859,8 @@ AddEffect("StyleFire<Blue, Cyan>");
 AddEffect("TransitionLoop<Blue, TrConcat<TrFade<200>, Red, TrFade<200>>>");
 
 AddTransition("TrInstant");
-AddTransition("TrFade<100>");
+AddTransition("TrFade<300>");
+AddTransition("TrSmoothFade<300>");
 AddTransition("TrDelay<500>");
 AddTransition("TrBoing<300, 2>");
 AddTransition("TrWipe<500>");
@@ -2533,6 +2534,38 @@ class TrFadeClass extends MACRO {
 
 function TrFade(MILLIS) { return new TrFadeClass(MILLIS); }
 
+class TrSmoothFadeXClass extends TRANSITION_BASE {
+  constructor(MILLIS) {
+    super("Smooth fading transition", arguments);
+    this.add_arg("MILLIS","FUNCTION", "SmoothFade time in milliseconds.");
+    this.len_ = 0;
+  }
+  run(blade) {
+    this.MILLIS.run(blade);
+    if (this.done()) {
+      this.fade_ = 1.0;
+    } else {
+      var x = (millis() - this.start_millis_) / this.len_;
+      this.fade_ = x * x * (3 - 2 * x);
+    }
+  }
+  getColor(A, B, led) {
+    return A.mix(B, this.fade_);
+  }
+};
+
+function TrSmoothFadeX(MILLIS) { return new TrSmoothFadeXClass(MILLIS); }
+
+class TrSmoothFadeClass extends MACRO {
+  constructor(MILLIS) {
+    super("Smooth fading transition", arguments);
+    this.add_arg("MILLIS","INT", "SmoothFade time in milliseconds.");
+    this.SetExpansion(TrSmoothFadeX(Int(MILLIS)));
+  }
+}
+
+function TrSmoothFade(MILLIS) { return new TrSmoothFadeClass(MILLIS); }
+
 class TrDelayXClass extends TRANSITION_BASE {
   constructor(MILLIS) {
     super("Delay transition", arguments);
@@ -3063,6 +3096,8 @@ function newCall(Cls) {
     TrInstant : TrInstant,
     TrFade : TrFade,
     TrFadeX : TrFadeX,
+    TrSmoothFade : TrSmoothFade,
+    TrSmoothFadeX : TrSmoothFadeX,
     TrDelay : TrDelay,
     TrDelayX : TrDelayX,
     TrBoing : TrBoing,
