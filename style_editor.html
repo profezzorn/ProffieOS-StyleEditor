@@ -867,6 +867,8 @@ AddTransition("TrWipe<500>");
 AddTransition("TrWipeIn<500>");
 AddTransition("TrColorCycle<3000>");
 AddTransition("TrConcat<TrFade<100>, White, TrFade<100>>");
+AddTransition("TrJoin<TrFade<500>, TrWipe<500>>");
+AddTransition("TrJoinR<TrFade<500>, TrWipe<500>>");
 
 AddFunction("BatteryLevel");
 AddFunction("Bump<Int<16384>>");
@@ -2787,6 +2789,57 @@ class TrConcatClass extends TRANSITION {
 
 function TrConcat(ARGS) { return new TrConcatClass(arguments); }
 
+class TrJoinClass extends TRANSITION {
+  constructor(ARGS) {
+    super("Join transitions", ARGS);
+    this.ARGS = Array.from(ARGS);
+    for (var i = 0; i < this.ARGS.length; i++) {
+      this.add_arg("TRANSITION" + i, "TRANSITION", "Transiton " + i);
+    }
+  }
+  begin() {
+    for (var i = 0; i < this.ARGS.length; i++) this.ARGS[i].begin();
+  }
+  done() {
+    for (var i = 0; i < this.ARGS.length; i++) if (!this.ARGS[i].done()) return false;
+    return true;
+  }
+  getColor(A, B, led) {
+    for (var i = 0; i < this.ARGS.length; i++) {
+      A = this.ARGS[i].getColor(A, B, led);
+    }
+    return A;
+  }
+};
+
+function TrJoin(ARGS) { return new TrJoinClass(arguments); }
+
+class TrJoinRClass extends TRANSITION {
+  constructor(ARGS) {
+    super("Right join transitions", ARGS);
+    this.ARGS = Array.from(ARGS);
+    for (var i = 0; i < this.ARGS.length; i++) {
+      this.add_arg("TRANSITION" + i, "TRANSITION", "Transiton " + i);
+    }
+  }
+  begin() {
+    for (var i = 0; i < this.ARGS.length; i++) this.ARGS[i].begin();
+  }
+  done() {
+    for (var i = 0; i < this.ARGS.length; i++) if (!this.ARGS[i].done()) return false;
+    return true;
+  }
+  getColor(A, B, led) {
+    for (var i = 0; i < this.ARGS.length; i++) {
+      B = this.ARGS[i].getColor(A, B, led);
+    }
+    return B;
+  }
+};
+
+function TrJoinR(ARGS) { return new TrJoinRClass(arguments); }
+
+
 // FUNCTIONS
 
 var BATTERY_LEVEL=24000
@@ -3108,6 +3161,8 @@ function newCall(Cls) {
     TrWipeInX : TrWipeInX,
     TrColorCycle : TrColorCycle,
     TrConcat : TrConcat,
+    TrJoin : TrJoin,
+    TrJoinR : TrJoinR,
 
     BatteryLevel : BatteryLevel,
     Bump : Bump,
