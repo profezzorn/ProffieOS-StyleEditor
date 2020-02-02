@@ -869,6 +869,7 @@ AddTransition("TrColorCycle<3000>");
 AddTransition("TrConcat<TrFade<100>, White, TrFade<100>>");
 AddTransition("TrJoin<TrFade<500>, TrWipe<500>>");
 AddTransition("TrJoinR<TrFade<500>, TrWipe<500>>");
+AddTransition("TrRandom<TrFade<500>, TrWipe<500>, TrBoing<500, 2>>");
 
 AddFunction("BatteryLevel");
 AddFunction("Bump<Int<16384>>");
@@ -2839,6 +2840,29 @@ class TrJoinRClass extends TRANSITION {
 
 function TrJoinR(ARGS) { return new TrJoinRClass(arguments); }
 
+class TrRandomClass extends TRANSITION {
+  constructor(ARGS) {
+    super("Randomenate transitions", ARGS);
+    this.ARGS = Array.from(ARGS);
+    for (var i = 0; i < this.ARGS.length; i++) {
+      this.add_arg("TRANSITION" + i, "TRANSITION", "Transiton " + i);
+    }
+    this.pos_ = random(this.ARGS.length);
+  }
+  begin() {
+    this.pos_ = random(this.ARGS.length);
+    this.ARGS[this.pos_].begin();
+  }
+  done() {
+    return this.ARGS[this.pos_].done();
+  }
+  getColor(A, B, led) {
+    return this.ARGS[this.pos_].getColor(A, B, led);
+  }
+};
+
+function TrRandom(ARGS) { return new TrRandomClass(arguments); }
+
 
 // FUNCTIONS
 
@@ -3163,6 +3187,7 @@ function newCall(Cls) {
     TrConcat : TrConcat,
     TrJoin : TrJoin,
     TrJoinR : TrJoinR,
+    TrRandom : TrRandom,
 
     BatteryLevel : BatteryLevel,
     Bump : Bump,
