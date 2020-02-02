@@ -814,6 +814,7 @@ AddTemplate("InOutHelper<SimpleClash<Lockup<Blast<Blue,White>,AudioFlicker<Blue,
 AddTemplate("InOutHelper<EasyBlade<OnSpark<Green>, White>, 300, 800> >");
 AddTemplate("InOutHelper<EasyBlade<Sparkle<Blue>>, 300, 800> >");
 AddTemplate("IgnitionDelay<500, InOutHelper<EasyBlade<OnSpark<Green>, White>, 300, 800> > >");
+AddTemplate("RetractionDelay<500, InOutHelper<EasyBlade<OnSpark<Green>, White>, 300, 800> > >");
 AddTemplate("StyleNormalPtr<AudioFlicker<Yellow, White>, Blue, 300, 800>");
 AddTemplate("InOutSparkTip<EasyBlade<Magenta, White>, 300, 800> >");
 AddTemplate("StyleNormalPtr<Gradient<Red, Blue>, Gradient<Cyan, Yellow>, 300, 800>");
@@ -1359,6 +1360,7 @@ class IgnitionDelayClass extends STYLE {
   num_leds() {
     return this.blade.num_leds()
   }
+  GetEffects() { return this.blade.GetEffects(); }
   run(blade) {
     this.blade = blade;
     if (blade.is_on()) {
@@ -1384,6 +1386,46 @@ class IgnitionDelayClass extends STYLE {
 
 function IgnitionDelay(millis, base) {
   return new IgnitionDelayClass(millis, base);
+}
+
+class RetractionDelayClass extends STYLE {
+  constructor(DELAY_MILLIS, BASE) {
+    super("Delays retraction by DELAY_MILLIS", Array.from(arguments));
+    this.add_arg("DELAY_MILLIS", "INT", "Ignition delay, in milliseconds");
+    this.add_arg("BASE", "COLOR", "Blade style");
+  }
+  is_on() {
+    return this.is_on_;
+  }
+  num_leds() {
+    return this.blade.num_leds()
+  }
+  GetEffects() { return this.blade.GetEffects(); }
+  run(blade) {
+    this.blade = blade;
+    if (!blade.is_on()) {
+      if (!this.waiting) {
+	this.waiting = true;
+	this.wait_start_time = millis();
+      }
+      var waited = millis() - this.wait_start_time;
+      if (waited > this.DELAY_MILLIS) {
+	this.is_on_ = false;
+	this.wait_start_time = millis() - this.DELAY_MILLIS - 1;
+      }
+    } else {
+      this.waiting = false;
+      this.is_on_ = true;
+    }
+    this.BASE.run(this)
+  }
+  getColor(led) {
+    return this.BASE.getColor(led);
+  }
+}
+
+function RetractionDelay(millis, base) {
+  return new RetractionDelayClass(millis, base);
 }
 
 class RandomBlinkXClass extends STYLE {
@@ -3141,6 +3183,7 @@ function newCall(Cls) {
     Gradient : Gradient,
     HumpFlicker : HumpFlicker,
     IgnitionDelay : IgnitionDelay,
+    RetractionDelay : RetractionDelay,
     InOutHelper : InOutHelper,
     InOutHelperX : InOutHelperX,
     InOutSparkTip : InOutSparkTip,
