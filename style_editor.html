@@ -723,7 +723,35 @@ class RgbClass extends STYLE {
     ret.b = other.b * blend + this.b * (1.0 - blend);
     return ret;
   }
+  // angle = 0 - 98304 (32768 * 3) (non-inclusive)
+  rotate(angle) {
+    var H;
+    if (angle == 0) return this;
+    var MAX = max(this.r, this.g, this.b);
+    var MIN = min(this.r, this.g, this.b);
+    var C = MAX - MIN;
+    if (C == 0) return this;  // Can't rotate something without color.
+    // Note 16384 = 60 degrees.
+    if (this.r == MAX) {
+      // r is biggest
+      H = (this.g - this.b) / C;
+    } else if (this.g == MAX) {
+      // g is biggest
+      H = (this.b - this.r) / C + 2;
+    } else {
+      // b is biggest
+      H = (this.r - this.g) / C + 4;
+    }
+    H += angle / 16384.0;
+    return new RgbClass(f(5+H, C, MAX), f(3+H, C, MAX), f(1+H, C, MAX));
+  }
 };
+
+function f(n, C, MAX) {
+  var k = n % 6;
+  var x = MAX - C * clamp(min(k, 4 - k), 0, 1);
+  return x*255.0;
+}
 
 function Rgb(r,g,b) {
   return new RgbClass(r,g,b);
@@ -858,6 +886,8 @@ AddEffect("Stripes<1000, 1000, Cyan, Magenta, Yellow, Blue>");
 AddEffect("Strobe<Black, White, 15, 1>");
 AddEffect("StyleFire<Blue, Cyan>");
 AddEffect("TransitionLoop<Blue, TrConcat<TrFade<200>, Red, TrFade<200>>>");
+AddEffect("RotateColorsX<Sin<Int<10>>, Red>");
+AddEffect("Hue<16384>");
 
 AddTransition("TrInstant");
 AddTransition("TrFade<300>");
@@ -2524,6 +2554,51 @@ class TransitionLoopClass extends STYLE {
 
 function TransitionLoop(C, T) { return new TransitionLoopClass(C, T); }
 
+class RotateColorsXClass extends STYLE {
+  constructor(ROTATION, COLOR) {
+    super("Rotate colors", arguments);
+    this.add_arg("ROTATION", "FUNCTION", "Rotation");
+    this.add_arg("COLOR", "COLOR", "Color");
+  }
+  getColor(led) {
+    var ret = this.COLOR.getColor(led);
+    return ret.rotate((this.ROTATION.getInteger(led) & 0x7fff) * 3);
+  }
+};
+
+function RotateColorsX(R, C) { return new RotateColorsXClass(R, C); }
+
+class RotateColorsClass extends MACRO {
+  constructor(ROTATION, COLOR) {
+    super("Rotate colors", arguments);
+    this.add_arg("ROTATION", "INT", "Rotation");
+    this.add_arg("COLOR", "COLOR", "Color");
+    this.SetExpansion(RotateColorsX(Int(this.ROTATION), this.COLOR));
+  }
+};
+
+function RotateColors(R, C) { return new RotateColorsClass(R, C); }
+
+class HueXClass extends MACRO {
+  constructor(ROTATION, COLOR) {
+    super("Rotate colors", arguments);
+    this.add_arg("HUE", "FUNCTION", "Hue");
+    this.SetExpansion(RotateColorsX(this.HUE, RED.DOCOPY()));
+  }
+};
+
+function HueX(H) { return new HueXClass(H); }
+
+class HueClass extends MACRO {
+  constructor(ROTATION, COLOR) {
+    super("Rotate colors", arguments);
+    this.add_arg("HUE", "INT", "Hue");
+    this.SetExpansion(HueX(Int(this.HUE)));
+  }
+};
+
+function Hue(H) { return new HueClass(H); }
+
 // TRANSITIONS
 
 class TrInstantClass extends TRANSITION {
@@ -3212,6 +3287,11 @@ function newCall(Cls) {
     StyleRainbowPtr : StyleRainbowPtr,
     StyleStrobePtr : StyleStrobePtr,
     TransitionLoop : TransitionLoop,
+
+    RotateColorsX : RotateColorsX,
+    RotateColors : RotateColors,
+    HueX : HueX,
+    Hue : Hue,
 
     TrInstant : TrInstant,
     TrFade : TrFade,
