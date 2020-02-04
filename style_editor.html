@@ -889,6 +889,7 @@ AddEffect("TransitionLoop<Blue, TrConcat<TrFade<200>, Red, TrFade<200>>>");
 AddEffect("RotateColorsX<Sin<Int<10>>, Red>");
 AddEffect("Hue<16384>");
 AddEffect("TransitionEffect<Blue, White, TrWipe<50>, TrWipe<50>, EFFECT_BLAST>");
+AddEffect("InOutTr<Green, TrColorCycle<3000>, TrFade<500>>");
 
 AddTransition("TrInstant");
 AddTransition("TrFade<300>");
@@ -2592,6 +2593,89 @@ function TransitionEffect(T, EC, T1, T2, E) {
   return new TransitionEffectClass(T, EC, T1, T2, E);
 }
 
+class InOutTrClass extends STYLE {
+  constructor(ON, OUT_TR, IN_TR, OFF, AD) {
+    super("In-out based on transitions", arguments);
+    this.add_arg("ON", "COLOR", "Color when on.");
+    this.add_arg("OUT_TR", "TRANSITION", "IN-OUT transition");
+    this.add_arg("IN_TR", "TRANSITION", "OUT-IN transition");
+    this.add_arg("OFF", "COLOR", "Color when off", BLACK.DOCOPY());
+    this.add_arg("ALLOW_DISABLE", "INT", "allow disable?", 1);
+    this.on_ = false;
+    this.out_active_ = false;
+    this.in_active_ = false;
+  }
+  run(blade) {
+    this.ON.run(blade);
+    this.OFF.run(blade);
+
+    if (this.on_ != blade.is_on()) {
+      this.on_ = blade.is_on();
+      if (this.on_) {
+        this.OUT_TR.begin();
+	this.out_active_ = true;
+      } else {
+        this.IN_TR.begin();
+	this.in_active_ = true;
+      }
+    }
+
+    if (this.out_active_) {
+      if (this.OUT_TR.done()) {
+        this.out_active_ = true;
+      } else {
+        this.OUT_TR.run(blade);
+      }
+    }
+
+    if (this.in_active_) {
+      if (this.IN_TR.done()) {
+        this.in_active_ = true;
+      } else {
+        this.IN_TR.run(blade);
+      }
+    }
+  }
+
+  runIn(A, B, led) {
+    if (this.in_active_) {
+      return this.IN_TR.getColor(A, B, led);
+    } else {
+      return B;
+    }
+  }
+
+  runOut(A, B, led) {
+    if (this.out_active_) {
+      return this.OUT_TR.getColor(A, B, led);
+    } else {
+      return B;
+    }
+  }
+
+  getColor(led) {
+    if (!this.out_active_ && !this.in_active_) {
+      if (this.on_) {
+        return this.ON.getColor(led);
+      } else {
+        return this.OFF.getColor(led);
+      }
+    } else {
+      var on = this.ON.getColor(led);
+      var off = this.OFF.getColor(led);
+      if (this.on_) {
+        return this.runOut(this.runIn(on, off, led), on, led);
+      } else {
+        return this.runIn(this.runOut(off, on, led), off, led);
+      }
+    }
+  }
+};
+
+function InOutTr(ON, OUT_TR, IN_TR, OFF, AD) {
+  return new InOutTrClass(ON, OUT_TR, IN_TR, OFF, AD);
+}
+
 class RotateColorsXClass extends STYLE {
   constructor(ROTATION, COLOR) {
     super("Rotate colors", arguments);
@@ -3326,6 +3410,7 @@ function newCall(Cls) {
     StyleStrobePtr : StyleStrobePtr,
     TransitionLoop : TransitionLoop,
     TransitionEffect : TransitionEffect,
+    InOutTr : InOutTr,
 
     RotateColorsX : RotateColorsX,
     RotateColors : RotateColors,
