@@ -888,6 +888,7 @@ AddEffect("StyleFire<Blue, Cyan>");
 AddEffect("TransitionLoop<Blue, TrConcat<TrFade<200>, Red, TrFade<200>>>");
 AddEffect("RotateColorsX<Sin<Int<10>>, Red>");
 AddEffect("Hue<16384>");
+AddEffect("TransitionEffect<Blue, White, TrWipe<50>, TrWipe<50>, EFFECT_BLAST>");
 
 AddTransition("TrInstant");
 AddTransition("TrFade<300>");
@@ -2554,6 +2555,43 @@ class TransitionLoopClass extends STYLE {
 
 function TransitionLoop(C, T) { return new TransitionLoopClass(C, T); }
 
+class TransitionEffectClass extends STYLE {
+  constructor(T, EFFECT_COLOR, TRANSITION1, TRANSITION2, EFFECT) {
+    super("Trigger transitions on an effect.", arguments);
+    this.add_arg("T", "COLOR", "Base color.");
+    this.add_arg("EFFECT_COLOR", "COLOR", "Effect color.");
+    this.add_arg("TRANSITION1", "TRANSITION", "from T to EFFECT_COLOR");
+    this.add_arg("TRANSITION2", "TRANSITION", "from EFFECT_COLOR T");
+    this.add_arg("EFFECT", "EFFECT", "Effect type");
+    this.effect_ = new OneshotEffectDetector(this.EFFECT);
+    this.transition_ = TrConcat(this.TRANSITION1, this.EFFECT_COLOR, this.TRANSITION2);
+    this.run_ = false;
+  }
+  run(blade) {
+    this.T.run(blade);
+    this.transition_.run(blade);
+    var e = this.effect_.Detect(blade);
+    if (e) {
+      this.transition_.begin();
+      this.run_ = true;
+    }
+    if (this.run_ && this.transition_.done()) {
+      this.run_ = false;
+    }
+  }
+  getColor(led) {
+    var ret = this.T.getColor(led);
+    if (this.run_) {
+      ret = this.transition_.getColor(ret, ret, led);
+    }
+    return ret;
+  }
+};
+
+function TransitionEffect(T, EC, T1, T2, E) {
+  return new TransitionEffectClass(T, EC, T1, T2, E);
+}
+
 class RotateColorsXClass extends STYLE {
   constructor(ROTATION, COLOR) {
     super("Rotate colors", arguments);
@@ -3287,6 +3325,7 @@ function newCall(Cls) {
     StyleRainbowPtr : StyleRainbowPtr,
     StyleStrobePtr : StyleStrobePtr,
     TransitionLoop : TransitionLoop,
+    TransitionEffect : TransitionEffect,
 
     RotateColorsX : RotateColorsX,
     RotateColors : RotateColors,
