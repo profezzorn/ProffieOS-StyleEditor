@@ -20,6 +20,49 @@ div.normal input[type=button].btn {
   background: lightblue;
   color: black;
 }
+
+div.MAGIC_CLASS_FUNCTION input[type=button].btn {
+  background: green;
+  color: black;
+}
+div.MAGIC_CLASS_COLOR input[type=button].btn {
+  background: green;
+  color: black;
+}
+div.MAGIC_CLASS_TRANSITION input[type=button].btn {
+  background: green;
+  color: black;
+}
+div.MAGIC_CLASS_INT input[type=button].btn {
+  background: green;
+  color: black;
+}
+div.MAGIC_CLASS_EFFECT input[type=button].btn {
+  background: green;
+  color: black;
+}
+
+span.MAGIC_CLASS_FUNCTION input[type=button].btn {
+  background: green;
+  color: black;
+}
+span.MAGIC_CLASS_COLOR input[type=button].btn {
+  background: green;
+  color: black;
+}
+span.MAGIC_CLASS_TRANSITION input[type=button].btn {
+  background: green;
+  color: black;
+}
+span.MAGIC_CLASS_INT input[type=button].btn {
+  background: green;
+  color: black;
+}
+span.MAGIC_CLASS_EFFECT input[type=button].btn {
+  background: green;
+  color: black;
+}
+
 </style>
 
 <title>Style Editor</title>
@@ -816,6 +859,10 @@ function AddTransition(name) {
 }
 function AddEffectType(name) {
   effect_type_links += "<input type=button class=btn onclick='SetTo(\"EFFECT_"+name+"\")' value='"+enc(name)+"'>\n";
+}
+
+function AddHistory(name, type) {
+  FIND("history_links").innerHTML += "<span class=MAGIC_CLASS_"+type+">" + mkbutton(name) + "</span>";
 }
 
 function mapcolor(x) {
@@ -3810,14 +3857,31 @@ function ReplaceCurrentFocus(str) {
   if (current_focus && current_style && current_focus != current_style) {
     type = current_style.getType();
   }
+  AddHistory(str, current_style.getType());
   console.log("TYPE = " + type);
-  FIND("color_links").className = type == "COLOR" ? "normal" : "grayout";
-  FIND("effect_links").className = type == "COLOR" ? "normal" : "grayout";
-  FIND("effect_type_links").className = type == "EFFECT" ? "normal" : "grayout";
-  FIND("template_links").className = type == "COLOR" ? "normal" : "grayout";
-  FIND("function_links").className = type == "FUNCTION" ? "normal" : "grayout";
-  FIND("transition_links").className = type == "TRANSITION" ? "normal" : "grayout";
+  // FIND("color_links").className = type == "COLOR" ? "normal" : "grayout";
+  // FIND("effect_links").className = type == "COLOR" ? "normal" : "grayout";
+  // FIND("effect_type_links").className = type == "EFFECT" ? "normal" : "grayout";
+  // FIND("template_links").className = type == "COLOR" ? "normal" : "grayout";
+  // FIND("function_links").className = type == "FUNCTION" ? "normal" : "grayout";
+  // FIND("transition_links").className = type == "TRANSITION" ? "normal" : "grayout";
   FIND("expand_button").className = current_style && current_style.isMacro ? "button_on" : "button_off";
+
+  for (var i = 0; i < document.styleSheets.length; i++) {
+    var sheet = document.styleSheets[i];
+    for (var r = 0; r < sheet.cssRules.length; r++) {
+      var rule = sheet.cssRules[r];
+      if (rule.cssText.toLowerCase().includes("magic_class_") ) {
+        if (rule.cssText.toLowerCase().includes("magic_class_" + type.toLowerCase())) {
+          rule.style.background = "lightblue";
+          rule.style.color = "black";
+	} else {
+          rule.style.background = "lightgray";
+          rule.style.color = "darkgray";
+	}
+      }
+    }
+  }
 }
 
 
@@ -3994,12 +4058,13 @@ function DoExpand() {
     <span id=error_message></span>
     <br>
     <input id=style type=text size=100 onkeydown="if (event.keyCode == 13) Run();"><input name='run' type=button value="Submit" onclick="Run()"><input name='copy' type=button value="Copy" onclick="Copy()"><input type=button name='expand' value="Expand" id='expand_button' onclick="DoExpand()"><br>
-    <div id=effect_links></div>
-    <div id=color_links></div>
-    <div id=transition_links></div>
-    <div id=function_links></div>
-    <div id=effect_type_links></div>
-    <div id=template_links></div>
+    <div id=effect_links  class=MAGIC_CLASS_COLOR></div>
+    <div id=color_links class=MAGIC_CLASS_COLOR></div>
+    <div id=transition_links class=MAGIC_CLASS_TRANSITION></div>
+    <div id=function_links  class=MAGIC_CLASS_FUNCTION></div>
+    <div id=effect_type_links  class=MAGIC_CLASS_EFFECT></div>
+    <div id=template_links  class=MAGIC_CLASS_COLOR></div>
+    <div id=history_links><b>History:</b><br></div>
     <div>
       <font face="helvetica,arial" size=-1>
       This page has been accessed <accessed type=comma_grouped> times since
