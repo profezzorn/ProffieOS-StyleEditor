@@ -912,6 +912,7 @@ AddFunction("Int<32768>");
 AddFunction("ScaleFunc<InOutFunc<300,800>,Int<0>,Int<255>>");
 AddFunction("Sin<Int<10>>");
 AddFunction("Trigger<EFFECT_FORCE, Int<500>, Int<1000>, Int<500>>");
+AddFunction("SmoothStep<Sin<Int<10>>, Sin<Int<7>>>");
 
 AddColor("AliceBlue", 223, 239, 255);
 AddColor("Aqua", 0, 255, 255);
@@ -3128,7 +3129,7 @@ class BumpClass extends FUNCTION {
   run(blade) {
     this.BUMP_POSITION.run(blade);
     this.BUMP_WIDTH_FRACTION.run(blade);
-    var fraction = this.fraction.getIntger(0);
+    var fraction = this.BUMP_WIDTH_FRACTION.getInteger(0);
     if (fraction == 0) {
       this.mult = 1;
       this.location = -10000;
@@ -3141,7 +3142,7 @@ class BumpClass extends FUNCTION {
     var dist = Math.abs(led * this.mult - this.location);
     var p = dist >> 7;
     if (p >= 32) return 0;
-    m = dist & 0x3f;
+    var m = dist & 0x3f;
     return blast_hump[p] * (128 - m) + blast_hump[p+1] * m;
   }
 };
@@ -3169,7 +3170,7 @@ class ChangeSlowlyClass extends FUNCTION {
 }
 */
 
-class IfonClass extends FUNCTION {
+class IfOnClass extends FUNCTION {
   constructor(A, B) {
     super("A if on, B if off.", arguments);
     this.add_arg("A", "FUNCTION", "A");
@@ -3351,6 +3352,34 @@ function Trigger(EFFECT, FADE_IN_MILLIS, SUSTAIN_MILLIS, FADE_OUT_MILLIS) {
   return new TriggerClass(EFFECT, FADE_IN_MILLIS, SUSTAIN_MILLIS, FADE_OUT_MILLIS);
 }
 
+class SmoothStepClass extends FUNCTION {
+  constructor(POS, WIDTH) {
+    super("SmoothStep function", arguments);
+    this.add_arg("POS", "FUNCTION", "Position 0=hilt, 32768=tip");
+    this.add_arg("WIDTH", "FUNCTION", "Step width 32768=length of blade");
+  }
+  run(blade) {
+    super.run(blade);
+    var width=this.WIDTH.getInteger(0);
+    if (width == 0) {
+      this.mult = 32768;
+    } else {
+      this.mult = 32768 * 32768 / width / blade.num_leds();
+    }
+    this.location = blade.num_leds() * this.mult * (this.POS.getInteger(0) - width/2) / 32768;
+  }
+  getInteger(led) {
+    var x = led * this.mult - this.location;
+    if (x < 0) return 0;
+    if (x > 32768) return 32768;
+    return (((x * x) >> 14) * ((3<<14) - x)) >> 15;
+  }
+};
+
+function SmoothStep(POS, WIDTH) { return new SmoothStepClass(POS, WIDTH); }
+
+
+
 ///////
 
 var start = new Date().getTime();
@@ -3445,6 +3474,7 @@ function newCall(Cls) {
     ScaleFunc : ScaleFunc,
     Sin : Sin,
     Trigger : Trigger,
+    SmoothStep : SmoothStep,
 };
   var identifiers = {
       RgbCycle : RgbCycle,
@@ -3665,8 +3695,13 @@ function drawScene() {
   var S = current_style;
   if (S != last_style) {
     last_style = S;
-    if (S.getType && S.getType() == "TRANSITION") {
-      S = TransitionLoop(Rgb(0,0,0), TrConcat(TrDelay(500), Rgb(255,0,0), S, Rgb(0,0,255), TrInstant()));
+    if (S.getType) {
+      if (S.getType() == "TRANSITION") {
+        S = TransitionLoop(Rgb(0,0,0), TrConcat(TrDelay(500), Rgb(255,0,0), S, Rgb(0,0,255), TrInstant()));
+      }
+      if (S.getType() == "FUNCTION") {
+        S = Mix(S, Rgb(0,0,0), Rgb(255,255,255));
+      }
     }
     show_style = S;
   } else {
