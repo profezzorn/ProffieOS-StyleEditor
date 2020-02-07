@@ -3863,7 +3863,7 @@ function ReplaceCurrentFocus(str) {
   if (current_focus && current_style && current_focus != current_style) {
     type = current_style.getType();
   }
-  AddHistory(str, current_style.getType());
+  AddHistory(current_focus_url, current_style.getType());
   console.log("TYPE = " + type);
   // FIND("color_links").className = type == "COLOR" ? "normal" : "grayout";
   // FIND("effect_links").className = type == "COLOR" ? "normal" : "grayout";
