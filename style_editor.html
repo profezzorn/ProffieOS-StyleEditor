@@ -861,8 +861,14 @@ function AddEffectType(name) {
   effect_type_links += "<input type=button class=btn onclick='SetTo(\"EFFECT_"+name+"\")' value='"+enc(name)+"'>\n";
 }
 
+var history_html = "";
 function AddHistory(name, type) {
-  FIND("history_links").innerHTML += "<span class=MAGIC_CLASS_"+type+">" + mkbutton(name) + "</span>";
+  var label = name;
+  if (label.length > 80) label = label.slice(0,78) + "...";
+  var btn = "<input type=button class=btn onclick='SetTo(\""+name+"\")' value='"+enc(label)+"'>\n";
+  var tag  = "<span class=MAGIC_CLASS_"+type+">" + btn + "</span>\n";
+  history_html = tag + history_html.replace(tag, "");
+  FIND("history_links").innerHTML = history_html;
 }
 
 function mapcolor(x) {
@@ -4064,7 +4070,7 @@ function DoExpand() {
     <div id=function_links  class=MAGIC_CLASS_FUNCTION></div>
     <div id=effect_type_links  class=MAGIC_CLASS_EFFECT></div>
     <div id=template_links  class=MAGIC_CLASS_COLOR></div>
-    <div id=history_links><b>History:</b><br></div>
+    <b>History:</b><br><div id=history_links></div>
     <div>
       <font face="helvetica,arial" size=-1>
       This page has been accessed <accessed type=comma_grouped> times since
