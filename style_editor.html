@@ -14,53 +14,65 @@
 div.grayout input[type=button].btn {
   background: lightgray;
   color: darkgray;
+  padding: 1px 3px;
 }
 
 div.normal input[type=button].btn {
   background: lightblue;
   color: black;
+  padding: 2px 3px;
 }
 
 div.MAGIC_CLASS_FUNCTION input[type=button].btn {
   background: green;
   color: black;
+  padding: 2px 3px;
 }
 div.MAGIC_CLASS_COLOR input[type=button].btn {
   background: green;
   color: black;
+  padding: 2px 3px;
 }
 div.MAGIC_CLASS_TRANSITION input[type=button].btn {
   background: green;
   color: black;
+  padding: 2px 3px;
 }
 div.MAGIC_CLASS_INT input[type=button].btn {
   background: green;
   color: black;
+  padding: 2px 3px;
 }
 div.MAGIC_CLASS_EFFECT input[type=button].btn {
   background: green;
   color: black;
+  padding: 2px 3px;
 }
 
 span.MAGIC_CLASS_FUNCTION input[type=button].btn {
   background: green;
   color: black;
+  padding: 2px 3px;
 }
 span.MAGIC_CLASS_COLOR input[type=button].btn {
   background: green;
   color: black;
+  padding: 2px 3px;
 }
 span.MAGIC_CLASS_TRANSITION input[type=button].btn {
   background: green;
   color: black;
+  padding: 2px 3px;
 }
 span.MAGIC_CLASS_INT input[type=button].btn {
   background: green;
   color: black;
+  padding: 2px 3px;
 }
 span.MAGIC_CLASS_EFFECT input[type=button].btn {
   background: green;
   color: black;
+  padding: 2px 3px;
 }
 
 </style>
@@ -731,12 +743,12 @@ function ClickColor() {
   SetTo("Rgb16<"+R+","+G+","+B+">");
 }
 
-var qlinks = "<b>Colors</b> <input type=color id=COLOR value='#ff0000' onclick='ClickColor()' /><br>";
-var effect_links = "<b>Effects</b><br>";
-var effect_type_links = "<b>Effect Types</b><br>";
-var template_links = "<b>Templates</b><br>";
-var function_links = "<b>Functions</b><br>";
-var transition_links = "<b>Transitions</b><br>";
+var qlinks = "<b>Colors</b> <input type=color id=COLOR value='#ff0000' onclick='ClickColor()' />";
+var effect_links = "<b>Effects:</b>";
+var effect_type_links = "<b>Effect Types:</b>";
+var template_links = "<b>Templates:</b>";
+var function_links = "<b>Functions:</b>";
+var transition_links = "<b>Transitions:</b>";
 var all_colors = {};
 var colorNames = {};
 
@@ -892,12 +904,12 @@ function AddColor(name, r, g, b) {
 
 AddTemplate("InOutHelper<SimpleClash<Lockup<Blast<Blue,White>,AudioFlicker<Blue,White>>,White>, 300, 800>");
 // AddTemplate("StyleFirePtr<Red, Yellow>");
-AddTemplate("InOutHelper<EasyBlade<OnSpark<Green>, White>, 300, 800> >");
-AddTemplate("InOutHelper<EasyBlade<Sparkle<Blue>>, 300, 800> >");
-AddTemplate("IgnitionDelay<500, InOutHelper<EasyBlade<OnSpark<Green>, White>, 300, 800> > >");
-AddTemplate("RetractionDelay<500, InOutHelper<EasyBlade<OnSpark<Green>, White>, 300, 800> > >");
+AddTemplate("InOutHelper<EasyBlade<OnSpark<Green>, White>, 300, 800>>");
+AddTemplate("InOutHelper<EasyBlade<Sparkle<Blue>>, 300, 800>>");
+AddTemplate("IgnitionDelay<500, InOutHelper<EasyBlade<OnSpark<Green>, White>, 300, 800>>>");
+AddTemplate("RetractionDelay<500, InOutHelper<EasyBlade<OnSpark<Green>, White>, 300, 800>>>");
 AddTemplate("StyleNormalPtr<AudioFlicker<Yellow, White>, Blue, 300, 800>");
-AddTemplate("InOutSparkTip<EasyBlade<Magenta, White>, 300, 800> >");
+AddTemplate("InOutSparkTip<EasyBlade<Magenta, White>, 300, 800>>");
 AddTemplate("StyleNormalPtr<Gradient<Red, Blue>, Gradient<Cyan, Yellow>, 300, 800>");
 AddTemplate("StyleNormalPtr<Pulsing<Red, Rgb<50,0,0>, 5000>, White, 300, 800, Red>");
 AddTemplate("StyleRainbowPtr<300, 800>");
@@ -4063,7 +4075,7 @@ function DoExpand() {
     <div id=function_links  class=MAGIC_CLASS_FUNCTION></div>
     <div id=effect_type_links  class=MAGIC_CLASS_EFFECT></div>
     <div id=template_links  class=MAGIC_CLASS_COLOR></div>
-    <b>History:</b><br><div id=history_links></div>
+    <b>History:</b><div id=history_links></div>
     <div>
       <font face="helvetica,arial" size=-1>
       This page has been accessed <accessed type=comma_grouped> times since
