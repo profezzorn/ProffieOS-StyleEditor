@@ -970,6 +970,8 @@ AddTransition("TrWipe<500>");
 AddTransition("TrWipeIn<500>");
 
 AddFunction("BatteryLevel");
+AddFunction("NoisySoundLevel");
+AddFunction("SmoothSoundLevel");
 AddFunction("Bump<Int<16384>>");
 AddFunction("Ifon<Int<0>, Int<32768>>");
 AddFunction("InOutFunc<300, 800>");
@@ -1436,7 +1438,8 @@ class MixClass extends STYLE {
       this.COLORS[i].run(blade);
   }
   getColor(led) {
-    var pos = this.F.getInteger(led) * (this.COLORS.length - 1) / 32768;
+    var v = this.F.getInteger(led);
+    var pos = max(0, min(32768, v)) * (this.COLORS.length - 1) / 32768;
     var N = min(this.COLORS.length -2, Math.floor(pos));
     return this.COLORS[N].getColor(led).mix(this.COLORS[N+1].getColor(led), pos - N) ;
   }
@@ -1691,7 +1694,7 @@ class AudioFlickerClass extends STYLE {
   run(blade) {
     this.A.run(blade);
     this.B.run(blade);
-    this.var_ = Math.random() * Math.random();
+    this.var_ = Math.random() * Math.random() * 32768;
   }
   getColor(led) {
     return this.A.getColor(led).mix(this.B.getColor(led), this.var_)
@@ -3436,7 +3439,32 @@ class SmoothStepClass extends FUNCTION {
 
 function SmoothStep(POS, WIDTH) { return new SmoothStepClass(POS, WIDTH); }
 
+class NoisySoundLevelClass extends FUNCTION {
+  constructor() {
+    super("Noisy sound level.", arguments);
+  }
+  run(blade) {
+    this.var_ = (Math.random() * Math.random()) * 32768;
+  }
+  getInteger(led) { return this.var_; }
+};
 
+function NoisySoundLevel() { return new NoisySoundLevelClass(); }
+
+class SmoothSoundLevelClass extends FUNCTION {
+  constructor() {
+    super("Noisy sound level.", arguments);
+    this.var_ = 0.0;
+  }
+  run(blade) {
+    var v = Math.random() * 20000.0;
+    v *= v;
+    this.var_ = (this.var_ + v) / 100.0 ;
+  }
+  getInteger(led) { return this.var_; }
+};
+
+function SmoothSoundLevel() { return new SmoothSoundLevelClass(); }
 
 ///////
 
@@ -3533,6 +3561,8 @@ function newCall(Cls) {
     Sin : Sin,
     Trigger : Trigger,
     SmoothStep : SmoothStep,
+    NoisySoundLevel : NoisySoundLevel,
+    SmoothSoundLevel : SmoothSoundLevel,
 };
   var identifiers = {
       RgbCycle : RgbCycle,
