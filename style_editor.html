@@ -678,7 +678,22 @@ class EFFECTClass  extends INTEGER {
     if (this.value & EFFECT_DRAG_END) ret.push("EFFECT_DRAG_END");
     if (this.value & EFFECT_IGNITION) ret.push("EFFECT_IGNITION");
     if (this.value & EFFECT_RETRACTION) ret.push("EFFECT_RETRACTION");
-    return this.PPshort(ret.join(" | "), "EFFECT");
+    if (this.value & EFFECT_CHANGE) ret.push("EFFECT_CHANGE");
+    if (this.value & EFFECT_STUN) ret.push("EFFECT_STUN");
+    if (this.value & EFFECT_FIRE) ret.push("EFFECT_FIRE");
+    if (this.value & EFFECT_CLIP_IN) ret.push("EFFECT_CLIP_IN");
+    if (this.value & EFFECT_CLIP_OUT) ret.push("EFFECT_CLIP_OUT");
+    if (this.value & EFFECT_RELOAD) ret.push("EFFECT_RELOAD");
+    if (this.value & EFFECT_MODE) ret.push("EFFECT_MODE");
+    if (this.value & EFFECT_RANGE) ret.push("EFFECT_RANGE");
+    if (this.value & EFFECT_EMPTY) ret.push("EFFECT_EMPTY");
+    if (this.value & EFFECT_FULL) ret.push("EFFECT_FULL");
+    if (this.value & EFFECT_JAM) ret.push("EFFECT_JAM");
+    if (this.value & EFFECT_UNJAM) ret.push("EFFECT_UNJAM");
+    if (this.value & EFFECT_PLI_ON) ret.push("EFFECT_PLI_ON");
+    if (this.value & EFFECT_PLI_OFF) ret.push("EFFECT_PLI_OFF");
+
+   return this.PPshort(ret.join(" | "), "EFFECT");
 //    return this.PPshort(this.value, "EFFECT");
   }
   getType() { return "EFFECT"; }
@@ -1040,6 +1055,20 @@ AddEffectType("DRAG_BEGIN");
 AddEffectType("DRAG_END");
 AddEffectType("IGNITION");
 AddEffectType("RETRACTION");
+AddEffectType("CHANGE");
+AddEffectType("STUN");
+AddEffectType("FIRE");
+AddEffectType("CLIP_IN");
+AddEffectType("CLIP_OUT");
+AddEffectType("RELOAD");
+AddEffectType("MODE");
+AddEffectType("RANGE");
+AddEffectType("EMPTY");
+AddEffectType("FULL");
+AddEffectType("JAM");
+AddEffectType("UNJAM");
+AddEffectType("PLI_ON");
+AddEffectType("PLI_OFF");
 
 var WHITE = Rgb(255,255,255);
 var RED = Rgb(255,0,0);
@@ -1092,6 +1121,23 @@ const  EFFECT_DRAG_BEGIN = 1 << 7;
 const  EFFECT_DRAG_END = 1 << 8;
 const  EFFECT_IGNITION = 1 << 9;
 const  EFFECT_RETRACTION = 1 << 10;
+
+const  EFFECT_CHANGE = 1 << 11; // used for click to change
+
+// Blaster Effect Types
+const  EFFECT_STUN = 1 << 12; // used to pass STUN to allow alternate colors for stun type blasts
+const  EFFECT_FIRE = 1 << 13;
+const  EFFECT_CLIP_IN = 1 << 14;
+const  EFFECT_CLIP_OUT = 1 << 15;
+const  EFFECT_RELOAD = 1 << 16;
+const  EFFECT_MODE = 1 << 17;
+const  EFFECT_RANGE = 1 << 18;
+const  EFFECT_EMPTY = 1 << 19;
+const  EFFECT_FULL = 1 << 20;
+const  EFFECT_JAM = 1 << 21;
+const  EFFECT_UNJAM = 1 << 22;
+const  EFFECT_PLI_ON = 1 << 23;
+const  EFFECT_PLI_OFF = 1 << 24;
 
 
 class BladeEffect {
@@ -1959,6 +2005,9 @@ function AddForce() {
 function AddClash() {
   blade.addEffect(EFFECT_CLASH, Math.random() * 0.7 + 0.2);
 }
+function AddStab() {
+  blade.addEffect(EFFECT_STAB, 1.0);
+}
 
 var blast_hump = [ 255,255,252,247,240,232,222,211,
 		   199,186,173,159,145,132,119,106,
@@ -2122,31 +2171,44 @@ function Blinking(A, B, BM, BP) {
 }
 
 class SimpleClashClass extends STYLE {
-  constructor(T, CLASH, CLASH_MILLIS, EFFECT_ARG) {
+  constructor(T, CLASH, CLASH_MILLIS, EFFECT_ARG, STAB_SHAPE) {
     super("Implements the clash effect", Array.from(arguments));
     this.add_arg("T", "COLOR", "base color");
     this.add_arg("CLASH", "COLOR", "Clash color");
     this.add_arg("CLASH_MILLIS", "INT", "How many MS to show the clash color for.", 40);
     this.add_arg("EFFECT", "EFFECT", "effect type", EFFECT(EFFECT_CLASH));
+    this.add_arg("STAB_SHAPE", "FUNCTION", "Stab shape", SmoothStep(Int(16384), Int(24000)));
     this.effect_ = new OneshotEffectDetector(this.EFFECT);
+    this.clash_ = false;
+    this.stab_ = false;
   }
   run(blade) {
-    this.T.run(blade);
-    this.CLASH.run(blade);
+    super.run(blade);
 
-    if (this.effect_.Detect(blade)) this._clashing = true;
-    if (this._clashing && micros() - this.effect_.last_detected_ > this.CLASH_MILLIS * 1000) {
-      this._clashing = false;
+    if (this.clash_ && micros() - this.effect_.last_detected_ > this.CLASH_MILLIS * 1000) {
+      this.clash_ = false;
+    }
+    var e = this.effect_.Detect(blade);
+    if (e) {
+      this.clash_ = true;
+      this.stab_ = this.EFFECT == EFFECT_CLASH && e.type == EFFECT_STAB && blade.num_leds() > 1;
     }
   }
   getColor(led) {
-    return this.T.getColor(led).mix(this.CLASH.getColor(led),
-				    this._clashing ? 1.0 : 0.0);
+    if (this.clash_) {
+      var ret = this.CLASH.getColor(led);
+      if (this.stab_) {
+        var b = this.T.getColor(led);
+	ret = b.mix(ret, this.STAB_SHAPE.getInteger(led) / 32768.0);
+      }
+      return ret;
+    }
+    return this.T.getColor(led);
   }
 };
 
-function SimpleClash(T, CLASH, MILLIS, EF) {
-  return new SimpleClashClass(T, CLASH, MILLIS, EF);
+function SimpleClash(T, CLASH, MILLIS, EF, SS) {
+  return new SimpleClashClass(T, CLASH, MILLIS, EF, SS);
 }
 
 
@@ -2284,15 +2346,28 @@ class Blade {
   }
 };
 
+var handled_types = 0;
+function ResetHandledTypes() {
+  handled_types = 0;
+}
+function HandleEffectType(t) {
+  handled_types |= t;
+}
+
 class OneshotEffectDetector {
   constructor(type) {
     this.last_detected_ = 0;
     this.type_ = type;
+    HandleEffectType(type);
   }
   Detect(blade) {
+    var mask = this.type_;
+    if ((this.type_ & EFFECT_CLASH) && !(current_style.__handled_types & EFFECT_STAB)) {
+      mask |= EFFECT_STAB;
+    }
     var effects = blade.GetEffects();
     for (var i = effects.length -1 ; i >=0 ; i--) {
-      if (effects[i].type & this.type_) {
+      if (effects[i].type & mask) {
         if (effects[i].start_micros == this.last_detected_)
 	  return 0;
 	this.last_detected_ = effects[i].start_micros;
@@ -2565,6 +2640,7 @@ class ColorChangeClass extends STYLE {
       this.add_arg("COLOR" + i, "COLOR", "COLOR " + i);
     this.variation = this.getVariation();
     this.old_variation = this.getVariation();
+    HandleEffectType(EFFECT_CHANGE);
   }
   getVariation() {
     return Variant() % this.COLORS.length
@@ -3633,7 +3709,7 @@ function newCall(Cls) {
   EFFECT_CLASH : EFFECT.bind(null, 1 << 0),
   EFFECT_BLAST : EFFECT.bind(null, 1 << 1),
   EFFECT_FORCE : EFFECT.bind(null, 1 << 2),
-  FFECT_STAB :   EFFECT.bind(null, 1 << 3),
+  EFFECT_STAB :   EFFECT.bind(null, 1 << 3),
   EFFECT_BOOT :  EFFECT.bind(null, 1 << 4),
   EFFECT_LOCKUP_BEGIN : EFFECT.bind(null, 1 << 5),
   EFFECT_LOCKUP_END :   EFFECT.bind(null, 1 << 6),
@@ -3641,6 +3717,21 @@ function newCall(Cls) {
   EFFECT_DRAG_END :     EFFECT.bind(null, 1 << 8),
   EFFECT_IGNITION :     EFFECT.bind(null, 1 << 9),
   EFFECT_RETRACTION :   EFFECT.bind(null, 1 << 10),
+
+  EFFECT_CHANGE : EFFECT.bind(1 << 11), // used for click to change
+  EFFECT_STUN : EFFECT.bind(1 << 12), // used to pass STUN to allow alternate colors for stun type blasts
+  EFFECT_FIRE : EFFECT.bind(1 << 13),
+  EFFECT_CLIP_IN : EFFECT.bind(1 << 14),
+  EFFECT_CLIP_OUT : EFFECT.bind(1 << 15),
+  EFFECT_RELOAD : EFFECT.bind(1 << 16),
+  EFFECT_MODE : EFFECT.bind(1 << 17),
+  EFFECT_RANGE : EFFECT.bind(1 << 18),
+  EFFECT_EMPTY : EFFECT.bind(1 << 19),
+  EFFECT_FULL : EFFECT.bind(1 << 20),
+  EFFECT_JAM : EFFECT.bind(1 << 21),
+  EFFECT_UNJAM : EFFECT.bind(1 << 22),
+  EFFECT_PLI_ON : EFFECT.bind(1 << 23),
+  EFFECT_PLI_OFF : EFFECT.bind(1 << 24),
 };
 
 
@@ -3752,6 +3843,7 @@ class Parser {
   }
 
   parse() {
+    ResetHandledTypes();
     var ret = this.parse_unary();
     this.skipspace();
     while (this.peek() == '|') {
@@ -3762,6 +3854,10 @@ class Parser {
     //console.log("PARSE, returns ID " + ret.get_id());
     // console.log(ret);
     //    console.trace();
+
+    // secret handshake
+    ret.__handled_types = handled_types;
+
     return ret;
   }
 };
@@ -4086,6 +4182,7 @@ function DoExpand() {
     <br>
     <input id=POWER_BUTTON name=on type=button value="Power" onclick="ClickPower();" >
     <input name=clash type=button value="Clash" onclick="AddClash();" >
+    <input name=stab type=button value="Stab" onclick="AddStab();" >
     <input name=blast type=button value="Blast" onclick="AddBlast()"; >
     <input name=force type=button value="Force" onclick="AddForce()"; >
     <input id=LOCKUP_BUTTON name=lockup type=button value="Lockup" onclick="ClickLockup()" >
