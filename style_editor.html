@@ -987,6 +987,7 @@ AddTransition("TrWipeIn<500>");
 AddFunction("BatteryLevel");
 AddFunction("NoisySoundLevel");
 AddFunction("SmoothSoundLevel");
+AddFunction("SwingSpeed<250>");
 AddFunction("Bump<Int<16384>>");
 AddFunction("Ifon<Int<0>, Int<32768>>");
 AddFunction("InOutFunc<300, 800>");
@@ -3542,6 +3543,32 @@ class SmoothSoundLevelClass extends FUNCTION {
 
 function SmoothSoundLevel() { return new SmoothSoundLevelClass(); }
 
+class SwingSpeedXClass extends FUNCTION {
+  constructor() {
+    super("Swing Speed", arguments);
+    this.add_arg("MAX", "FUNCTION", "What swing speed returns 32768.");
+    this.var_ = 0.0;
+  }
+  run(blade) {
+    var v = (Math.sin(millis() * Math.PI / 1000.0) * 250 + 250) / this.MAX.getInteger(0);
+    this.var_ = clamp(v * 32768, 0, 32768);
+  }
+  getInteger(led) { return this.var_; }
+};
+
+function SwingSpeedX(MAX) { return new SwingSpeedXClass(MAX); }
+
+class SwingSpeedClass extends MACRO {
+  constructor() {
+    super("Swing Speed", arguments);
+    this.add_arg("MAX", "INT", "What swing speed returns 32768.");
+    this.SetExpansion(SwingSpeedX(Int(this.MAX)));
+  }
+};
+
+function SwingSpeed(MAX) { return new SwingSpeedClass(MAX); }
+
+
 ///////
 
 var start = new Date().getTime();
@@ -3639,6 +3666,8 @@ function newCall(Cls) {
     SmoothStep : SmoothStep,
     NoisySoundLevel : NoisySoundLevel,
     SmoothSoundLevel : SmoothSoundLevel,
+    SwingSpeedX : SwingSpeedX,
+    SwingSpeed : SwingSpeed
 };
   var identifiers = {
       RgbCycle : RgbCycle,
