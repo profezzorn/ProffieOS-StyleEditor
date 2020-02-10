@@ -1740,7 +1740,7 @@ class AudioFlickerClass extends STYLE {
   run(blade) {
     this.A.run(blade);
     this.B.run(blade);
-    this.var_ = Math.random() * Math.random() * 32768;
+    this.var_ = Math.random() * Math.random();
   }
   getColor(led) {
     return this.A.getColor(led).mix(this.B.getColor(led), this.var_)
