@@ -608,7 +608,52 @@ class STYLE {
 
   // Doesn't work??
   toString() { return this.constructor.name + "[id = " + this.ID + "]"; }
+
+  set_right_side(right) {
+    if (this.argdefs.length != right.argdefs.length) {
+      console.log("SET RIGHT SIDE NON-MATCH");
+      return;
+    }
+    this.right_side = right;
+    for (var i = 0; i < this.argdefs.length; i++) {
+      if (this.argdefs[i].name != right.argdefs[i].name) {
+        console.log("SET RIGHT SIDE NON-MATCH");
+        return;
+      }
+      
+      var l_arg = this[this.argdefs[i].name];
+      var r_arg = right[this.argdefs[i].name];
+      if (typeof(l_arg) == "object" && typeof(r_arg) == "object") {
+        l_arg.set_right_side(r_arg);
+      }	
+    }
+  }
+
+  get_container() {
+    var id = this.ID;
+    if (this.right_side) id = this.right_side.ID;
+    return FIND("X" + id);
+  }
+
+  update_displays() {
+    for (var i = 0; i < this.argdefs.length; i++) {
+      var arg = this[this.argdefs[i].name];
+      if (typeof(arg) == "object") arg.update_displays();
+    }
+
+    if (this.IS_RUNNING) {
+      var container = this.get_container();
+      if (container) {
+        if (this.IS_RUNNING()) {
+          container.style["border-color"] = 'yellow';
+        } else {
+          container.style["border-color"] = 'gray';
+        }
+      }
+    }
+  }
 }
+
 
 class MACRO extends STYLE {
   SetExpansion(expansion) {
@@ -621,6 +666,11 @@ class MACRO extends STYLE {
   isMacro() { return true; }
   begin() { this.expansion.begin(); }
   done() { return this.expansion.done(); }
+  IS_RUNNING() {
+    if (this.expansion.IS_RUNNING)
+      return this.expansion.IS_RUNNING();
+    return false;      
+  }
 };
 
 class INTEGER  extends STYLE {
@@ -709,6 +759,8 @@ class FUNCTION  extends STYLE {
 
 class TRANSITION extends STYLE {
   getType() { return "TRANSITION"; }
+
+  IS_RUNNING() { return !this.done(); }
 };
 
 class CONFIG extends STYLE {
@@ -2684,8 +2736,8 @@ class TransitionLoopClass extends STYLE {
     this.TRANSITION.begin();
   }
   run(blade) {
-    super.run(blade);
     if (this.TRANSITION.done()) this.TRANSITION.begin();
+    super.run(blade);
   }
   getColor(led) {
     var ret = this.COLOR.getColor(led);
@@ -2726,6 +2778,7 @@ class TransitionEffectClass extends STYLE {
     }
     return ret;
   }
+  IS_RUNNING() { return this.run_; }
 };
 
 function TransitionEffect(T, EC, T1, T2, E) {
@@ -2875,28 +2928,74 @@ class TrInstantClass extends TRANSITION {
 function TrInstant() { return new TrInstantClass(); }
 
 class TRANSITION_BASE extends TRANSITION {
-  begin() {
-    this.start_millis_ = millis();
-    this.len_ = this.MILLIS.getInteger(0);
+  constructor(comment, args) {
+    super(comment, args);
+    this.add_arg("MILLIS", "FUNCTION", "transition time in milliseconds");
+    this.restart_ = false;
+    this.start_millis = 0;
+    this.len_ = 0;
   }
-  done() {
-    return (millis() - this.start_millis_) > this.len_;
+  begin() { this.restart_ = true; }
+  done() { return this.len_ == 0; }
+  run(blade) {
+    this.MILLIS.run(blade);
+    if (this.restart_) {
+      this.start_millis_ = millis();
+      this.len_ = this.MILLIS.getInteger(0);
+      this.restart_ = false;
+    }
+  }
+
+  update(scale) {
+    if (this.len_ == 0) return scale;
+    var ms = millis() - this.start_millis_;
+    if (ms > this.len_) {
+      this.len_ = 0;
+      return scale;
+    }
+    return ms * scale / this.len_;
+  }
+};
+
+// Same as TRANSITION_BASE, but with INT argument instead
+// of FUNCTION
+class TRANSITION_BASE2 extends TRANSITION {
+  constructor(comment, args) {
+    super(comment, args);
+    this.add_arg("MILLIS", "INT", "WipeIn time in milliseconds");
+    this.restart_ = false;
+    this.start_millis = 0;
+    this.len_ = 0;
+  }
+  begin() { this.restart_ = true; }
+  done() { return this.len_ == 0; }
+  run(blade) {
+    this.MILLIS.run(blade);
+    if (this.restart_) {
+      this.start_millis_ = millis();
+      this.len_ = this.MILLIS.getInteger(0);
+      this.restart_ = false;
+    }
+  }
+
+  update(scale) {
+    if (this.len_ == 0) return scale;
+    var ms = millis() - this.start_millis_;
+    if (ms > this.len_) {
+      this.len_ = 0;
+      return scale;
+    }
+    return ms * scale / this.len_;
   }
 };
 
 class TrFadeXClass extends TRANSITION_BASE {
   constructor(MILLIS) {
     super("Fading transition", arguments);
-    this.add_arg("MILLIS","FUNCTION", "Fade time in milliseconds.");
-    this.len_ = 0;
   }
   run(blade) {
-    this.MILLIS.run(blade);
-    if (this.done()) {
-      this.fade_ = 1.0;
-    } else {
-      this.fade_ = (millis() - this.start_millis_) / this.len_;
-    }
+    super.run(blade);
+    this.fade_ = this.update(1.0);
   }
   getColor(A, B, led) {
     return A.mix(B, this.fade_);
@@ -2918,17 +3017,11 @@ function TrFade(MILLIS) { return new TrFadeClass(MILLIS); }
 class TrSmoothFadeXClass extends TRANSITION_BASE {
   constructor(MILLIS) {
     super("Smooth fading transition", arguments);
-    this.add_arg("MILLIS","FUNCTION", "SmoothFade time in milliseconds.");
-    this.len_ = 0;
   }
   run(blade) {
-    this.MILLIS.run(blade);
-    if (this.done()) {
-      this.fade_ = 1.0;
-    } else {
-      var x = (millis() - this.start_millis_) / this.len_;
-      this.fade_ = x * x * (3 - 2 * x);
-    }
+    super.run(blade);
+    this.fade_ = this.update(1.0);
+    this.fade_ = this.fade_ * this.fade_ * (3 - 2 * this.fade_);
   }
   getColor(A, B, led) {
     return A.mix(B, this.fade_);
@@ -2950,11 +3043,10 @@ function TrSmoothFade(MILLIS) { return new TrSmoothFadeClass(MILLIS); }
 class TrDelayXClass extends TRANSITION_BASE {
   constructor(MILLIS) {
     super("Delay transition", arguments);
-    this.add_arg("MILLIS", "FUNCTION", "Delay time in milliseconds");
-    this.len_ = 0;
   }
   run(blade) {
-    this.MILLIS.run(blade);
+    super.run(blade);
+    this.update(1.0);
   }
   getColor(A, B, led) {
     if (this.done()) return B;
@@ -2977,20 +3069,14 @@ function TrDelay(MILLIS) { return new TrDelayClass(MILLIS); }
 class TrBoingXClass extends TRANSITION_BASE {
   constructor(MILLIS, N) {
     super("Boing transition", arguments);
-    this.add_arg("MILLIS", "FUNCTION", "Boing time in milliseconds");
     this.add_arg("N", "INT", "Number of back-and-forth");
-    this.len_ = 0;
   }
   run(blade) {
-    this.MILLIS.run(blade);
-    if (this.done()) {
-      this.fade_ = 1.0;
-    } else {
-      this.fade_ = (millis() - this.start_millis_) * (2 * this.N.getInteger(0) + 1) / this.len_;
-      this.fade_ = this.fade_ % 2.0;
-      if (this.fade_ > 1.0) {
-        this.fade_ = 1.0 - this.fade_;
-      }
+    this.N.run(blade);
+    super.run(blade);
+    this.fade_ = this.update(2 * this.N.getInteger(0) + 1) % 2.0;
+    if (this.fade_ > 1.0) {
+      this.fade_ = 1.0 - this.fade_;
     }
   }
   getColor(A, B, led) {
@@ -3015,17 +3101,11 @@ function TrBoing(MILLIS, N) { return new TrBoingClass(MILLIS, N); }
 class TrWipeXClass extends TRANSITION_BASE {
   constructor(MILLIS) {
     super("Wipe transition", arguments);
-    this.add_arg("MILLIS", "FUNCTION", "Wipe time in milliseconds");
-    this.len_ = 0;
   }
   run(blade) {
-    this.MILLIS.run(blade);
+    super.run(blade);
     this.num_leds_ = blade.num_leds();
-    if (this.done()) {
-      this.fade_ = this.num_leds_;
-    } else {
-      this.fade_ = (millis() - this.start_millis_) * this.num_leds_ /  this.len_;
-    }
+    this.fade_ = this.update(this.num_leds_);
   }
   getColor(A, B, led) {
     var mix = (new Range(0, this.fade_).Intersect(new Range(led, (led + 1)))).Size();
@@ -3048,19 +3128,13 @@ function TrWipe(MILLIS) { return new TrWipeClass(MILLIS); }
 class TrWipeInXClass extends TRANSITION_BASE {
   constructor(MILLIS) {
     super("WipeIn transition", arguments);
-    this.add_arg("MILLIS", "FUNCTION", "WipeIn time in milliseconds");
-    this.len_ = 0;
   }
   run(blade) {
-    this.MILLIS.run(blade);
+    super.run(blade);
     this.num_leds_ = blade.num_leds();
-    if (this.done()) {
-      this.fade_ = new Range(0, this.num_leds_);
-    } else {
-      this.fade_ = new Range(this.num_leds_-
-                             (millis() - this.start_millis_) * this.num_leds_ /  this.len_,
-			     this.num_leds_);
-    }
+    this.fade_ = new Range(this.num_leds_-
+                           this.update(this.num_leds_),
+			   this.num_leds_);
   }
   getColor(A, B, led) {
     var mix = this.fade_.Intersect(new Range(led, (led + 1))).Size();
@@ -3080,15 +3154,13 @@ class TrWipeInClass extends MACRO {
 
 function TrWipeIn(MILLIS) { return new TrWipeInClass(MILLIS); }
 
-class TrColorCycleClass extends TRANSITION_BASE {
+class TrColorCycleClass extends TRANSITION_BASE2 {
   constructor(MILLIS, START_RPM, END_RPM) {
     super("ColorCycle transition", arguments);
-    this.add_arg("MILLIS", "INT", "Cycle transition time in milliseconds");
     this.add_arg("START_RPM", "INT", "RPM at the beginning of transition", 0);
     this.add_arg("END_RPM", "INT", "RPM at the end of transition", 6000);
     this.pos_ = 0.0;
     this.last_micros_ = 0.0;
-    this.len_ = 0;
   }
   run(blade) {
     super.run(blade);
@@ -3097,11 +3169,7 @@ class TrColorCycleClass extends TRANSITION_BASE {
     this.last_micros_ = now;
     if (delta > 1000000) delta = 1;
 
-    if (this.done()) {
-      this.fade_ = 1.0;
-    } else {
-      this.fade_ = (millis() - this.start_millis_) / this.len_;
-    }
+    this.fade_ = this.update(1.0);
 
     var current_rpm = this.START_RPM.getInteger(0) * (1 - this.fade_) + this.END_RPM.getInteger(0) * this.fade_;
     var current_percentage = 100.0 * this.fade_;
@@ -3152,11 +3220,15 @@ class TrConcatClass extends TRANSITION {
     return this.pos_ == this.ARGS.length - 1 && this.ARGS[this.pos_].done();
   }
   run(blade) {
-    while (this.pos_ < this.ARGS.length - 1 && this.ARGS[this.pos_].done()) {
-      this.pos_ += 2;
-      this.ARGS[this.pos_].begin();
+    while (true) {
+      this.ARGS[this.pos_].run(blade);
+      if (this.pos_ < this.ARGS.length - 1 && this.ARGS[this.pos_].done()) {
+        this.pos_ += 2;
+        this.ARGS[this.pos_].begin();
+      } else {
+        return;
+      }
     }
-    super.run(blade);
   }
   getColor(A, B, led) {
     if (this.done()) return B;
@@ -3909,6 +3981,7 @@ function drawScene() {
   if (S != last_style) {
     last_style = S;
     if (S.getType) {
+      S.set_right_side(current_focus || style_tree)
       if (S.getType() == "TRANSITION") {
         S = TransitionLoop(Rgb(0,0,0), TrConcat(TrDelay(500), Rgb(255,0,0), S, Rgb(0,0,255), TrInstant()));
       }
@@ -3940,6 +4013,7 @@ function drawScene() {
         pixels[i*4 + 2 + num_leds * 4] = Math.round(c.b * 255);
        pixels[i*4 + 3 + num_leds * 4] = 255;
     }
+    S.update_displays();
   }
   // TODO: Generate mipmaps, then adjust level based on distance from blade
   gl.texImage2D(
