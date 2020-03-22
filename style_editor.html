@@ -2761,12 +2761,12 @@ class TransitionEffectClass extends STYLE {
   }
   run(blade) {
     this.T.run(blade);
-    this.transition_.run(blade);
     var e = this.effect_.Detect(blade);
     if (e) {
       this.transition_.begin();
       this.run_ = true;
     }
+    this.transition_.run(blade);
     if (this.run_ && this.transition_.done()) {
       this.run_ = false;
     }
