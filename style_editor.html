@@ -2813,18 +2813,16 @@ class InOutTrClass extends STYLE {
     }
 
     if (this.out_active_) {
+      this.OUT_TR.run(blade);
       if (this.OUT_TR.done()) {
         this.out_active_ = true;
-      } else {
-        this.OUT_TR.run(blade);
       }
     }
 
     if (this.in_active_) {
+      this.IN_TR.run(blade);
       if (this.IN_TR.done()) {
         this.in_active_ = true;
-      } else {
-        this.IN_TR.run(blade);
       }
     }
   }
