@@ -3218,6 +3218,9 @@ class TrConcatClass extends TRANSITION {
     return this.pos_ == this.ARGS.length - 1 && this.ARGS[this.pos_].done();
   }
   run(blade) {
+    // Run the colors
+    for (var i = 1; i < this.ARGS.length; i+=2) this.ARGS[i].run(blade);
+
     while (true) {
       this.ARGS[this.pos_].run(blade);
       if (this.pos_ < this.ARGS.length - 1 && this.ARGS[this.pos_].done()) {
