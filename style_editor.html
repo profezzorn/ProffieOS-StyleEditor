@@ -1044,7 +1044,7 @@ AddFunction("Bump<Int<16384>>");
 AddFunction("Ifon<Int<0>, Int<32768>>");
 AddFunction("InOutFunc<300, 800>");
 AddFunction("Int<32768>");
-AddFunction("ScaleFunc<InOutFunc<300,800>,Int<0>,Int<255>>");
+AddFunction("Scale<Sin<Int<10>>,Int<0>,Int<4000>>");
 AddFunction("Sin<Int<10>>");
 AddFunction("SmoothStep<Sin<Int<10>>, Sin<Int<7>>>");
 AddFunction("Trigger<EFFECT_FORCE, Int<500>, Int<1000>, Int<500>>");
@@ -3362,24 +3362,38 @@ function Bump(P, F) {
   return new BumpClass(P, F);
 }
 
-/*
+
 class ChangeSlowlyClass extends FUNCTION {
   constructor(F, SPEED) {
     super("Changes F by no more than SPEED values per second.", arguments);
     this.add_arg("F", "FUNCTION", "Function to moderate");
     this.add_arg("SPEED", "FUNCTION", "maximum change speed");
+    this.last_micros = micros();
+    this.value = 0;
   }
   run(blade) {
-    this.F.run(blade);
-    this.SPEED.run(blade);
+    super.run(blade);
     var now = micros();
     var delta = now - this.last_micros;
     if (delta > 1000000) delta = 1;
-    delta *= this.speed.getInteger(0);
-    delta /= 
+    this.last_micros = now;
+    delta *= this.SPEED.getInteger(0);
+    delta /= 1000000;
+    var target = this.F.getInteger(0);
+    if (delta > Math.abs(this.value - target)) {
+      this.value = target;
+    } else if (this.value < target) {
+      this.value += delta;
+    } else {
+      this.value -= delta;
+    }
   }
+  getInteger(led) { return this.value; }
 }
-*/
+
+function ChangeSlowly(F, SPEED) {
+  return new ChangeSlowlyClass(F, SPEED);
+}
 
 class IfOnClass extends FUNCTION {
   constructor(A, B) {
@@ -3448,7 +3462,7 @@ class IntClass extends FUNCTION {
 
 function Int(n) { return new IntClass(n); }
 
-class ScaleFuncClass extends FUNCTION {
+class ScaleClass extends FUNCTION {
   constructor(F, A, B) {
     super("Changes values in range 0-32768 to A-B.", arguments);
     this.add_arg("F","FUNCTION","input");
@@ -3459,15 +3473,15 @@ class ScaleFuncClass extends FUNCTION {
     super.run(blade);
     var a = this.A.getInteger(0);
     var b = this.B.getInteger(0);
-    this.mul = (b - a) * 16384;
+    this.mul = (b - a);
     this.add = a;
   }
   getInteger(led) {
-    return (this.F.getInteger(led) * this.mul >> 14) + this.add;
+    return (this.F.getInteger(led) * this.mul >> 15) + this.add;
   }
 };
 
-function ScaleFunc(F, A, B) { return new ScaleFuncClass(F, A, B); }
+function Scale(F, A, B) { return new ScaleClass(F, A, B); }
 
 
 class SinClass extends FUNCTION {
@@ -3730,10 +3744,11 @@ function newCall(Cls) {
     BatteryLevel : BatteryLevel,
     Bump : Bump,
     Ifon : Ifon,
+    ChangeSlowly : ChangeSlowly,
     InOutFunc : InOutFunc,
     InOutFuncX : InOutFuncX,
     Int : Int,
-    ScaleFunc : ScaleFunc,
+    Scale : Scale,
     Sin : Sin,
     Trigger : Trigger,
     SmoothStep : SmoothStep,
