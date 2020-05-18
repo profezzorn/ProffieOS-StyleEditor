@@ -1007,7 +1007,7 @@ AddEffect("OnSpark<Green, White, 200>");
 AddEffect("OriginalBlast<Blue, White>");
 AddEffect("Pulsing<Blue, Red, 800>");
 AddEffect("Rainbow");
-AddEffect("RandomBlink<3>");
+AddEffect("RandomBlink<3000>");
 AddEffect("RandomFlicker<Yellow, Blue>");
 AddEffect("RandomPerLEDFlicker<Green, Magenta>");
 AddEffect("Rgb16<0,0,50>");
@@ -1635,12 +1635,17 @@ class RandomBlinkXClass extends STYLE {
     this.add_arg("MILLIHZ", "FUNCTION", "how often to blink");
     this.add_arg("COLOR1", "COLOR", "first color", WHITE.DOCOPY());
     this.add_arg("COLOR2", "COLOR", "second color", BLACK.DOCOPY());
+    this.last_update = 0;
+    this.state = [];
   }
   run(blade) {
     super.run(blade);
-    this.state = [];
-    for (var i = 0; i < blade.num_leds(); i++) {
-      this.state.push(random(2));
+    var now = micros();
+    if (now - this.last_update > 1000000000 / this.MILLIHZ.getInteger(0)) {
+      this.last_update = now;
+      for (var i = 0; i < blade.num_leds(); i++) {
+        this.state[i] = random(2);
+      }
     }
   }
   
