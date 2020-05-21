@@ -1101,6 +1101,7 @@ AddTransition("TrWipeIn<500>");
 
 AddFunction("BatteryLevel");
 AddFunction("NoisySoundLevel");
+AddFunction("NoisySoundLevelCompat");
 AddFunction("SmoothSoundLevel");
 AddFunction("SwingSpeed<250>");
 AddFunction("Bump<Int<16384>>");
@@ -3684,6 +3685,18 @@ class NoisySoundLevelClass extends FUNCTION {
 
 function NoisySoundLevel() { return new NoisySoundLevelClass(); }
 
+class NoisySoundLevelCompatClass extends FUNCTION {
+  constructor() {
+    super("Noisy sound level.", arguments);
+  }
+  run(blade) {
+    this.var_ = clamp((Math.random() * Math.random()) * 32768 * 2, 0, 32768);
+  }
+  getInteger(led) { return this.var_; }
+};
+
+function NoisySoundLevelCompat() { return new NoisySoundLevelCompatClass(); }
+
 class SmoothSoundLevelClass extends FUNCTION {
   constructor() {
     super("Noisy sound level.", arguments);
@@ -3824,6 +3837,7 @@ function newCall(Cls) {
     Trigger : Trigger,
     SmoothStep : SmoothStep,
     NoisySoundLevel : NoisySoundLevel,
+    NoisySoundLevelCompat : NoisySoundLevelCompat,
     SmoothSoundLevel : SmoothSoundLevel,
     SwingSpeedX : SwingSpeedX,
     SwingSpeed : SwingSpeed
