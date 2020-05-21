@@ -1100,6 +1100,7 @@ AddTransition("TrWipe<500>");
 AddTransition("TrWipeIn<500>");
 
 AddFunction("BatteryLevel");
+AddFunction("BlastFadeout<>");
 AddFunction("NoisySoundLevel");
 AddFunction("NoisySoundLevelCompat");
 AddFunction("SmoothSoundLevel");
@@ -2178,25 +2179,18 @@ function Blast(BASE, BLAST, FADEOUT_MS, WAVE_SIZE, WAVE_MS, EFFECT) {
   return new BlastClass(BASE, BLAST, FADEOUT_MS, WAVE_SIZE, WAVE_MS, EFFECT);
 }
 
-class BlastFadeoutClass extends STYLE {
-  constructor(BASE, BLAST, FADEOUT_MS, EFFECT_ARG) {
-    console.log(Array.from(arguments));
-    super("BlastFadeout effect", Array.from(arguments));
-    this.add_arg("BASE", "COLOR", "base color");
-    this.add_arg("BLAST", "COLOR", "blast color");
+class BlastFadeoutFClass extends FUNCTION {
+  constructor(FADEOUT_MS, EFFECT_ARG) {
+    super("Fadeout on blast function", Array.from(arguments));
     this.add_arg("FADEOUT_MS", "INT", "fadeout time in milliseconds", 200);
     this.add_arg("EFFECT", "EFFECT", "effect type", EFFECT(EFFECT_BLAST));
   }
   run(blade) {
-    this.BASE.run(blade);
-    this.BLAST.run(blade);
+    super.run(blade);
     this.T = micros();
-    this.num_leds_ = 1.0 * blade.num_leds();
     this.effects_ = blade.GetEffects();
   }
-  getColor(led) {
-    var base = this.BASE.getColor(led);
-    var blast = this.BLAST.getColor(led);
+  getInteger(led) {
     var b = 0.0;
     for (var i = 0; i < this.effects_.length; i++) {
       if ((this.effects_[i].type & this.EFFECT) == 0) continue;
@@ -2206,7 +2200,38 @@ class BlastFadeoutClass extends STYLE {
 	b += M / 1000.0;
       }
     }
-    return base.mix(blast, max(min(b, 1.0), 0.0));
+    return clamp(b * 32768.0, 0, 32768.0);
+  }
+};
+
+function BlastFadeoutF(FADEOUT_MS, EFFECT) {
+  return new BlastFadeoutFClass(FADEOUT_MS, EFFECT);
+}
+
+
+class BlastFadeoutLClass extends MACRO {
+  constructor(BLAST, FADEOUT_MS, EFFECT_ARG) {
+    super("BlastFadeout layers", Array.from(arguments));
+    this.add_arg("BLAST", "COLOR", "blast color");
+    this.add_arg("FADEOUT_MS", "INT", "fadeout time in milliseconds", 200);
+    this.add_arg("EFFECT", "EFFECT", "effect type", EFFECT(EFFECT_BLAST));
+    this.SetExpansion(Alpha(BLAST, BlastFadeoutF(FADEOUT_MS, EFFECT_ARG)));
+  }
+};
+
+function BlastFadeoutL(BLAST, FADEOUT_MS, EFFECT) {
+  return new BlastFadeoutLClass(BLAST, FADEOUT_MS, EFFECT);
+}
+
+
+class BlastFadeoutClass extends MACRO {
+  constructor(BASE, BLAST, FADEOUT_MS, EFFECT_ARG) {
+    super("BlastFadeout effect", Array.from(arguments));
+    this.add_arg("BASE", "COLOR", "base color");
+    this.add_arg("BLAST", "COLOR", "blast color");
+    this.add_arg("FADEOUT_MS", "INT", "fadeout time in milliseconds", 200);
+    this.add_arg("EFFECT", "EFFECT", "effect type", EFFECT(EFFECT_BLAST));
+    this.SetExpansion(Layers(BASE, BlastFadeoutL(BLAST, FADEOUT_MS, EFFECT_ARG)));
   }
 };
 
@@ -3757,6 +3782,8 @@ function newCall(Cls) {
     AudioFlickerL : AudioFlickerL,
     Blast : Blast,
     BlastFadeout : BlastFadeout,
+    BlastFadeoutL : BlastFadeoutL,
+    BlastFadeoutF : BlastFadeoutF,
     Blinking : Blinking,
     BrownNoiseFlicker : BrownNoiseFlicker,
     ColorCycle : ColorCycle,
