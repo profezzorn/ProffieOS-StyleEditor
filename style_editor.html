@@ -1854,24 +1854,24 @@ function Stripes(W,S,C) {
   return new StripesClass(Array.from(arguments));
 }
 
-class AudioFlickerClass extends STYLE {
+class AudioFlickerLClass extends MACRO {
+  constructor(COLOR) {
+    super("Audio flicker layer, higher volumes means less transparent.", arguments);
+    this.add_arg("COLOR", "COLOR", "COLOR");
+    this.SetExpansion(Alpha(this.COLOR, NoisySoundLevelCompat()));
+  }
+}
+
+function AudioFlickerL(B) {
+  return new AudioFlickerLClass(B);
+}
+
+class AudioFlickerClass extends MACRO {
   constructor(A, B) {
-    super();
-    this.A = ColorArg(A);
-    this.B = ColorArg(B);
-  }
-  run(blade) {
-    this.A.run(blade);
-    this.B.run(blade);
-    this.var_ = Math.random() * Math.random();
-  }
-  getColor(led) {
-    return this.A.getColor(led).mix(this.B.getColor(led), this.var_)
-  }
-  pp() {
-    return this.PP("AudioFlicker", "Selects between A and B based on audio. Higher volumes means more B.",
-		   this.A, "A",
-		   this.B, "B");
+    super("Select between A and B based on audio. Higher volumes means more B.", arguments);
+    this.add_arg("A","COLOR","A");
+    this.add_arg("B","COLOR","B");
+    this.SetExpansion(Layers(this.A, AudioFlickerL(this.B)));
   }
 };
 
@@ -3754,6 +3754,7 @@ function newCall(Cls) {
   var classes = {
     Alpha : Alpha,
     AudioFlicker : AudioFlicker,
+    AudioFlickerL : AudioFlickerL,
     Blast : Blast,
     BlastFadeout : BlastFadeout,
     Blinking : Blinking,
