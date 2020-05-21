@@ -820,12 +820,17 @@ var all_colors = {};
 var colorNames = {};
 
 class RgbClass extends STYLE {
-  constructor(r,g,b) {
+  constructor(r,g,b,a) {
     super();
     this.r = IntArg(r)/255.0;
     this.g = IntArg(g)/255.0;
     this.b = IntArg(b)/255.0;
-    this.name = colorNames[r+","+g+","+b]
+    if (a == undefined) {
+      this.a = 1.0;
+      this.name = colorNames[r+","+g+","+b]
+    } else {
+      this.a = a;
+    }
   }
   run(blade) {}
   getColor(led) {
@@ -843,8 +848,26 @@ class RgbClass extends STYLE {
     ret.r = other.r * blend + this.r * (1.0 - blend);
     ret.g = other.g * blend + this.g * (1.0 - blend);
     ret.b = other.b * blend + this.b * (1.0 - blend);
+    ret.a = other.a * blend + this.a * (1.0 - blend);
     return ret;
   }
+  multiply(v) {
+    var ret = new RgbClass(0,0,0);
+    ret.r = this.r * v;
+    ret.g = this.g * v;
+    ret.b = this.b * v;
+    ret.a = this.a * v;
+    return ret;
+  }
+  paintOver(other) {
+    var ret = new RgbClass(0,0,0);
+    ret.r = this.r * (1.0 - other.a) + other.r;
+    ret.g = this.g * (1.0 - other.a) + other.g;
+    ret.b = this.b * (1.0 - other.a) + other.b;
+    ret.a = this.a * (1.0 - other.a) + other.a;
+    return ret;
+  }
+  
   // angle = 0 - 98304 (32768 * 3) (non-inclusive)
   rotate(angle) {
     var H;
@@ -916,6 +939,44 @@ function Rgb16(r,g,b) {
   return new Rgb16Class(r,g,b);
 }
 
+class AlphaClass extends STYLE {
+  constructor(COLOR, ALPHA) {
+    super("Makes transparent color", Array.from(arguments));
+    this.add_arg("COLOR", "COLOR", "COLOR");
+    this.add_arg("ALPHA", "FUNCTION", "Alpha function");
+  }
+  getColor(led) {
+    var ret = this.COLOR.getColor(led);
+    return ret.multiply(this.ALPHA.getInteger(0)/32768.0)
+  }
+};
+
+function Alpha(COLOR, ALPHA) {
+  return new AlphaClass(COLOR, ALPHA);
+}
+
+class LayersClass extends STYLE {
+  constructor(ARGS) {
+    super("Mix alpha-blended layers", ARGS);
+    this.LAYERS = Array.from(ARGS).slice(1);
+    this.add_arg("BASE", "COLOR", "Base layer");
+    for (var i = 1; i < this.LAYERS.length + 1; i++)
+      this.add_arg("LAYER" + i, "COLOR", "COLOR " + i);
+  }
+  getColor(led) {
+    var ret = this.BASE.getColor(led);
+    for (var i = 0; i < this.LAYERS.length; i++) {
+      ret = ret.paintOver(this.LAYERS[i].getColor(led));
+    }
+    return ret;
+  }
+}
+
+function Layers(BASE, Layer1, Layer2) {
+  return new LayersClass(Array.from(arguments));
+}
+
+
 function enc(s) {
   return s.replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
@@ -983,6 +1044,7 @@ AddTemplate("StyleRainbowPtr<300, 800>");
 AddTemplate("StyleStrobePtr<White, Rainbow, 15, 300, 800>");
 AddTemplate("StyleFirePtr<Red, Yellow>");
 
+AddEffect("Alpha<Red, Int<16000>>");
 AddEffect("AudioFlicker<White, Blue>");
 AddEffect("Blast<Blue, White>");
 AddEffect("BlastFadeout<Blue, White>");
@@ -1000,6 +1062,7 @@ AddEffect("HumpFlicker<Green, Magenta, 50>");
 AddEffect("InOutHelper<White, 300, 800, Black>");
 AddEffect("InOutSparkTip<Red, 1000, 800, White>");
 AddEffect("InOutTr<Green, TrColorCycle<3000>, TrFade<500>>");
+AddEffect("Layers<Green, Alpha<Red, Int<16000>>>");
 AddEffect("LocalizedClash<Red, White>");
 AddEffect("Lockup<Green, Red>");
 AddEffect("Mix<Int<16384>, Red, Blue>");
@@ -3676,6 +3739,7 @@ function newCall(Cls) {
 
 
   var classes = {
+    Alpha : Alpha,
     AudioFlicker : AudioFlicker,
     Blast : Blast,
     BlastFadeout : BlastFadeout,
@@ -3695,6 +3759,7 @@ function newCall(Cls) {
     InOutHelper : InOutHelper,
     InOutHelperX : InOutHelperX,
     InOutSparkTip : InOutSparkTip,
+    Layers : Layers,
     LocalizedClash : LocalizedClash,
     Lockup : Lockup,
     Mix : Mix,
