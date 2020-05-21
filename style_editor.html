@@ -939,7 +939,7 @@ function Rgb16(r,g,b) {
   return new Rgb16Class(r,g,b);
 }
 
-class AlphaClass extends STYLE {
+class AlphaLClass extends STYLE {
   constructor(COLOR, ALPHA) {
     super("Makes transparent color", Array.from(arguments));
     this.add_arg("COLOR", "COLOR", "COLOR");
@@ -951,8 +951,8 @@ class AlphaClass extends STYLE {
   }
 };
 
-function Alpha(COLOR, ALPHA) {
-  return new AlphaClass(COLOR, ALPHA);
+function AlphaL(COLOR, ALPHA) {
+  return new AlphaLClass(COLOR, ALPHA);
 }
 
 class LayersClass extends STYLE {
@@ -1044,7 +1044,7 @@ AddTemplate("StyleRainbowPtr<300, 800>");
 AddTemplate("StyleStrobePtr<White, Rainbow, 15, 300, 800>");
 AddTemplate("StyleFirePtr<Red, Yellow>");
 
-AddEffect("Alpha<Red, Int<16000>>");
+AddEffect("AlphaL<Red, Int<16000>>");
 AddEffect("AudioFlicker<White, Blue>");
 AddEffect("Blast<Blue, White>");
 AddEffect("BlastFadeout<Blue, White>");
@@ -1062,7 +1062,7 @@ AddEffect("HumpFlicker<Green, Magenta, 50>");
 AddEffect("InOutHelper<White, 300, 800, Black>");
 AddEffect("InOutSparkTip<Red, 1000, 800, White>");
 AddEffect("InOutTr<Green, TrColorCycle<3000>, TrFade<500>>");
-AddEffect("Layers<Green, Alpha<Red, Int<16000>>>");
+AddEffect("Layers<Green, AlphaL<Red, Int<16000>>>");
 AddEffect("LocalizedClash<Red, White>");
 AddEffect("Lockup<Green, Red>");
 AddEffect("Mix<Int<16384>, Red, Blue>");
@@ -1100,7 +1100,8 @@ AddTransition("TrWipe<500>");
 AddTransition("TrWipeIn<500>");
 
 AddFunction("BatteryLevel");
-AddFunction("BlastFadeout<>");
+AddFunction("BlastF");
+AddFunction("BlastFadeout");
 AddFunction("NoisySoundLevel");
 AddFunction("NoisySoundLevelCompat");
 AddFunction("SmoothSoundLevel");
@@ -1859,7 +1860,7 @@ class AudioFlickerLClass extends MACRO {
   constructor(COLOR) {
     super("Audio flicker layer, higher volumes means less transparent.", arguments);
     this.add_arg("COLOR", "COLOR", "COLOR");
-    this.SetExpansion(Alpha(this.COLOR, NoisySoundLevelCompat()));
+    this.SetExpansion(AlphaL(this.COLOR, NoisySoundLevelCompat()));
   }
 }
 
@@ -2138,26 +2139,20 @@ var blast_hump = [ 255,255,252,247,240,232,222,211,
 		   94,82,72,62,53,45,38,32,
 		   26,22,18,14,11,9,7,5,0 ];
 
-class BlastClass extends STYLE {
-  constructor(BASE, BLAST, FADEOUT_MS, WAVE_SIZE, WAVE_MS, EFFECT_ARG) {
-    super("Blast effect", Array.from(arguments));
-    this.add_arg("BASE", "COLOR", "base color");
-    this.add_arg("BLAST", "COLOR", "blast color");
+class BlastFClass extends FUNCTION {
+  constructor(FADEOUT_MS, WAVE_SIZE, WAVE_MS, EFFECT_ARG) {
+    super("Blast effect function", Array.from(arguments));
     this.add_arg("FADEOUT_MS", "INT", "fadeout time in milliseconds", 200);
     this.add_arg("WAVE_SIZE", "INT", "wave size", 100);
     this.add_arg("WAVE_MS", "INT", "wave speed", 400);
     this.add_arg("EFFECT", "EFFECT", "effect type", EFFECT(EFFECT_BLAST));
   }
   run(blade) {
-    this.BASE.run(blade);
-    this.BLAST.run(blade);
     this.T = micros();
     this.num_leds_ = 1.0 * blade.num_leds();
     this.effects_ = blade.GetEffects();
   }
-  getColor(led) {
-    var base = this.BASE.getColor(led);
-    var blast = this.BLAST.getColor(led);
+  getInteger(led) {
     var b = 0.0;
     for (var i = 0; i < this.effects_.length; i++) {
       if ((this.effects_[i].type & this.EFFECT) == 0) continue;
@@ -2171,7 +2166,40 @@ class BlastClass extends STYLE {
 	}
       }
     }
-    return base.mix(blast, max(min(b, 1.0), 0.0));
+    return clamp(b * 32768, 0, 32768);
+  }
+};
+
+function BlastF(BASE, BLAST, FADEOUT_MS, WAVE_SIZE, WAVE_MS, EFFECT) {
+  return new BlastFClass(FADEOUT_MS, WAVE_SIZE, WAVE_MS, EFFECT);
+}
+
+class BlastLClass extends MACRO {
+  constructor(BLAST, FADEOUT_MS, WAVE_SIZE, WAVE_MS, EFFECT_ARG) {
+    super("Blast layer", Array.from(arguments));
+    this.add_arg("BLAST", "COLOR", "blast color");
+    this.add_arg("FADEOUT_MS", "INT", "fadeout time in milliseconds", 200);
+    this.add_arg("WAVE_SIZE", "INT", "wave size", 100);
+    this.add_arg("WAVE_MS", "INT", "wave speed", 400);
+    this.add_arg("EFFECT", "EFFECT", "effect type", EFFECT(EFFECT_BLAST));
+    this.SetExpansion(AlphaL(BLAST, BlastF(FADEOUT_MS, WAVE_SIZE, WAVE_MS, EFFECT_ARG)));
+  }
+};
+
+function BlastL(BLAST, FADEOUT_MS, WAVE_SIZE, WAVE_MS, EFFECT) {
+  return new BlastLClass(BLAST, FADEOUT_MS, WAVE_SIZE, WAVE_MS, EFFECT);
+}
+
+class BlastClass extends MACRO {
+  constructor(BASE, BLAST, FADEOUT_MS, WAVE_SIZE, WAVE_MS, EFFECT_ARG) {
+    super("Blast effect", Array.from(arguments));
+    this.add_arg("BASE", "COLOR", "base color");
+    this.add_arg("BLAST", "COLOR", "blast color");
+    this.add_arg("FADEOUT_MS", "INT", "fadeout time in milliseconds", 200);
+    this.add_arg("WAVE_SIZE", "INT", "wave size", 100);
+    this.add_arg("WAVE_MS", "INT", "wave speed", 400);
+    this.add_arg("EFFECT", "EFFECT", "effect type", EFFECT(EFFECT_BLAST));
+    this.SetExpansion(Layers(BASE, BlastL(BLAST, FADEOUT_MS, WAVE_SIZE, WAVE_MS, EFFECT_ARG)));
   }
 };
 
@@ -2215,7 +2243,7 @@ class BlastFadeoutLClass extends MACRO {
     this.add_arg("BLAST", "COLOR", "blast color");
     this.add_arg("FADEOUT_MS", "INT", "fadeout time in milliseconds", 200);
     this.add_arg("EFFECT", "EFFECT", "effect type", EFFECT(EFFECT_BLAST));
-    this.SetExpansion(Alpha(BLAST, BlastFadeoutF(FADEOUT_MS, EFFECT_ARG)));
+    this.SetExpansion(AlphaL(BLAST, BlastFadeoutF(FADEOUT_MS, EFFECT_ARG)));
   }
 };
 
@@ -3777,10 +3805,12 @@ function newCall(Cls) {
 
 
   var classes = {
-    Alpha : Alpha,
+    AlphaL : AlphaL,
     AudioFlicker : AudioFlicker,
     AudioFlickerL : AudioFlickerL,
     Blast : Blast,
+    BlastL : BlastL,
+    BlastF : BlastF,
     BlastFadeout : BlastFadeout,
     BlastFadeoutL : BlastFadeoutL,
     BlastFadeoutF : BlastFadeoutF,
