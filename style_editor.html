@@ -947,7 +947,7 @@ class AlphaLClass extends STYLE {
   }
   getColor(led) {
     var ret = this.COLOR.getColor(led);
-    return ret.multiply(this.ALPHA.getInteger(0)/32768.0)
+    return ret.multiply(this.ALPHA.getInteger(led)/32768.0)
   }
 };
 
@@ -1104,6 +1104,7 @@ AddFunction("BlastF");
 AddFunction("BlinkingF<1000, 500>");
 AddFunction("BrownNoiseFlickerF<50>");
 AddFunction("BlastFadeout");
+AddFunction("HumpFlickerF<50>");
 AddFunction("NoisySoundLevel");
 AddFunction("NoisySoundLevelCompat");
 AddFunction("SmoothSoundLevel");
@@ -1979,31 +1980,44 @@ function BrownNoiseFlicker(A, B, grade) {
   return new BrownNoiseFlickerClass(A, B, grade);
 }
 
-class HumpFlickerClass extends STYLE {
-  constructor(A, B, hump_width) {
-    super();
-    this.A = ColorArg(A);
-    this.B = ColorArg(B);
-    this.hump_width = IntArg(hump_width, 50);
+class HumpFlickerFClass extends FUNCTION {
+  constructor(hump_width) {
+    super("Picks a random spot for a bump each frame.", Array.from(arguments));
+    this.add_arg("hump_width", "INT", "Hump width",  50);
   }
   run(blade) {
-    this.A.run(blade);
-    this.B.run(blade);
+    super.run(blade);
     this.pos = Math.floor(Math.random() * blade.num_leds());
   }
-  getColor(led) {
-    var a = this.A.getColor(led);
-    var b = this.B.getColor(led);
-    var m = Math.abs(led - this.pos) * 255 / this.hump_width
-    m = max(min(m, 255), 0);
-    return a.mix(b, m/255.0);
+  getInteger(led) {
+    return clamp(Math.abs(led - this.pos) * 32768 / this.hump_width, 0, 32768);
   }
-  pp() {
-    return this.PP("HumpFlicker", "Randomly selects between A and B but keeps nearby pixels similar",
-		   this.A, "A",
-		   this.B, "B",
-		   this.hump_width, "hump_width"
-		  );
+};
+
+function HumpFlickerF(hump_width) {
+  return new HumpFlickerFClass(hump_width);
+}
+
+class HumpFlickerLClass extends MACRO {
+  constructor(B, hump_width) {
+    super("Picks a random spot for a bump each frame.", Array.from(arguments));
+    this.add_arg("B", "COLOR", "B");
+    this.add_arg("hump_width", "INT", "Hump width",  50);
+    this.SetExpansion(AlphaL(B, HumpFlickerF(hump_width)));
+  }
+};
+
+function HumpFlickerL(B, hump_width) {
+  return new HumpFlickerLClass(B, hump_width);
+}
+
+class HumpFlickerClass extends MACRO {
+  constructor(A, B, hump_width) {
+    super("Picks a random spot for a bump each frame.", Array.from(arguments));
+    this.add_arg("A", "COLOR", "A");
+    this.add_arg("B", "COLOR", "B");
+    this.add_arg("hump_width", "INT", "Hump width",  50);
+    this.SetExpansion(Layers(A, HumpFlickerL(B, hump_width)));
   }
 };
 
@@ -3869,6 +3883,8 @@ function newCall(Cls) {
     FireConfig : FireConfig,
     Gradient : Gradient,
     HumpFlicker : HumpFlicker,
+    HumpFlickerL : HumpFlickerL,
+    HumpFlickerF : HumpFlickerF,
     IgnitionDelay : IgnitionDelay,
     RetractionDelay : RetractionDelay,
     InOutHelper : InOutHelper,
@@ -4175,6 +4191,9 @@ var last_micros;
 var last_style;
 var show_style;
 
+var numTick = 0;
+var framesPerUpdate = 0;
+
 function drawScene() {
   last_micros = current_micros;
   current_micros = actual_millis() * 1000;
@@ -4208,7 +4227,9 @@ function drawScene() {
     if (last_micros != 0) {
       current_micros += (current_micros - last_micros) / 2;
     }
-    S.run(blade);
+    if (framesPerUpdate == 0) {
+      S.run(blade);
+    }
     for (var i = 0; i < num_leds; i++) {
         c = S.getColor(i);
         pixels[i*4 + 0 + num_leds * 4] = Math.round(c.r * 255);
@@ -4259,7 +4280,11 @@ function drawScene() {
 
 function tick() {
   window.requestAnimationFrame(tick);
-  drawScene();
+  numTick++;
+  if (numTick > framesPerUpdate) {
+    numTick = 0;
+    drawScene();
+  }
 }
 var overall_string;
 
@@ -4443,6 +4468,12 @@ function ClickInhilt() {
   button.style.backgroundColor = STATE_NUM_LEDS == 1 ? "lightblue" : "";
 }
 
+function ClickSlow() {
+  framesPerUpdate = 60 - framesPerUpdate;
+  var button = FIND("SLOW_BUTTON");
+  button.style.backgroundColor = framesPerUpdate == 60 ? "lightblue" : "";
+}
+
 function Variant() {
  return parseInt(FIND("VARIANT").value);
 }
@@ -4495,6 +4526,7 @@ function DoExpand() {
     <input id=DRAG_BUTTON name=drag type=button value="Drag"  onclick="ClickDrag()" >
     <input id=ROTATE_BUTTON name=rotate type=button value="Rotate"  onclick="ClickRotate()" >
     <input id=INHILT_BUTTON name=inhilt type=button value="Inhilt"  onclick="ClickInhilt()" >
+    <input id=SLOW_BUTTON name=inhilt type=button value="Slow"  onclick="ClickSlow()" >
     Variant:
     <input id=VARIANT_MINUS name=varminus type=button value="<"  onclick="IncreaseVariant(-1)" >
     <input id=VARIANT name=variant type=input size=6 value="0" >
