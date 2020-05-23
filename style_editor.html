@@ -1101,6 +1101,7 @@ AddTransition("TrWipeIn<500>");
 
 AddFunction("BatteryLevel");
 AddFunction("BlastF");
+AddFunction("BlinkingF<1000, 500>");
 AddFunction("BlastFadeout");
 AddFunction("NoisySoundLevel");
 AddFunction("NoisySoundLevelCompat");
@@ -2304,21 +2305,16 @@ function OriginalBlast(BASE, BLAST, EFFECT) {
   return new OriginalBlastClass(BASE, BLAST, EFFECT);
 }
 
-class BlinkingClass extends STYLE {
-  constructor(COLOR1, COLOR2, BLINK_MILLIS, BLINK_PROMILLE) {
-    super("Blinks between A and B", Array.from(arguments));
-    this.add_arg("COLOR1", "COLOR", "A");
-    this.add_arg("COLOR2", "COLOR", "B");
+class BlinkingFClass extends FUNCTION {
+  constructor(BLINK_MILLIS, BLINK_PROMILLE) {
+    super("Blinks between 0 and 32768", Array.from(arguments));
     this.add_arg("BLINK_MILLIS", "INT", "milliseconds between blinks");
     this.add_arg("BLINK_PROMILLE", "INT", "0 = off, 1000 = on");
     this.on_ = false;
     this.pulse_start_micros_ = 0;
   }
   run(blade) {
-    this.COLOR1.run(blade);
-    this.COLOR2.run(blade);
-    this.BLINK_MILLIS.run(blade);
-    this.BLINK_PROMILLE.run(blade);
+    super.run(blade);
     var now = micros();
     var pulse_millis = this.BLINK_MILLIS.getInteger(0);
     if (pulse_millis <= 0) return;
@@ -2333,12 +2329,39 @@ class BlinkingClass extends STYLE {
       pulse_progress_micros = now - this.pulse_start_micros_;
     }
     var pulse_progress_promille = pulse_progress_micros / pulse_millis;
-    this.on_ = pulse_progress_promille <= this.BLINK_PROMILLE.getInteger(0);
+    this.value_ = pulse_progress_promille <= this.BLINK_PROMILLE.getInteger(0) ? 32768 : 0;
   }
-  getColor(led) {
-    var a = this.COLOR1.getColor(led);
-    var b = this.COLOR2.getColor(led);
-    return this.on_ ? a : b;
+  getInteger(led) {
+    return this.value_;
+  }
+};
+
+function BlinkingF(BM, BP) {
+  return new BlinkingFClass(BM, BP);
+}
+
+class BlinkingLClass extends MACRO {
+  constructor(COLOR, BLINK_MILLIS, BLINK_PROMILLE) {
+    super("Blinks transparent/opaque COLOR", Array.from(arguments));
+    this.add_arg("COLOR", "COLOR", "COLOR");
+    this.add_arg("BLINK_MILLIS", "INT", "milliseconds between blinks");
+    this.add_arg("BLINK_PROMILLE", "INT", "0 = off, 1000 = on");
+    this.SetExpansion(AlphaL(COLOR, BlinkingF(BLINK_MILLIS, BLINK_PROMILLE)));
+  }
+};
+
+function BlinkingL(A, B, BM, BP) {
+  return new BlinkingLClass(A, B, BM, BP);
+}
+
+class BlinkingClass extends MACRO {
+  constructor(COLOR1, COLOR2, BLINK_MILLIS, BLINK_PROMILLE) {
+    super("Blinks between A and B", Array.from(arguments));
+    this.add_arg("COLOR1", "COLOR", "A");
+    this.add_arg("COLOR2", "COLOR", "B");
+    this.add_arg("BLINK_MILLIS", "INT", "milliseconds between blinks");
+    this.add_arg("BLINK_PROMILLE", "INT", "0 = off, 1000 = on");
+    this.SetExpansion(Layers(COLOR1, BlinkingL(COLOR2, BLINK_MILLIS, BLINK_PROMILLE)));
   }
 };
 
@@ -3815,6 +3838,8 @@ function newCall(Cls) {
     BlastFadeoutL : BlastFadeoutL,
     BlastFadeoutF : BlastFadeoutF,
     Blinking : Blinking,
+    BlinkingL : BlinkingL,
+    BlinkingF : BlinkingF,
     BrownNoiseFlicker : BrownNoiseFlicker,
     ColorCycle : ColorCycle,
     ColorChange : ColorChange,
