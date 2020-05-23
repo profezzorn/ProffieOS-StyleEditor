@@ -1102,6 +1102,7 @@ AddTransition("TrWipeIn<500>");
 AddFunction("BatteryLevel");
 AddFunction("BlastF");
 AddFunction("BlinkingF<1000, 500>");
+AddFunction("BrownNoiseFlickerF<50>");
 AddFunction("BlastFadeout");
 AddFunction("NoisySoundLevel");
 AddFunction("NoisySoundLevelCompat");
@@ -1931,30 +1932,46 @@ function RandomPerLEDFlicker(A, B) {
   return new RandomPerLEDFlickerClass(A, B);
 }
 
-class BrownNoiseFlickerClass extends STYLE {
-  constructor(A, B, grade) {
-    super();
-    this.A = ColorArg(A);
-    this.B = ColorArg(B);
-    this.grade = IntArg(grade, 50);
+class BrownNoiseFlickerFClass extends FUNCTION {
+  constructor(grade) {
+    super("Randomly return values between 0 and 32768, but keeps nearby values similar", Array.from(arguments));
+    this.add_arg("GRADE", "INT", "grade", 50);
   }
   run(blade) {
-    this.A.run(blade);
-    this.B.run(blade);
-    this.mix = Math.floor(Math.random()*255);
+    super.run(blade);
+    this.mix = Math.floor(Math.random()*32768);
   }
-  getColor(led) {
-    var ret = this.A.getColor(led).mix(this.B.getColor(led), this.mix / 255.0)
-    this.mix += Math.floor(Math.random() * (this.grade * 2 + 1)) - this.grade;
-    this.mix = max(min(this.mix, 255), 0);
-    return ret;
+  getInteger(led) {
+    this.mix += Math.floor(Math.random() * (this.GRADE * 2 + 1)) - this.GRADE;
+    this.mix = clamp(this.mix, 0, 32768);
+    return this.mix;
   }
-  pp() {
-    return this.PP("BrownNoiseFlicker", "Randomly selects between A and B but keeps nearby pixels similar",
-		   this.A, "A",
-		   this.B, "B",
-		   this.grade, "grade"
-		  );
+};
+
+function BrownNoiseFlickerF(grade) {
+  return new BrownNoiseFlickerFClass(grade);
+}
+
+class BrownNoiseFlickerLClass extends MACRO {
+  constructor(B, GRADE) {
+    super("Randomly selects between A and B but keeps nearby pixels similar", Array.from(arguments));
+    this.add_arg("B", "COLOR", "B");
+    this.add_arg("GRADE", "INT", "grade", 50);
+    this.SetExpansion(AlphaL(B, BrownNoiseFlickerF(GRADE)))
+  }
+};
+
+function BrownNoiseFlickerL(B, grade) {
+  return new BrownNoiseFlickerLClass(B, grade);
+}
+
+class BrownNoiseFlickerClass extends MACRO {
+  constructor(A, B, GRADE) {
+    super("Randomly selects between A and B but keeps nearby pixels similar", Array.from(arguments));
+    this.add_arg("A", "COLOR", "A");
+    this.add_arg("B", "COLOR", "B");
+    this.add_arg("GRADE", "INT", "grade", 50);
+    this.SetExpansion(Layers(A, BrownNoiseFlickerL(B, GRADE * 128)))
   }
 };
 
@@ -3841,6 +3858,8 @@ function newCall(Cls) {
     BlinkingL : BlinkingL,
     BlinkingF : BlinkingF,
     BrownNoiseFlicker : BrownNoiseFlicker,
+    BrownNoiseFlickerL : BrownNoiseFlickerL,
+    BrownNoiseFlickerF : BrownNoiseFlickerF,
     ColorCycle : ColorCycle,
     ColorChange : ColorChange,
     ColorSequence : ColorSequence,
