@@ -902,6 +902,12 @@ function Rgb(r,g,b) {
   return new RgbClass(r,g,b);
 }
 
+function Transparent(r,g,b) {
+  var ret = Rgb(0,0,0)
+  ret.a = 0.0;
+  return ret;
+}
+
 class Rgb16Class extends STYLE {
   constructor(r,g,b) {
     super();
@@ -2988,10 +2994,9 @@ function TransitionEffect(T, EC, T1, T2, E) {
   return new TransitionEffectClass(T, EC, T1, T2, E);
 }
 
-class InOutTrClass extends STYLE {
-  constructor(ON, OUT_TR, IN_TR, OFF, AD) {
+class InOutTrLClass extends STYLE {
+  constructor(OUT_TR, IN_TR, OFF, AD) {
     super("In-out based on transitions", arguments);
-    this.add_arg("ON", "COLOR", "Color when on.");
     this.add_arg("OUT_TR", "TRANSITION", "IN-OUT transition");
     this.add_arg("IN_TR", "TRANSITION", "OUT-IN transition");
     this.add_arg("OFF", "COLOR", "Color when off", BLACK.DOCOPY());
@@ -3001,7 +3006,6 @@ class InOutTrClass extends STYLE {
     this.in_active_ = false;
   }
   run(blade) {
-    this.ON.run(blade);
     this.OFF.run(blade);
 
     if (this.on_ != blade.is_on()) {
@@ -3049,12 +3053,12 @@ class InOutTrClass extends STYLE {
   getColor(led) {
     if (!this.out_active_ && !this.in_active_) {
       if (this.on_) {
-        return this.ON.getColor(led);
+        return Transparent();
       } else {
         return this.OFF.getColor(led);
       }
     } else {
-      var on = this.ON.getColor(led);
+      var on = Transparent();
       var off = this.OFF.getColor(led);
       if (this.on_) {
         return this.runOut(this.runIn(on, off, led), on, led);
@@ -3062,6 +3066,22 @@ class InOutTrClass extends STYLE {
         return this.runIn(this.runOut(off, on, led), off, led);
       }
     }
+  }
+};
+
+function InOutTrL(OUT_TR, IN_TR, OFF, AD) {
+  return new InOutTrLClass(OUT_TR, IN_TR, OFF, AD);
+}
+
+class InOutTrClass extends MACRO {
+  constructor(ON, OUT_TR, IN_TR, OFF, AD) {
+    super("In-out based on transitions", arguments);
+    this.add_arg("ON", "COLOR", "Color when on.");
+    this.add_arg("OUT_TR", "TRANSITION", "IN-OUT transition");
+    this.add_arg("IN_TR", "TRANSITION", "OUT-IN transition");
+    this.add_arg("OFF", "COLOR", "Color when off", BLACK.DOCOPY());
+    this.add_arg("ALLOW_DISABLE", "INT", "allow disable?", 1);
+    this.SetExpansion(Layers(ON, InOutTrL(OUT_TR, IN_TR, this.OFF, this.ALLOW_DISABLE)));
   }
 };
 
@@ -3946,6 +3966,7 @@ function newCall(Cls) {
     TransitionLoop : TransitionLoop,
     TransitionEffect : TransitionEffect,
     InOutTr : InOutTr,
+    InOutTrL : InOutTrL,
 
     RotateColorsX : RotateColorsX,
     RotateColors : RotateColors,
