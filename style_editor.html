@@ -405,6 +405,9 @@ function Arg(expected_type, arg, default_arg) {
     }
     throw "Too few arguments";
   }
+  if (typeof(arg) != "number" && !arg.getType) {
+     throw "What is this?? " + arg;
+  }
   if (typeof(arg) != "number" && arg.getType() != expected_type) {
     throw "Expected " + expected_type;
   }
@@ -742,6 +745,11 @@ class EFFECTClass  extends INTEGER {
     if (this.value & EFFECT_UNJAM) ret.push("EFFECT_UNJAM");
     if (this.value & EFFECT_PLI_ON) ret.push("EFFECT_PLI_ON");
     if (this.value & EFFECT_PLI_OFF) ret.push("EFFECT_PLI_OFF");
+
+    if (this.value & EFFECT_LB_BEGIN) ret.push("EFFECT_LB_BEGIN");
+    if (this.value & EFFECT_LB_END) ret.push("EFFECT_LB_END");
+    if (this.value & EFFECT_MELT_BEGIN) ret.push("EFFECT_MELT_BEGIN");
+    if (this.value & EFFECT_MELT_END) ret.push("EFFECT_MELT_END");
 
    return this.PPshort(ret.join(" | "), "EFFECT");
 //    return this.PPshort(this.value, "EFFECT");
@@ -1108,7 +1116,7 @@ AddTransition("TrWipeIn<500>");
 AddFunction("BatteryLevel");
 AddFunction("BlastF");
 AddFunction("BlinkingF<1000, 500>");
-AddFunction("BrownNoiseFlickerF<50>");
+AddFunction("BrownNoiseF<50>");
 AddFunction("BlastFadeout");
 AddFunction("HumpFlickerF<50>");
 AddFunction("NoisySoundLevel");
@@ -1125,6 +1133,9 @@ AddFunction("Sin<Int<10>>");
 AddFunction("SmoothStep<Sin<Int<10>>, Sin<Int<7>>>");
 AddFunction("Trigger<EFFECT_FORCE, Int<500>, Int<1000>, Int<500>>");
 AddFunction("ChangeSlowly<NoisySoundLevel, Int<50000>>");
+AddFunction("SlowNoise");
+AddFunction("IsLessThan<SwingSpeed<250>, Int<100>>");
+AddFunction("LayerFunctions<Bump<Int<0>>, Bump<Int<32768>>>");
 
 AddColor("AliceBlue", 223, 239, 255);
 AddColor("Aqua", 0, 255, 255);
@@ -1200,6 +1211,11 @@ AddEffectType("UNJAM");
 AddEffectType("PLI_ON");
 AddEffectType("PLI_OFF");
 
+AddEffectType("LB_BEGIN");
+AddEffectType("LB_END");
+AddEffectType("MELT_BEGIN");
+AddEffectType("MELT_END");
+
 var WHITE = Rgb(255,255,255);
 var RED = Rgb(255,0,0);
 var GREEN = Rgb(0,255,0);
@@ -1233,6 +1249,10 @@ function Rainbow() {
 }
 
 var STATE_ON = 0;
+// 1 = lockup
+// 2 = drag
+// 3 = lb
+// 4 = melt
 var STATE_LOCKUP = 0;
 var STATE_CLASH = 0;
 var STATE_ROTATE = 0;
@@ -1252,6 +1272,7 @@ const  EFFECT_DRAG_END = 1 << 8;
 const  EFFECT_IGNITION = 1 << 9;
 const  EFFECT_RETRACTION = 1 << 10;
 
+
 const  EFFECT_CHANGE = 1 << 11; // used for click to change
 
 // Blaster Effect Types
@@ -1269,6 +1290,15 @@ const  EFFECT_UNJAM = 1 << 22;
 const  EFFECT_PLI_ON = 1 << 23;
 const  EFFECT_PLI_OFF = 1 << 24;
 
+const  EFFECT_LB_BEGIN = 1 << 25;
+const  EFFECT_LB_END = 1 << 26;
+const  EFFECT_MELT_BEGIN = 1 << 27;
+const  EFFECT_MELT_END = 1 << 28;
+
+function IsHandled(lockup_type) {
+  // TODO
+  return false;
+}
 
 class BladeEffect {
   constructor(type, start_micros, location) {
@@ -1940,10 +1970,10 @@ function RandomPerLEDFlicker(A, B) {
   return new RandomPerLEDFlickerClass(A, B);
 }
 
-class BrownNoiseFlickerFClass extends FUNCTION {
+class BrownNoiseFClass extends FUNCTION {
   constructor(grade) {
     super("Randomly return values between 0 and 32768, but keeps nearby values similar", Array.from(arguments));
-    this.add_arg("GRADE", "INT", "grade", 50);
+    this.add_arg("GRADE", "FUNCTION", "grade", 50);
   }
   run(blade) {
     super.run(blade);
@@ -1956,8 +1986,8 @@ class BrownNoiseFlickerFClass extends FUNCTION {
   }
 };
 
-function BrownNoiseFlickerF(grade) {
-  return new BrownNoiseFlickerFClass(grade);
+function BrownNoiseF(grade) {
+  return new BrownNoiseFClass(grade);
 }
 
 class BrownNoiseFlickerLClass extends MACRO {
@@ -1965,7 +1995,7 @@ class BrownNoiseFlickerLClass extends MACRO {
     super("Randomly selects between A and B but keeps nearby pixels similar", Array.from(arguments));
     this.add_arg("B", "COLOR", "B");
     this.add_arg("GRADE", "INT", "grade", 50);
-    this.SetExpansion(AlphaL(B, BrownNoiseFlickerF(GRADE)))
+    this.SetExpansion(AlphaL(B, BrownNoiseF(GRADE)))
   }
 };
 
@@ -1979,7 +2009,7 @@ class BrownNoiseFlickerClass extends MACRO {
     this.add_arg("A", "COLOR", "A");
     this.add_arg("B", "COLOR", "B");
     this.add_arg("GRADE", "INT", "grade", 50);
-    this.SetExpansion(Layers(A, BrownNoiseFlickerL(B, GRADE * 128)))
+    this.SetExpansion(Layers(A, BrownNoiseFlickerL(B, Int(GRADE * 128))))
   }
 };
 
@@ -2494,22 +2524,32 @@ function LocalizedClash(T, CLASH_COLOR, CLASH_MILLIS, CLASH_WIDTH_PERCENT, EF) {
   return new LocalizedClashClass(T, CLASH_COLOR, CLASH_MILLIS, CLASH_WIDTH_PERCENT, EF);
 }
 
-class LockupClass extends STYLE {
-  constructor(BASE, LOCKUP, DRAG_COLOR, LOCKUP_SHAPE, DRAG_SHAPE) {
+class LockupLClass extends STYLE {
+  constructor(LOCKUP, DRAG_COLOR, LOCKUP_SHAPE, DRAG_SHAPE) {
     super("Implements the lockup and drag effects.", arguments);
-    this.add_arg("BASE", "COLOR", "base color");
     this.add_arg("LOCKUP", "COLOR", "lockup color");
     this.add_arg("DRAG_COLOR", "COLOR", "drag color", this.LOCKUP.DOCOPY());
     this.add_arg("LOCKUP_SHAPE", "FUNCTION", "Lockup shape", Int(32768));
     this.add_arg("DRAG_SHAPE", "FUNCTION", "Drag shape", SmoothStep(Int(28671), Int(4096)));
+    this.add_arg("LB_SHAPE", "FUNCTION", "Lightning block shape",
+            LayerFunctions(Bump(Scale(SlowNoise(Int(2000)),Int(3000),Int(16000)),
+                                Scale(BrownNoiseF(Int(10)),Int(14000),Int(8000))),
+	                   Bump(Scale(SlowNoise(Int(2300)),Int(26000),Int(8000)),
+                                Scale(NoisySoundLevel(),Int(5000),Int(10000))),
+                           Bump(Scale(SlowNoise(Int(2300)),Int(20000),Int(30000)),
+                                Scale(IsLessThan(SlowNoise(Int(1500)),Int(8000)),Scale(NoisySoundLevel(),Int(5000),Int(0)),Int(0)))));
   }
   run(blade) {
     super.run(blade);
     this.single_pixel_ = blade.num_leds() == 1;
+    this.handled = IsHandled(STATE_LOCKUP);
   }
-
   getColor(led) {
-    var ret = this.BASE.getColor(led);
+    var ret = Transparent();
+    if (this.handled) return ret;
+    if (STATE_LOCKUP == 3) {
+      ret = ret.mix(this.LOCKUP.getColor(led), this.LB_SHAPE.getInteger(led) / 32768.0);
+    }
     if (STATE_LOCKUP == 2) {
       var blend = this.single_pixel_ ? 32768 : this.DRAG_SHAPE.getInteger(led);
       ret = ret.mix(this.DRAG_COLOR.getColor(led), blend / 32768.0);
@@ -2518,6 +2558,22 @@ class LockupClass extends STYLE {
       ret = ret.mix(this.LOCKUP.getColor(led), this.LOCKUP_SHAPE.getInteger(led) / 32768.0);
     }
     return ret;
+  }
+};
+
+function LockupL(LOCKUP, DRAG, LOCKUP_SHAPE, DRAG_SHAPE) {
+  return new LockupLClass(LOCKUP, DRAG, LOCKUP_SHAPE, DRAG_SHAPE);
+}
+
+class LockupClass extends MACRO {
+  constructor(BASE, LOCKUP, DRAG_COLOR, LOCKUP_SHAPE, DRAG_SHAPE) {
+    super("Implements the lockup and drag effects.", arguments);
+    this.add_arg("BASE", "COLOR", "base color");
+    this.add_arg("LOCKUP", "COLOR", "lockup color");
+    this.add_arg("DRAG_COLOR", "COLOR", "drag color", this.LOCKUP.DOCOPY());
+    this.add_arg("LOCKUP_SHAPE", "FUNCTION", "Lockup shape", Int(32768));
+    this.add_arg("DRAG_SHAPE", "FUNCTION", "Drag shape", SmoothStep(Int(28671), Int(4096)));
+    this.SetExpansion(Layers(BASE, LockupL(LOCKUP, DRAG_COLOR,  LOCKUP_SHAPE, DRAG_SHAPE)));
   }
 };
 
@@ -3891,6 +3947,63 @@ class SwingSpeedClass extends MACRO {
 function SwingSpeed(MAX) { return new SwingSpeedClass(MAX); }
 
 
+class LayerFunctionsClass extends FUNCTION {
+  constructor(ARGS) {
+    super("Mix functions", ARGS);
+    this.LAYERS = Array.from(ARGS);
+    for (var i = 1; i < this.LAYERS.length + 1; i++)
+      this.add_arg("FUNCTION" + i, "FUNCTION", "COLOR " + i);
+  }
+  getInteger(led) {
+    var ret = 32768;
+    for (var i = 0; i < this.LAYERS.length; i++) {
+      ret = 32768 - ((32768 - ret) * (32768 - this.LAYERS[i].getInteger(led)));
+    }
+    return ret;
+  }
+};
+
+function LayerFunctions(Layer1, Layer2) {
+  return new LayerFunctionsClass(Array.from(arguments));
+}
+
+class SlowNoiseClass extends FUNCTION {
+  constructor(SPEED) {
+    super("Returns a value between 0 and 32768, which slowly changes up and down randomly.", Array.from(arguments));
+    this.add_arg("SPEED", "FUNCTION", "Change speed");
+  }
+  run(blade) {
+    super.run(blade);
+    var now = millis();
+    var delta = now - this.last_millis;
+    if (delta > 100) delta = 1;
+    var speed = this.SPEED.getInteger(0);
+    while (delta--) {
+      this.value = clamp(this.value + random(speed * 2 + 1) - speed);
+    }
+  }
+  getInteger(led) { return this.value; }
+};
+
+function SlowNoise(SPEED) {
+  return new SlowNoiseClass(SPEED);
+}
+
+class IsLessThanClass extends FUNCTION {
+  constructor(F, V) {
+    super("Returns 32768 if F < V, 0 otherwise.", arguments);
+    this.add_arg("F", "FUNCTION", "F");
+    this.add_arg("V", "FUNCTION", "V");
+  }
+  getInteger(led) {
+    return this.F.getInteger(led) < this.V.getInteger(led) ? 32768 : 0;
+  }
+};
+
+function IsLessThan(F, V) {
+  return new IsLessThanClass(F, V);
+}
+
 ///////
 
 var start = new Date().getTime();
@@ -3919,7 +4032,7 @@ function newCall(Cls) {
     BlinkingF : BlinkingF,
     BrownNoiseFlicker : BrownNoiseFlicker,
     BrownNoiseFlickerL : BrownNoiseFlickerL,
-    BrownNoiseFlickerF : BrownNoiseFlickerF,
+    BrownNoiseF : BrownNoiseF,
     ColorCycle : ColorCycle,
     ColorChange : ColorChange,
     ColorSequence : ColorSequence,
@@ -3941,6 +4054,7 @@ function newCall(Cls) {
     Layers : Layers,
     LocalizedClash : LocalizedClash,
     Lockup : Lockup,
+    LockupL : LockupL,
     Mix : Mix,
     OnSpark : OnSpark,
     OriginalBlast : OriginalBlast,
@@ -4007,7 +4121,10 @@ function newCall(Cls) {
     NoisySoundLevelCompat : NoisySoundLevelCompat,
     SmoothSoundLevel : SmoothSoundLevel,
     SwingSpeedX : SwingSpeedX,
-    SwingSpeed : SwingSpeed
+    SwingSpeed : SwingSpeed,
+    LayerFunctions : LayerFunctions,
+    SlowNoise : SlowNoise,
+    IsLessThan : IsLessThan,
 };
   var identifiers = {
       RgbCycle : RgbCycle,
@@ -4101,6 +4218,11 @@ function newCall(Cls) {
   EFFECT_UNJAM : EFFECT.bind(1 << 22),
   EFFECT_PLI_ON : EFFECT.bind(1 << 23),
   EFFECT_PLI_OFF : EFFECT.bind(1 << 24),
+
+  EFFECT_LB_BEGIN : EFFECT.bind(1 << 25),
+  EFFECT_LB_END : EFFECT.bind(1 << 26),
+  EFFECT_MELT_BEGIN : EFFECT.bind(1 << 27),
+  EFFECT_MELT_END : EFFECT.bind(1 << 28),
 };
 
 
@@ -4493,22 +4615,39 @@ function ClickPower() {
   blade.addEffect(STATE_ON ? EFFECT_IGNITION : EFFECT_RETRACTION, Math.random() * 0.7 + 0.2);
 }
 
-function ClickLockup() {
-  STATE_LOCKUP = STATE_LOCKUP == 1 ? 0 : 1;
+function UpdateLockupButtons() {
   var button = FIND("LOCKUP_BUTTON");
   button.style.backgroundColor = STATE_LOCKUP == 1 ? "lightblue" : "";
   var button = FIND("DRAG_BUTTON");
   button.style.backgroundColor = STATE_LOCKUP == 2 ? "lightblue" : "";
+  var button = FIND("LB_BUTTON");
+  button.style.backgroundColor = STATE_LOCKUP == 3 ? "lightblue" : "";
+  var button = FIND("MELT_BUTTON");
+  button.style.backgroundColor = STATE_LOCKUP == 4 ? "lightblue" : "";
+}
+
+function ClickLockup() {
+  STATE_LOCKUP = STATE_LOCKUP == 1 ? 0 : 1;
+  UpdateLockupButtons();
   blade.addEffect(STATE_LOCKUP ? EFFECT_LOCKUP_BEGIN : EFFECT_LOCKUP_END, Math.random() * 0.7 + 0.2);
 }
 
 function ClickDrag() {
   STATE_LOCKUP = STATE_LOCKUP == 2 ? 0 : 2;
-  var button = FIND("LOCKUP_BUTTON");
-  button.style.backgroundColor = STATE_LOCKUP == 1 ? "lightblue" : "";
-  var button = FIND("DRAG_BUTTON");
-  button.style.backgroundColor = STATE_LOCKUP == 2 ? "lightblue" : "";
+  UpdateLockupButtons();
   blade.addEffect(STATE_LOCKUP ? EFFECT_DRAG_BEGIN : EFFECT_DRAG_END, 1.0);
+}
+
+function ClickLB() {
+  STATE_LOCKUP = STATE_LOCKUP == 3 ? 0 : 3;
+  UpdateLockupButtons();
+  blade.addEffect(STATE_LOCKUP ? EFFECT_LB_BEGIN : EFFECT_LB_END, 1.0);
+}
+
+function ClickMelt() {
+  STATE_LOCKUP = STATE_LOCKUP == 4 ? 0 : 4;
+  UpdateLockupButtons();
+  blade.addEffect(STATE_LOCKUP ? EFFECT_MELT_BEGIN : EFFECT_MELT_END, 1.0);
 }
 
 function ClickInhilt() {
@@ -4573,6 +4712,8 @@ function DoExpand() {
     <input name=force type=button value="Force" onclick="AddForce()"; >
     <input id=LOCKUP_BUTTON name=lockup type=button value="Lockup" onclick="ClickLockup()" >
     <input id=DRAG_BUTTON name=drag type=button value="Drag"  onclick="ClickDrag()" >
+    <input id=LB_BUTTON name=drag type=button value="LB"  onclick="ClickLB()" >
+    <input id=MELT_BUTTON name=drag type=button value="MELT"  onclick="ClickMelt()" >
     <input id=ROTATE_BUTTON name=rotate type=button value="Rotate"  onclick="ClickRotate()" >
     <input id=INHILT_BUTTON name=inhilt type=button value="Inhilt"  onclick="ClickInhilt()" >
     <input id=SLOW_BUTTON name=inhilt type=button value="Slow"  onclick="ClickSlow()" >
