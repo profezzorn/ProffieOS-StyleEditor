@@ -1112,6 +1112,7 @@ AddFunction("SwingSpeed<250>");
 AddFunction("Bump<Int<16384>>");
 AddFunction("Ifon<Int<0>, Int<32768>>");
 AddFunction("InOutFunc<300, 800>");
+AddFunction("InOutHelperF<300, 800>");
 AddFunction("Int<32768>");
 AddFunction("Scale<Sin<Int<10>>,Int<0>,Int<4000>>");
 AddFunction("Sin<Int<10>>");
@@ -2763,23 +2764,48 @@ function StyleFirePtr(COLOR1, COLOR2,
       OFF_BASE,  OFF_RAND , OFF_COOL);
 }
 
-class InOutHelperXClass extends STYLE {
+class InOutHelperFClass extends FUNCTION {
+  constructor(T, EXTENSION, OFF_COLOR, ALLOW_DISABLE) {
+    super("0=retracted, 32768=extended", arguments);
+    this.add_arg("EXTENSION", "FUNCTION", "extension amount");
+    this.add_arg("ALLOW_DISABLE", "INT", "allow disable?", 1);
+  }
+  run(blade) {
+    super.run(blade);
+    this.thres = (this.EXTENSION.getInteger(0) * blade.num_leds());
+  }
+  getInteger(led) {
+    return 32768 - clamp(this.thres - led * 32768, 0, 32768);
+  }
+}
+
+function InOutHelperF(EX, AD) {
+  return new InOutHelperFClass(EX, AD);
+}
+
+class InOutHelperLClass extends MACRO {
+  constructor(EXTENSION, OFF_COLOR, ALLOW_DISABLE) {
+    super("0=retracted, 32768=extended", arguments);
+    this.add_arg("EXTENSION", "FUNCTION", "extension amount");
+    this.add_arg("OFF_COLOR", "COLOR", "color when retracted", BLACK.DOCOPY());
+    this.add_arg("ALLOW_DISABLE", "INT", "allow disable?", 1);
+    this.SetExpansion(AlphaL(this.OFF_COLOR, InOutHelperF(EXTENSION, this.ALLOW_DISABLE)));
+  }
+}
+
+function InOutHelperL(EX, O, AD) {
+  return new InOutHelperLClass(EX, O, AD);
+}
+
+
+class InOutHelperXClass extends MACRO {
   constructor(T, EXTENSION, OFF_COLOR, ALLOW_DISABLE) {
     super("0=retracted, 32768=extended", arguments);
     this.add_arg("T", "COLOR", "base color");
     this.add_arg("EXTENSION", "FUNCTION", "extension amount");
     this.add_arg("OFF_COLOR", "COLOR", "color when retracted", BLACK.DOCOPY());
     this.add_arg("ALLOW_DISABLE", "INT", "allow disable?", 1);
-  }
-  run(blade) {
-    super.run(blade);
-    this.thres = (this.EXTENSION.getInteger(0) * blade.num_leds()) >> 7;
-  }
-  getColor(led) {
-    var black_mix = clamp(this.thres - led * 256, 0, 256);
-    var ret = this.T.getColor(led);
-    var off_color = this.OFF_COLOR.getColor(led);
-    return off_color.mix(ret, black_mix / 256.0);
+    this.SetExpansion(Layers(T, InOutHelperL(EXTENSION, this.OFF_COLOR, this.ALLOW_DISABLE)));
   }
 }
 
@@ -2796,7 +2822,7 @@ class InOutHelperClass extends MACRO {
     this.add_arg("OUT_MILLIS", "INT", "Time to extend.");
     this.add_arg("IN_MILLIS", "INT", "Time to retract.");
     this.add_arg("OFF_COLOR", "COLOR", "color when retracted", BLACK.DOCOPY());
-    this.SetExpansion(InOutHelperX(T, InOutFunc(OUT_MILLIS, IN_MILLIS), OFF_COLOR));
+    this.SetExpansion(InOutHelperX(T, InOutFunc(OUT_MILLIS, IN_MILLIS), this.OFF_COLOR));
   }
 };
 
@@ -3889,6 +3915,8 @@ function newCall(Cls) {
     RetractionDelay : RetractionDelay,
     InOutHelper : InOutHelper,
     InOutHelperX : InOutHelperX,
+    InOutHelperL : InOutHelperL,
+    InOutHelperF : InOutHelperF,
     InOutSparkTip : InOutSparkTip,
     Layers : Layers,
     LocalizedClash : LocalizedClash,
