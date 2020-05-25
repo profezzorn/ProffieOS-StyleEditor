@@ -424,7 +424,7 @@ function Arg(expected_type, arg, default_arg) {
     return arg;
   }
 
-  throw "Not INT, COLOR,  EFFECT, FUNCTION or TRANSITION";
+  throw "Not INT, COLOR,  EFFECT, LOCKUP_TYPE, FUNCTION or TRANSITION";
 }
 
 function IntArg(arg, def_arg) { return Arg("INT", arg, def_arg); }
@@ -435,6 +435,12 @@ var pp_is_verbose = 0;
 
 var next_id = 1000;
 var style_ids = {};
+
+var identifiers = {};
+
+function AddIdentifier(name, value) {
+  identifiers[name] = value;
+}
 
 class ARG {
   constructor(name, type, comment, default_value) {
@@ -716,50 +722,82 @@ class BINARY extends STYLE {
   getType() { return "INT"; }
 };
 
-class EFFECTClass  extends INTEGER {
+class ENUM extends INTEGER {
   pp() {
-    var ret = [];
-    if (this.value == 0) ret.push("EFFECT_NONE");
-    if (this.value & EFFECT_CLASH) ret.push("EFFECT_CLASH");
-    if (this.value & EFFECT_BLAST) ret.push("EFFECT_BLAST");
-    if (this.value & EFFECT_FORCE) ret.push("EFFECT_FORCE");
-    if (this.value & EFFECT_STAB) ret.push("EFFECT_STAB");
-    if (this.value & EFFECT_BOOT) ret.push("EFFECT_BOOT");
-    if (this.value & EFFECT_LOCKUP_BEGIN) ret.push("EFFECT_LOCKUP_BEGIN");
-    if (this.value & EFFECT_LOCKUP_END) ret.push("EFFECT_LOCKUP_END");
-    if (this.value & EFFECT_DRAG_BEGIN) ret.push("EFFECT_DRAG_BEGIN");
-    if (this.value & EFFECT_DRAG_END) ret.push("EFFECT_DRAG_END");
-    if (this.value & EFFECT_IGNITION) ret.push("EFFECT_IGNITION");
-    if (this.value & EFFECT_RETRACTION) ret.push("EFFECT_RETRACTION");
-    if (this.value & EFFECT_CHANGE) ret.push("EFFECT_CHANGE");
-    if (this.value & EFFECT_STUN) ret.push("EFFECT_STUN");
-    if (this.value & EFFECT_FIRE) ret.push("EFFECT_FIRE");
-    if (this.value & EFFECT_CLIP_IN) ret.push("EFFECT_CLIP_IN");
-    if (this.value & EFFECT_CLIP_OUT) ret.push("EFFECT_CLIP_OUT");
-    if (this.value & EFFECT_RELOAD) ret.push("EFFECT_RELOAD");
-    if (this.value & EFFECT_MODE) ret.push("EFFECT_MODE");
-    if (this.value & EFFECT_RANGE) ret.push("EFFECT_RANGE");
-    if (this.value & EFFECT_EMPTY) ret.push("EFFECT_EMPTY");
-    if (this.value & EFFECT_FULL) ret.push("EFFECT_FULL");
-    if (this.value & EFFECT_JAM) ret.push("EFFECT_JAM");
-    if (this.value & EFFECT_UNJAM) ret.push("EFFECT_UNJAM");
-    if (this.value & EFFECT_PLI_ON) ret.push("EFFECT_PLI_ON");
-    if (this.value & EFFECT_PLI_OFF) ret.push("EFFECT_PLI_OFF");
-
-    if (this.value & EFFECT_LB_BEGIN) ret.push("EFFECT_LB_BEGIN");
-    if (this.value & EFFECT_LB_END) ret.push("EFFECT_LB_END");
-    if (this.value & EFFECT_MELT_BEGIN) ret.push("EFFECT_MELT_BEGIN");
-    if (this.value & EFFECT_MELT_END) ret.push("EFFECT_MELT_END");
-
-   return this.PPshort(ret.join(" | "), "EFFECT");
-//    return this.PPshort(this.value, "EFFECT");
+    if (pp_is_url) {
+      if (this.super_short_desc) return "$";
+    }
+    if (this.constructor.value_to_name[this.value]) {
+      return this.constructor.value_to_name[this.value];
+    }
+    return "" + this.value;
   }
+};
+
+ENUM.value_to_name = {};
+ENUM.prefix = "";
+
+class EFFECTClass extends ENUM {
   getType() { return "EFFECT"; }
 };
 
 function EFFECT(v) {
   return new EFFECTClass(v);
 }
+
+function AddEnum(enum_type, name, value) {
+  if (value == undefined) {
+    value = enum_type.last_value + 1;
+  }
+  enum_type.last_value = value;
+  enum_type.value_to_name[value] = name;
+  window[name] = value;
+  AddIdentifier(name, function() { return new enum_type(value); });
+  console.log(" ENUM " + name + " = " + value);
+}
+
+AddEnum(EFFECTClass, "EFFECT_NONE", 0);
+AddEnum(EFFECTClass, "EFFECT_CLASH");
+AddEnum(EFFECTClass, "EFFECT_BLAST");
+AddEnum(EFFECTClass, "EFFECT_FORCE");
+AddEnum(EFFECTClass, "EFFECT_STAB");
+AddEnum(EFFECTClass, "EFFECT_BOOT");
+AddEnum(EFFECTClass, "EFFECT_LOCKUP_BEGIN");
+AddEnum(EFFECTClass, "EFFECT_LOCKUP_END");
+AddEnum(EFFECTClass, "EFFECT_DRAG_BEGIN");
+AddEnum(EFFECTClass, "EFFECT_DRAG_END");
+AddEnum(EFFECTClass, "EFFECT_IGNITION");
+AddEnum(EFFECTClass, "EFFECT_RETRACTION");
+AddEnum(EFFECTClass, "EFFECT_CHANGE");
+AddEnum(EFFECTClass, "EFFECT_STUN");
+AddEnum(EFFECTClass, "EFFECT_FIRE");
+AddEnum(EFFECTClass, "EFFECT_CLIP_IN");
+AddEnum(EFFECTClass, "EFFECT_CLIP_OUT");
+AddEnum(EFFECTClass, "EFFECT_RELOAD");
+AddEnum(EFFECTClass, "EFFECT_MODE");
+AddEnum(EFFECTClass, "EFFECT_RANGE");
+AddEnum(EFFECTClass, "EFFECT_EMPTY");
+AddEnum(EFFECTClass, "EFFECT_FULL");
+AddEnum(EFFECTClass, "EFFECT_JAM");
+AddEnum(EFFECTClass, "EFFECT_UNJAM");
+AddEnum(EFFECTClass, "EFFECT_PLI_ON");
+AddEnum(EFFECTClass, "EFFECT_PLI_OFF");
+
+class LOCKUP_TYPEClass extends ENUM {
+  getType() { return "LOCKUP_TYPE"; }
+};
+
+function LOCKUP_TYPE(v) {
+  return new LOCKUP_TYPEClass(v);
+}
+
+AddEnum(LOCKUP_TYPEClass, "LOCKUP_NONE", 0);
+AddEnum(LOCKUP_TYPEClass, "LOCKUP_NORMAL");
+AddEnum(LOCKUP_TYPEClass, "LOCKUP_DRAG");
+AddEnum(LOCKUP_TYPEClass, "LOCKUP_ARMED");
+AddEnum(LOCKUP_TYPEClass, "LOCKUP_AUTOFIRE");
+AddEnum(LOCKUP_TYPEClass, "LOCKUP_MELT");
+AddEnum(LOCKUP_TYPEClass, "LOCKUP_LIGHTNING_BLOCK");
 
 class FUNCTION  extends STYLE {
   getType() { return "FUNCTION"; }
@@ -1079,6 +1117,7 @@ AddEffect("InOutTr<Green, TrColorCycle<3000>, TrFade<500>>");
 AddEffect("Layers<Green, AlphaL<Red, Int<16000>>>");
 AddEffect("LocalizedClash<Red, White>");
 AddEffect("Lockup<Green, Red>");
+AddEffect("LockupTr<Red, White, TrFade<100>, TrFade<100>, LOCKUP_MELT>");
 AddEffect("Mix<Int<16384>, Red, Blue>");
 AddEffect("OnSpark<Green, White, 200>");
 AddEffect("OriginalBlast<Blue, White>");
@@ -1258,42 +1297,6 @@ var STATE_CLASH = 0;
 var STATE_ROTATE = 0;
 var STATE_NUM_LEDS = 144;
 
-// BladeEffectType 
-const  EFFECT_NONE =  0x0;
-const  EFFECT_CLASH = 1 << 0;
-const  EFFECT_BLAST = 1 << 1;
-const  EFFECT_FORCE = 1 << 2;
-const  EFFECT_STAB =  1 << 3;
-const  EFFECT_BOOT =  1 << 4;
-const  EFFECT_LOCKUP_BEGIN = 1 << 5;
-const  EFFECT_LOCKUP_END = 1 << 6;
-const  EFFECT_DRAG_BEGIN = 1 << 7;
-const  EFFECT_DRAG_END = 1 << 8;
-const  EFFECT_IGNITION = 1 << 9;
-const  EFFECT_RETRACTION = 1 << 10;
-
-
-const  EFFECT_CHANGE = 1 << 11; // used for click to change
-
-// Blaster Effect Types
-const  EFFECT_STUN = 1 << 12; // used to pass STUN to allow alternate colors for stun type blasts
-const  EFFECT_FIRE = 1 << 13;
-const  EFFECT_CLIP_IN = 1 << 14;
-const  EFFECT_CLIP_OUT = 1 << 15;
-const  EFFECT_RELOAD = 1 << 16;
-const  EFFECT_MODE = 1 << 17;
-const  EFFECT_RANGE = 1 << 18;
-const  EFFECT_EMPTY = 1 << 19;
-const  EFFECT_FULL = 1 << 20;
-const  EFFECT_JAM = 1 << 21;
-const  EFFECT_UNJAM = 1 << 22;
-const  EFFECT_PLI_ON = 1 << 23;
-const  EFFECT_PLI_OFF = 1 << 24;
-
-const  EFFECT_LB_BEGIN = 1 << 25;
-const  EFFECT_LB_END = 1 << 26;
-const  EFFECT_MELT_BEGIN = 1 << 27;
-const  EFFECT_MELT_END = 1 << 28;
 
 function IsHandled(lockup_type) {
   // TODO
@@ -1994,7 +1997,7 @@ class BrownNoiseFlickerLClass extends MACRO {
   constructor(B, GRADE) {
     super("Randomly selects between A and B but keeps nearby pixels similar", Array.from(arguments));
     this.add_arg("B", "COLOR", "B");
-    this.add_arg("GRADE", "INT", "grade", 50);
+    this.add_arg("GRADE", "FUNCTION", "grade", Int(50));
     this.SetExpansion(AlphaL(B, BrownNoiseF(GRADE)))
   }
 };
@@ -2224,7 +2227,7 @@ class BlastFClass extends FUNCTION {
   getInteger(led) {
     var b = 0.0;
     for (var i = 0; i < this.effects_.length; i++) {
-      if ((this.effects_[i].type & this.EFFECT) == 0) continue;
+      if (this.effects_[i].type != this.EFFECT) continue;
       var T = (this.T - this.effects_[i].start_micros);
       var M = 1000 - T / this.FADEOUT_MS;
       if (M > 0) {
@@ -2290,7 +2293,7 @@ class BlastFadeoutFClass extends FUNCTION {
   getInteger(led) {
     var b = 0.0;
     for (var i = 0; i < this.effects_.length; i++) {
-      if ((this.effects_[i].type & this.EFFECT) == 0) continue;
+      if (this.effects_[i].type != this.EFFECT) continue;
       var T = (this.T - this.effects_[i].start_micros);
       var M = 1000 - T / this.FADEOUT_MS;
       if (M > 0) {
@@ -2355,7 +2358,7 @@ class OriginalBlastClass extends STYLE {
     var blast = this.BLAST.getColor(led);
     var b = 0.0;
     for (var i = 0; i < this.effects_.length; i++) {
-      if ((this.effects_[i].type & this.EFFECT) == 0) continue;
+      if (this.effects_[i].type != this.EFFECT) continue;
       var x = (this.effects_[i].location - led/this.num_leds_) * 30.0;
       var T = (this.T - this.effects_[i].start_micros);
       var t = 0.5 + T / 200000.0;
@@ -2457,6 +2460,7 @@ class SimpleClashClass extends STYLE {
     }
     var e = this.effect_.Detect(blade);
     if (e) {
+      console.log("SIMPLE CLASH");
       this.clash_ = true;
       this.stab_ = this.EFFECT == EFFECT_CLASH && e.type == EFFECT_STAB && blade.num_leds() > 1;
     }
@@ -2547,14 +2551,14 @@ class LockupLClass extends STYLE {
   getColor(led) {
     var ret = Transparent();
     if (this.handled) return ret;
-    if (STATE_LOCKUP == 3) {
+    if (STATE_LOCKUP == LOCKUP_LIGHTNING_BLOCK) {
       ret = ret.mix(this.LOCKUP.getColor(led), this.LB_SHAPE.getInteger(led) / 32768.0);
     }
-    if (STATE_LOCKUP == 2) {
+    if (STATE_LOCKUP == LOCKUP_DRAG) {
       var blend = this.single_pixel_ ? 32768 : this.DRAG_SHAPE.getInteger(led);
       ret = ret.mix(this.DRAG_COLOR.getColor(led), blend / 32768.0);
     }
-    if (STATE_LOCKUP == 1) {
+    if (STATE_LOCKUP == LOCKUP_NORMAL) {
       ret = ret.mix(this.LOCKUP.getColor(led), this.LOCKUP_SHAPE.getInteger(led) / 32768.0);
     }
     return ret;
@@ -2579,6 +2583,94 @@ class LockupClass extends MACRO {
 
 function Lockup(BASE, LOCKUP, DRAG, LOCKUP_SHAPE, DRAG_SHAPE) {
   return new LockupClass(BASE, LOCKUP, DRAG, LOCKUP_SHAPE, DRAG_SHAPE);
+}
+
+
+class LockupTrLClass extends STYLE {
+  constructor(COLOR, BeginTr, EndTr, LOCKUP_TYPE) {
+    super("Transition based lockup effect.", arguments);
+    this.add_arg("COLOR", "COLOR", "Effect color.");
+    this.add_arg("BEGIN_TR", "TRANSITION", "Begin lockup transition.");
+    this.add_arg("END_TR", "TRANSITION", "End lockup transition.");
+    this.add_arg("LOCKUP_TYPE", "LOCKUP_TYPE", "Lockup type");
+    HandleLockup(LOCKUP_TYPE);
+    this.active = false;
+    this.begin_active = false;
+    this.end_active = false;
+  }
+  run(blade) {
+    super.run(blade);
+    if (this.active != (STATE_LOCKUP == this.LOCKUP_TYPE)) {
+      this.active = (STATE_LOCKUP == this.LOCKUP_TYPE);
+      if (this.active) {
+        this.BEGIN_TR.begin();
+	this.begin_active = true;
+      } else {
+        this.END_TR.begin();
+	this.end_active = true;
+      }
+    }
+
+    if (this.begin_active) {
+      this.BEGIN_TR.run(blade);
+      if (this.BEGIN_TR.done()) this.begin_active = false;
+    }
+    if (this.end_active) {
+      this.END_TR.run(blade);
+      if (this.END_TR.done()) this.end_active = false;
+    }
+  }
+  runBegin(a, b, led) {
+    if (this.begin_active) {
+      return this.BEGIN_TR.getColor(a, b, led);
+    } else {
+      return b;
+    }
+  }
+  runEnd(a, b, led) {
+    if (this.end_active) {
+      return this.END_TR.getColor(a, b, led);
+    } else {
+      return b;
+    }
+  }
+  getColor(led) {
+    var off_color = Transparent();
+    if (!this.begin_active && !this.end_active) {
+      if (this.active) {
+        return this.COLOR.getColor(led);
+      } else {
+        return off_color;
+      }
+    } else {
+      var on_color = this.COLOR.getColor(led);
+      if (this.active) {
+        return this.runBegin(this.runEnd(on_color, off_color, led), on_color, led);
+      } else {
+        return this.runEnd(this.runBegin(off_color, on_color, led), off_color, led);
+      }
+    }
+  }
+};
+
+function LockupTrL(COLOR, BeginTr, EndTr, LOCKUP_TYPE) {
+  return new LockupTrLClass(COLOR, BeginTr, EndTr, LOCKUP_TYPE);
+}
+
+class LockupTrClass extends STYLE {
+  constructor(BASE, COLOR, BeginTr, EndTr, LOCKUP_TYPE) {
+    super("Transition based lockup effect.", arguments);
+    this.add_arg("BASE", "COLOR", "Base color.");
+    this.add_arg("COLOR", "COLOR", "Effect color.");
+    this.add_arg("BEGIN_TR", "TRANSITION", "Begin lockup transition.");
+    this.add_arg("END_TR", "TRANSITION", "End lockup transition.");
+    this.add_arg("LOCKUP_TYPE", "LOCKUP_TYPE", "Lockup type");
+    this.SetExpansion(Layers(BASE, LockupTrL(COLOR, BeginTr, EndTr, LOCKUP_TYPE)));
+  }
+}
+
+function LockupTr(BASE, COLOR, BeginTr, EndTr, LOCKUP_TYPE) {
+  return new LockupTrClass(BASE, COLOR, BeginTr, EndTr, LOCKUP_TYPE);
 }
 
 const start_millis = new Date().getTime();
@@ -2629,6 +2721,7 @@ class Blade {
     return STATE_NUM_LEDS;
   }
   addEffect(type, location) {
+    console.log("Add effect " + type + " @ " + location);
     this.effects_.push(new BladeEffect(type, micros(), location));
   }
   GetEffects() {
@@ -2639,28 +2732,33 @@ class Blade {
   }
 };
 
-var handled_types = 0;
+var handled_types = {};
 function ResetHandledTypes() {
-  handled_types = 0;
+  handled_types = {};
 }
 function HandleEffectType(t) {
-  handled_types |= t;
+  handled_types[t] = 1;
 }
 
 class OneshotEffectDetector {
   constructor(type) {
     this.last_detected_ = 0;
+    if (type.getInteger) {
+      type = type.getInteger(0);
+    }
     this.type_ = type;
     HandleEffectType(type);
   }
   Detect(blade) {
-    var mask = this.type_;
-    if ((this.type_ & EFFECT_CLASH) && !(current_style.__handled_types & EFFECT_STAB)) {
-      mask |= EFFECT_STAB;
+    var mask = {};
+    mask[this.type_] = 1;
+    if (this.type_ ==  EFFECT_CLASH && !(current_style.__handled_types[EFFECT_STAB])) {
+      mask[EFFECT_STAB] = 1;
     }
+    
     var effects = blade.GetEffects();
     for (var i = effects.length -1 ; i >=0 ; i--) {
-      if (effects[i].type & mask) {
+      if (mask[effects[i].type]) {
         if (effects[i].start_micros == this.last_detected_)
 	  return 0;
 	this.last_detected_ = effects[i].start_micros;
@@ -2670,9 +2768,11 @@ class OneshotEffectDetector {
     return 0;
   }
   getDetected(blade) {
+    var mask = {};
+    mask[this.type_] = 1;
     var effects = blade.GetEffects();
     for (var i = effects.length -1 ; i >=0 ; i--)
-      if (effects[i].type & this.type_)
+      if (mask[effects[i].type])
         if (effects[i].start_micros == this.last_detected_)
 	  return effects[i];
     return 0;
@@ -3955,9 +4055,9 @@ class LayerFunctionsClass extends FUNCTION {
       this.add_arg("FUNCTION" + i, "FUNCTION", "COLOR " + i);
   }
   getInteger(led) {
-    var ret = 32768;
+    var ret = 0;
     for (var i = 0; i < this.LAYERS.length; i++) {
-      ret = 32768 - ((32768 - ret) * (32768 - this.LAYERS[i].getInteger(led)));
+      ret = 32768 - ((((32768 - ret) * (32768 - this.LAYERS[i].getInteger(led)))) >> 15);
     }
     return ret;
   }
@@ -3971,15 +4071,19 @@ class SlowNoiseClass extends FUNCTION {
   constructor(SPEED) {
     super("Returns a value between 0 and 32768, which slowly changes up and down randomly.", Array.from(arguments));
     this.add_arg("SPEED", "FUNCTION", "Change speed");
+    this.value = random(32768);
   }
   run(blade) {
     super.run(blade);
     var now = millis();
     var delta = now - this.last_millis;
+    this.last_millis = now;
     if (delta > 100) delta = 1;
     var speed = this.SPEED.getInteger(0);
-    while (delta--) {
-      this.value = clamp(this.value + random(speed * 2 + 1) - speed);
+//    console.log("DELTA = " + delta + " SPEED = " + speed + " VALUE="+this.value);
+    while (delta > 0) {
+      this.value = clamp(this.value + random(speed * 2 + 1) - speed, 0, 32768);
+      delta--;
     }
   }
   getInteger(led) { return this.value; }
@@ -4055,6 +4159,8 @@ function newCall(Cls) {
     LocalizedClash : LocalizedClash,
     Lockup : Lockup,
     LockupL : LockupL,
+    LockupTr : LockupTr,
+    LockupTrL : LockupTrL,
     Mix : Mix,
     OnSpark : OnSpark,
     OriginalBlast : OriginalBlast,
@@ -4126,106 +4232,72 @@ function newCall(Cls) {
     SlowNoise : SlowNoise,
     IsLessThan : IsLessThan,
 };
-  var identifiers = {
-      RgbCycle : RgbCycle,
-      Rainbow : Rainbow,
-      WHITE : Rgb.bind(null, 255,255,255),
-      BLACK : Rgb.bind(null, 0,0,0),
-
-      RED : Rgb.bind(null, 255,0,0),
-      GREEN : Rgb.bind(null, 0,255,0),
-      BLUE : Rgb.bind(null, 0,0,255),
-      YELLOW : Rgb.bind(null, 255,255,0),
-      CYAN : Rgb.bind(null, 0,255,255),
-      MAGENTA : Rgb.bind(null, 255,0,255),
-      WHITE : Rgb.bind(null, 255,255,255),
-      BLACK : Rgb.bind(null, 0,0,0),
-
-      AliceBlue : Rgb.bind(null, 223, 239, 255),
-      Aqua : Rgb.bind(null, 0, 255, 255),
-      Aquamarine : Rgb.bind(null, 55, 255, 169),
-      Azure : Rgb.bind(null, 223, 255, 255),
-      Bisque : Rgb.bind(null, 255, 199, 142),
-      Black : Rgb.bind(null, 0, 0, 0),
-      BlanchedAlmond : Rgb.bind(null, 255, 213, 157),
-      Blue : Rgb.bind(null, 0, 0, 255),
-      Chartreuse : Rgb.bind(null, 55, 255, 0),
-      Coral : Rgb.bind(null, 255, 55, 19),
-      Cornsilk : Rgb.bind(null, 255, 239, 184),
-      Cyan : Rgb.bind(null, 0, 255, 255),
-      DarkOrange : Rgb.bind(null, 255, 68, 0),
-      DeepPink : Rgb.bind(null, 255, 0, 75),
-      DeepSkyBlue : Rgb.bind(null, 0, 135, 255),
-      DodgerBlue : Rgb.bind(null, 2, 72, 255),
-      FloralWhite : Rgb.bind(null, 255, 244, 223),
-      Fuchsia : Rgb.bind(null, 255, 0, 255),
-      GhostWhite : Rgb.bind(null, 239, 239, 255),
-      Green : Rgb.bind(null, 0, 255, 0),
-      GreenYellow : Rgb.bind(null, 108, 255, 6),
-      HoneyDew : Rgb.bind(null, 223, 255, 223),
-      HotPink : Rgb.bind(null, 255, 36, 118),
-      Ivory : Rgb.bind(null, 255, 255, 223),
-      LavenderBlush : Rgb.bind(null, 255, 223, 233),
-      LemonChiffon : Rgb.bind(null, 255, 244, 157),
-      LightCyan : Rgb.bind(null, 191, 255, 255),
-      LightPink : Rgb.bind(null, 255, 121, 138),
-      LightSalmon : Rgb.bind(null, 255, 91, 50),
-      LightYellow : Rgb.bind(null, 255, 255, 191),
-      Lime : Rgb.bind(null, 0, 255, 0),
-      Magenta : Rgb.bind(null, 255, 0, 255),
-      MintCream : Rgb.bind(null, 233, 255, 244),
-      MistyRose : Rgb.bind(null, 255, 199, 193),
-      Moccasin : Rgb.bind(null, 255, 199, 119),
-      NavajoWhite : Rgb.bind(null, 255, 187, 108),
-      Orange : Rgb.bind(null, 255, 97, 0),
-      OrangeRed : Rgb.bind(null, 255, 14, 0),
-      PapayaWhip : Rgb.bind(null, 255, 221, 171),
-      PeachPuff : Rgb.bind(null, 255, 180, 125),
-      Pink : Rgb.bind(null, 255, 136, 154),
-      Red : Rgb.bind(null, 255, 0, 0),
-      SeaShell : Rgb.bind(null, 255, 233, 219),
-      Snow : Rgb.bind(null, 255, 244, 244),
-      SpringGreen : Rgb.bind(null, 0, 255, 55),
-      SteelBlue : Rgb.bind(null, 14, 57, 118),
-      Tomato : Rgb.bind(null, 255, 31, 15),
-      White : Rgb.bind(null, 255, 255, 255),
-      Yellow : Rgb.bind(null, 255, 255, 0),
-
-  EFFECT_NONE :  EFFECT.bind(null, 0x0),
-  EFFECT_CLASH : EFFECT.bind(null, 1 << 0),
-  EFFECT_BLAST : EFFECT.bind(null, 1 << 1),
-  EFFECT_FORCE : EFFECT.bind(null, 1 << 2),
-  EFFECT_STAB :   EFFECT.bind(null, 1 << 3),
-  EFFECT_BOOT :  EFFECT.bind(null, 1 << 4),
-  EFFECT_LOCKUP_BEGIN : EFFECT.bind(null, 1 << 5),
-  EFFECT_LOCKUP_END :   EFFECT.bind(null, 1 << 6),
-  EFFECT_DRAG_BEGIN :   EFFECT.bind(null, 1 << 7),
-  EFFECT_DRAG_END :     EFFECT.bind(null, 1 << 8),
-  EFFECT_IGNITION :     EFFECT.bind(null, 1 << 9),
-  EFFECT_RETRACTION :   EFFECT.bind(null, 1 << 10),
-
-  EFFECT_CHANGE : EFFECT.bind(1 << 11), // used for click to change
-  EFFECT_STUN : EFFECT.bind(1 << 12), // used to pass STUN to allow alternate colors for stun type blasts
-  EFFECT_FIRE : EFFECT.bind(1 << 13),
-  EFFECT_CLIP_IN : EFFECT.bind(1 << 14),
-  EFFECT_CLIP_OUT : EFFECT.bind(1 << 15),
-  EFFECT_RELOAD : EFFECT.bind(1 << 16),
-  EFFECT_MODE : EFFECT.bind(1 << 17),
-  EFFECT_RANGE : EFFECT.bind(1 << 18),
-  EFFECT_EMPTY : EFFECT.bind(1 << 19),
-  EFFECT_FULL : EFFECT.bind(1 << 20),
-  EFFECT_JAM : EFFECT.bind(1 << 21),
-  EFFECT_UNJAM : EFFECT.bind(1 << 22),
-  EFFECT_PLI_ON : EFFECT.bind(1 << 23),
-  EFFECT_PLI_OFF : EFFECT.bind(1 << 24),
-
-  EFFECT_LB_BEGIN : EFFECT.bind(1 << 25),
-  EFFECT_LB_END : EFFECT.bind(1 << 26),
-  EFFECT_MELT_BEGIN : EFFECT.bind(1 << 27),
-  EFFECT_MELT_END : EFFECT.bind(1 << 28),
-};
 
 
+
+AddIdentifier("RgbCycle", RgbCycle);
+AddIdentifier("Rainbow", Rainbow);
+AddIdentifier("WHITE", Rgb.bind(null, 255,255,255));
+AddIdentifier("BLACK", Rgb.bind(null, 0,0,0));
+
+AddIdentifier("RED", Rgb.bind(null, 255,0,0));
+AddIdentifier("GREEN", Rgb.bind(null, 0,255,0));
+AddIdentifier("BLUE", Rgb.bind(null, 0,0,255));
+AddIdentifier("YELLOW", Rgb.bind(null, 255,255,0));
+AddIdentifier("CYAN", Rgb.bind(null, 0,255,255));
+AddIdentifier("MAGENTA", Rgb.bind(null, 255,0,255));
+AddIdentifier("WHITE", Rgb.bind(null, 255,255,255));
+AddIdentifier("BLACK", Rgb.bind(null, 0,0,0));
+
+AddIdentifier("AliceBlue", Rgb.bind(null, 223, 239, 255));
+AddIdentifier("Aqua", Rgb.bind(null, 0, 255, 255));
+AddIdentifier("Aquamarine", Rgb.bind(null, 55, 255, 169));
+AddIdentifier("Azure", Rgb.bind(null, 223, 255, 255));
+AddIdentifier("Bisque", Rgb.bind(null, 255, 199, 142));
+AddIdentifier("Black", Rgb.bind(null, 0, 0, 0));
+AddIdentifier("BlanchedAlmond", Rgb.bind(null, 255, 213, 157));
+AddIdentifier("Blue", Rgb.bind(null, 0, 0, 255));
+AddIdentifier("Chartreuse", Rgb.bind(null, 55, 255, 0));
+AddIdentifier("Coral", Rgb.bind(null, 255, 55, 19));
+AddIdentifier("Cornsilk", Rgb.bind(null, 255, 239, 184));
+AddIdentifier("Cyan", Rgb.bind(null, 0, 255, 255));
+AddIdentifier("DarkOrange", Rgb.bind(null, 255, 68, 0));
+AddIdentifier("DeepPink", Rgb.bind(null, 255, 0, 75));
+AddIdentifier("DeepSkyBlue", Rgb.bind(null, 0, 135, 255));
+AddIdentifier("DodgerBlue", Rgb.bind(null, 2, 72, 255));
+AddIdentifier("FloralWhite", Rgb.bind(null, 255, 244, 223));
+AddIdentifier("Fuchsia", Rgb.bind(null, 255, 0, 255));
+AddIdentifier("GhostWhite", Rgb.bind(null, 239, 239, 255));
+AddIdentifier("Green", Rgb.bind(null, 0, 255, 0));
+AddIdentifier("GreenYellow", Rgb.bind(null, 108, 255, 6));
+AddIdentifier("HoneyDew", Rgb.bind(null, 223, 255, 223));
+AddIdentifier("HotPink", Rgb.bind(null, 255, 36, 118));
+AddIdentifier("Ivory", Rgb.bind(null, 255, 255, 223));
+AddIdentifier("LavenderBlush", Rgb.bind(null, 255, 223, 233));
+AddIdentifier("LemonChiffon", Rgb.bind(null, 255, 244, 157));
+AddIdentifier("LightCyan", Rgb.bind(null, 191, 255, 255));
+AddIdentifier("LightPink", Rgb.bind(null, 255, 121, 138));
+AddIdentifier("LightSalmon", Rgb.bind(null, 255, 91, 50));
+AddIdentifier("LightYellow", Rgb.bind(null, 255, 255, 191));
+AddIdentifier("Lime", Rgb.bind(null, 0, 255, 0));
+AddIdentifier("Magenta", Rgb.bind(null, 255, 0, 255));
+AddIdentifier("MintCream", Rgb.bind(null, 233, 255, 244));
+AddIdentifier("MistyRose", Rgb.bind(null, 255, 199, 193));
+AddIdentifier("Moccasin", Rgb.bind(null, 255, 199, 119));
+AddIdentifier("NavajoWhite", Rgb.bind(null, 255, 187, 108));
+AddIdentifier("Orange", Rgb.bind(null, 255, 97, 0));
+AddIdentifier("OrangeRed", Rgb.bind(null, 255, 14, 0));
+AddIdentifier("PapayaWhip", Rgb.bind(null, 255, 221, 171));
+AddIdentifier("PeachPuff", Rgb.bind(null, 255, 180, 125));
+AddIdentifier("Pink", Rgb.bind(null, 255, 136, 154));
+AddIdentifier("Red", Rgb.bind(null, 255, 0, 0));
+AddIdentifier("SeaShell", Rgb.bind(null, 255, 233, 219));
+AddIdentifier("Snow", Rgb.bind(null, 255, 244, 244));
+AddIdentifier("SpringGreen", Rgb.bind(null, 0, 255, 55));
+AddIdentifier("SteelBlue", Rgb.bind(null, 14, 57, 118));
+AddIdentifier("Tomato", Rgb.bind(null, 255, 31, 15));
+AddIdentifier("White", Rgb.bind(null, 255, 255, 255));
+AddIdentifier("Yellow", Rgb.bind(null, 255, 255, 0));
 
 class Parser {
   constructor(str, classes, identifiers) {
@@ -4617,37 +4689,35 @@ function ClickPower() {
 
 function UpdateLockupButtons() {
   var button = FIND("LOCKUP_BUTTON");
-  button.style.backgroundColor = STATE_LOCKUP == 1 ? "lightblue" : "";
+  button.style.backgroundColor = STATE_LOCKUP == LOCKUP_NORMAL ? "lightblue" : "";
   var button = FIND("DRAG_BUTTON");
-  button.style.backgroundColor = STATE_LOCKUP == 2 ? "lightblue" : "";
-  var button = FIND("LB_BUTTON");
-  button.style.backgroundColor = STATE_LOCKUP == 3 ? "lightblue" : "";
+  button.style.backgroundColor = STATE_LOCKUP == LOCKUP_DRAG ? "lightblue" : "";
   var button = FIND("MELT_BUTTON");
-  button.style.backgroundColor = STATE_LOCKUP == 4 ? "lightblue" : "";
+  button.style.backgroundColor = STATE_LOCKUP == LOCKUP_MELT ? "lightblue" : "";
+  var button = FIND("LB_BUTTON");
+  button.style.backgroundColor = STATE_LOCKUP == LOCKUP_LIGHTNING_BLOCK ? "lightblue" : "";
 }
 
 function ClickLockup() {
-  STATE_LOCKUP = STATE_LOCKUP == 1 ? 0 : 1;
+  STATE_LOCKUP = STATE_LOCKUP == LOCKUP_NORMAL ? 0 : LOCKUP_NORMAL;
   UpdateLockupButtons();
   blade.addEffect(STATE_LOCKUP ? EFFECT_LOCKUP_BEGIN : EFFECT_LOCKUP_END, Math.random() * 0.7 + 0.2);
 }
 
 function ClickDrag() {
-  STATE_LOCKUP = STATE_LOCKUP == 2 ? 0 : 2;
+  STATE_LOCKUP = STATE_LOCKUP == LOCKUP_DRAG ? 0 : LOCKUP_DRAG;
   UpdateLockupButtons();
   blade.addEffect(STATE_LOCKUP ? EFFECT_DRAG_BEGIN : EFFECT_DRAG_END, 1.0);
 }
 
 function ClickLB() {
-  STATE_LOCKUP = STATE_LOCKUP == 3 ? 0 : 3;
+  STATE_LOCKUP = STATE_LOCKUP == LOCKUP_LIGHTNING_BLOCK ? 0 : LOCKUP_LIGHTNING_BLOCK;
   UpdateLockupButtons();
-  blade.addEffect(STATE_LOCKUP ? EFFECT_LB_BEGIN : EFFECT_LB_END, 1.0);
 }
 
 function ClickMelt() {
-  STATE_LOCKUP = STATE_LOCKUP == 4 ? 0 : 4;
+  STATE_LOCKUP = STATE_LOCKUP == LOCKUP_MELT ? 0 : LOCKUP_MELT;
   UpdateLockupButtons();
-  blade.addEffect(STATE_LOCKUP ? EFFECT_MELT_BEGIN : EFFECT_MELT_END, 1.0);
 }
 
 function ClickInhilt() {
@@ -4713,7 +4783,7 @@ function DoExpand() {
     <input id=LOCKUP_BUTTON name=lockup type=button value="Lockup" onclick="ClickLockup()" >
     <input id=DRAG_BUTTON name=drag type=button value="Drag"  onclick="ClickDrag()" >
     <input id=LB_BUTTON name=drag type=button value="LB"  onclick="ClickLB()" >
-    <input id=MELT_BUTTON name=drag type=button value="MELT"  onclick="ClickMelt()" >
+    <input id=MELT_BUTTON name=drag type=button value="Melt"  onclick="ClickMelt()" >
     <input id=ROTATE_BUTTON name=rotate type=button value="Rotate"  onclick="ClickRotate()" >
     <input id=INHILT_BUTTON name=inhilt type=button value="Inhilt"  onclick="ClickInhilt()" >
     <input id=SLOW_BUTTON name=inhilt type=button value="Slow"  onclick="ClickSlow()" >
