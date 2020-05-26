@@ -1179,6 +1179,7 @@ AddFunction("OnSparkF<200>");
 AddFunction("PulsingF<800>");
 AddFunction("RandomBlinkF<3000>");
 AddFunction("RandomF");
+AddFunction("RandomPerLEDF");
 
 AddColor("AliceBlue", 223, 239, 255);
 AddColor("Aqua", 0, 255, 255);
@@ -2057,23 +2058,37 @@ function RandomFlicker(A, B) {
   return new RandomFlickerClass(A, B);
 }
 
-class RandomPerLEDFlickerClass extends STYLE {
+class RandomPerLEDFClass extends FUNCTION {
+  constructor() {
+    super("Returns random 0-32768.", arguments);
+  }
+  getInteger(led) {
+    return random(32768);
+  }
+};
+
+function RandomPerLEDF() {
+  return new RandomPerLEDFClass();
+}
+
+class RandomPerLEDFlickerLClass extends MACRO {
+  constructor(A) {
+    super("Selects between A and transparent randomly.", arguments);
+    this.add_arg("A", "COLOR", "A");
+    this.SetExpansion(AlphaL(A, RandomPerLEDF()));
+  }
+};
+
+function RandomPerLEDFlickerL(A) {
+  return new RandomPerLEDFlickerLClass(A);
+}
+
+class RandomPerLEDFlickerClass extends MACRO {
   constructor(A, B) {
-    super();
-    this.A = ColorArg(A);
-    this.B = ColorArg(B);
-  }
-  run(blade) {
-    this.A.run(blade);
-    this.B.run(blade);
-  }
-  getColor(led) {
-    return this.A.getColor(led).mix(this.B.getColor(led), Math.random());
-  }
-  pp() {
-    return this.PP("RandomPerLEDFlicker", "Selects between A and B randomly.",
-		   this.A, "A",
-		   this.B, "B");
+    super("Selects between A and B randomly.", arguments);
+    this.add_arg("A", "COLOR", "A");
+    this.add_arg("B", "COLOR", "B");
+    this.SetExpansion(Layers(A, RandomPerLEDFlickerL(B)));
   }
 };
 
@@ -4282,6 +4297,8 @@ function newCall(Cls) {
     RandomFlickerL : RandomFlickerL,
     RandomF : RandomF,
     RandomPerLEDFlicker : RandomPerLEDFlicker,
+    RandomPerLEDFlickerL : RandomPerLEDFlickerL,
+    RandomPerLEDF : RandomPerLEDF,
     RandomBlink : RandomBlink,
     RandomBlinkX : RandomBlinkX,
     RandomBlinkL : RandomBlinkL,
