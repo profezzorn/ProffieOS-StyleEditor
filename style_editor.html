@@ -467,9 +467,9 @@ class STYLE {
     if (focus_trace[0] == this.args[this.argnum]) {
       focus_trace = [this, name, expected_type, focus_trace];
     }
-    //console.log("add_arg");
-    //console.log(name);
-    //console.log(this.args);
+    console.log("add_arg");
+    console.log(name);
+    console.log(this.args);
     try {
       this[name] = Arg(expected_type, this.args[this.argnum], default_value);
     } catch(e) {
@@ -1499,7 +1499,7 @@ class OnSparkLClass extends MACRO {
     super("Shows the spark color for 'MILLIS' milliseconds on startup.", arguments);
     this.add_arg("SPARK_COLOR", "COLOR", "Spark color", WHITE.DOCOPY());
     this.add_arg("MILLIS", "FUNCTION", "Millis", Int(200));
-    this.SetExpansion(AlphaL(SPARK_COLOR, OnSparkF(MILLIS)));
+    this.SetExpansion(AlphaL(this.SPARK_COLOR, OnSparkF(this.MILLIS)));
   }
 };
 
@@ -1513,7 +1513,7 @@ class OnSparkXClass extends MACRO {
     this.add_arg("T", "COLOR", "Base color");
     this.add_arg("SPARK_COLOR", "COLOR", "Spark color", WHITE.DOCOPY());
     this.add_arg("MILLIS", "FUNCTION", "Millis", Int(200));
-    this.SetExpansion(Layers(T, OnSparkL(SPARK_COLOR, MILLIS)));
+    this.SetExpansion(Layers(T, OnSparkL(this.SPARK_COLOR, this.MILLIS)));
   }
 };
 
@@ -1527,7 +1527,7 @@ class OnSparkClass extends MACRO {
     this.add_arg("T", "COLOR", "Base color");
     this.add_arg("SPARK_COLOR", "COLOR", "Spark color", WHITE.DOCOPY());
     this.add_arg("MILLIS", "INT", "Millis", 200);
-    this.SetExpansion(OnSparkX(T, SPARK_COLOR, Int(MILLIS)));
+    this.SetExpansion(OnSparkX(T, this.SPARK_COLOR, Int(this.MILLIS)));
   }
 };
 
