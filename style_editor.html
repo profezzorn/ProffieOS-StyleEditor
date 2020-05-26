@@ -1537,10 +1537,10 @@ function OnSpark(T, SPARK_COLOR, MILLIS) {
 }
 
 class PulsingFClass extends FUNCTION {
-  constructor(COLOR1, COLOR2, PULSE_MILLIS) {
+  constructor(PULSE_MILLIS) {
     console.log(arguments);
     super("Pulses between 0 and 32768 every M milliseconds", Array.from(arguments));
-    this.add_arg("PULSE_MILLIS", "INT", "M");
+    this.add_arg("PULSE_MILLIS", "FUNCTION", "M");
   }
   run(blade) {
     super.run(blade)
@@ -1559,7 +1559,7 @@ class PulsingLClass extends MACRO {
   constructor(COLOR2, PULSE_MILLIS) {
     super("Pulses between transparent and B every M milliseconds", Array.from(arguments));
     this.add_arg("COLOR2", "COLOR", "B");
-    this.add_arg("PULSE_MILLIS", "INT", "M");
+    this.add_arg("PULSE_MILLIS", "FUNCTION", "M");
     this.SetExpansion(AlphaL(COLOR2, PulsingF(PULSE_MILLIS)));
   }
 }
@@ -1568,13 +1568,27 @@ function PulsingL(COLOR2, PULSE_MILLIS) {
   return new PulsingLClass(COLOR2, PULSE_MILLIS);
 }
 
+class PulsingXClass extends MACRO {
+  constructor(COLOR1, COLOR2, PULSE_MILLIS) {
+    super("Pulses between A and B every M milliseconds", Array.from(arguments));
+    this.add_arg("COLOR1", "COLOR", "A");
+    this.add_arg("COLOR2", "COLOR", "B");
+    this.add_arg("PULSE_MILLIS", "FUNCTION", "M");
+    this.SetExpansion(Layers(COLOR1, PulsingL(COLOR2, PULSE_MILLIS)));
+  }
+}
+
+function PulsingX(COLOR1, COLOR2, PULSE_MILLIS) {
+  return new PulsingXClass(COLOR1, COLOR2, PULSE_MILLIS);
+}
+
 class PulsingClass extends MACRO {
   constructor(COLOR1, COLOR2, PULSE_MILLIS) {
     super("Pulses between A and B every M milliseconds", Array.from(arguments));
     this.add_arg("COLOR1", "COLOR", "A");
     this.add_arg("COLOR2", "COLOR", "B");
     this.add_arg("PULSE_MILLIS", "INT", "M");
-    this.SetExpansion(Layers(COLOR1, PulsingL(COLOR2, PULSE_MILLIS)));
+    this.SetExpansion(PulsingX(COLOR1, COLOR2, Int(PULSE_MILLIS)));
   }
 }
 
@@ -4218,6 +4232,7 @@ function newCall(Cls) {
     OnSparkF : OnSparkF,
     OriginalBlast : OriginalBlast,
     Pulsing : Pulsing,
+    PulsingX : PulsingX,
     PulsingL : PulsingL,
     PulsingF : PulsingF,
     RandomFlicker : RandomFlicker,
