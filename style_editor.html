@@ -1175,6 +1175,7 @@ AddFunction("ChangeSlowly<NoisySoundLevel, Int<50000>>");
 AddFunction("SlowNoise");
 AddFunction("IsLessThan<SwingSpeed<250>, Int<100>>");
 AddFunction("LayerFunctions<Bump<Int<0>>, Bump<Int<32768>>>");
+AddFunction("OnSparkF<200>");
 
 AddColor("AliceBlue", 223, 239, 255);
 AddColor("Aqua", 0, 255, 255);
@@ -1461,18 +1462,16 @@ function Cylon(COLOR, percentage, rpm,
 			fade_time_millis);
 }
 
-class OnSparkClass extends STYLE {
+class OnSparkFClass extends FUNCTION {
   constructor(T, SPARK_COLOR, MILLIS) {
-    super();
-    this.T = ColorArg(T);
-    this.SPARK_COLOR = ColorArg(SPARK_COLOR, WHITE);
-    this.MILLIS = IntArg(MILLIS, 200);
+    super("Returns 32768 on startup and then fades out for 'MILLIS' milliseconds on startup.", arguments);
+    this.add_arg("MILLIS", "FUNCTION", "Millis", 200);
     this.on_ = false;
     this.on_millis_ = 0;
   }
   run(blade) {
-    this.T.run(blade);
-    this.SPARK_COLOR.run(blade);
+    super.run(blade);
+    var ms = this.MILLIS.getInteger(0);
 
     var m = millis();
     if (blade.is_on() != this.on_) {
@@ -1480,22 +1479,55 @@ class OnSparkClass extends STYLE {
       if (this.on_) this.on_millis_ = m;
     }
     var t = m - this.on_millis_;
-    if (t < this.MILLIS) {
-      this.mix_ = 1.0 - t / this.MILLIS;
+    if (t < ms) {
+      this.mix_ = 1.0 - t / ms;
     } else {
       this.mix_ = 0.0;
     }
   }
-  getColor(led) {
-    var ret = this.T.getColor(led);
-    var spark = this.SPARK_COLOR.getColor(led);
-    return ret.mix(spark, this.mix_);
+  getInteger(led) {
+    return this.mix_ * 32768;
   }
-  pp() {
-    return this.PP("OnSpark", "Shows the spark color for 'MILLIS' milliseconds on startup.",
-		   this.T, "Base color",
-		   this.SPARK_COLOR, "Spark color",
-		   this.MILLIS, "MILLIS");
+};
+
+function OnSparkF(MILLIS) {
+  return new OnSparkFClass(MILLIS);
+}
+
+class OnSparkLClass extends MACRO {
+  constructor(SPARK_COLOR, MILLIS) {
+    super("Shows the spark color for 'MILLIS' milliseconds on startup.", arguments);
+    this.add_arg("SPARK_COLOR", "COLOR", "Spark color", WHITE.DOCOPY());
+    this.add_arg("MILLIS", "FUNCTION", "Millis", Int(200));
+    this.SetExpansion(AlphaL(SPARK_COLOR, OnSparkF(MILLIS)));
+  }
+};
+
+function OnSparkL(SPARK_COLOR, MILLIS) {
+  return new OnSparkLClass(SPARK_COLOR, MILLIS);
+}
+
+class OnSparkXClass extends MACRO {
+  constructor(T, SPARK_COLOR, MILLIS) {
+    super("Shows the spark color for 'MILLIS' milliseconds on startup.", arguments);
+    this.add_arg("T", "COLOR", "Base color");
+    this.add_arg("SPARK_COLOR", "COLOR", "Spark color", WHITE.DOCOPY());
+    this.add_arg("MILLIS", "FUNCTION", "Millis", Int(200));
+    this.SetExpansion(Layers(T, OnSparkL(SPARK_COLOR, MILLIS)));
+  }
+};
+
+function OnSparkX(T, SPARK_COLOR, MILLIS) {
+  return new OnSparkXClass(T, SPARK_COLOR, MILLIS);
+}
+
+class OnSparkClass extends MACRO {
+  constructor(T, SPARK_COLOR, MILLIS) {
+    super("Shows the spark color for 'MILLIS' milliseconds on startup.", arguments);
+    this.add_arg("T", "COLOR", "Base color");
+    this.add_arg("SPARK_COLOR", "COLOR", "Spark color", WHITE.DOCOPY());
+    this.add_arg("MILLIS", "INT", "Millis", 200);
+    this.SetExpansion(OnSparkX(T, SPARK_COLOR, Int(MILLIS)));
   }
 };
 
@@ -2460,7 +2492,6 @@ class SimpleClashClass extends STYLE {
     }
     var e = this.effect_.Detect(blade);
     if (e) {
-      console.log("SIMPLE CLASH");
       this.clash_ = true;
       this.stab_ = this.EFFECT == EFFECT_CLASH && e.type == EFFECT_STAB && blade.num_leds() > 1;
     }
@@ -4163,6 +4194,9 @@ function newCall(Cls) {
     LockupTrL : LockupTrL,
     Mix : Mix,
     OnSpark : OnSpark,
+    OnSparkX : OnSparkX,
+    OnSparkL : OnSparkL,
+    OnSparkF : OnSparkF,
     OriginalBlast : OriginalBlast,
     Pulsing : Pulsing,
     RandomFlicker : RandomFlicker,
