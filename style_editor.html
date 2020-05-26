@@ -1178,6 +1178,7 @@ AddFunction("LayerFunctions<Bump<Int<0>>, Bump<Int<32768>>>");
 AddFunction("OnSparkF<200>");
 AddFunction("PulsingF<800>");
 AddFunction("RandomBlinkF<3000>");
+AddFunction("RandomF");
 
 AddColor("AliceBlue", 223, 239, 255);
 AddColor("Aqua", 0, 255, 255);
@@ -2015,24 +2016,40 @@ function AudioFlicker(A, B) {
   return new AudioFlickerClass(A, B);
 }
 
-class RandomFlickerClass extends STYLE {
+class RandomFClass extends FUNCTION {
   constructor(A, B) {
-    super();
-    this.A = ColorArg(A);
-    this.B = ColorArg(B);
+    super("Random number 0 - 32768.", arguments);
   }
   run(blade) {
-    this.A.run(blade);
-    this.B.run(blade);
-    this.var_ = Math.random() * Math.random();
+    this.var_ = Math.random() * 32768;;
   }
-  getColor(led) {
-    return this.A.getColor(led).mix(this.B.getColor(led), this.var_)
+  getInteger(led) {
+    return this.var_;
   }
-  pp() {
-    return this.PP("RandomFlicker", "Selects between A and B randomly.",
-		   this.A, "A",
-		   this.B, "B");
+};
+
+function RandomF() {
+  return new RandomFClass();
+}
+
+class RandomFlickerLClass extends MACRO {
+  constructor(A) {
+    super("Selects between A and transparent randomly.", arguments);
+    this.add_arg("A", "COLOR", "A");
+    this.SetExpansion(AlphaL(A, RandomF()));
+  }
+};
+
+function RandomFlickerL(A) {
+  return new RandomFlickerLClass(A);
+}
+
+class RandomFlickerClass extends MACRO {
+  constructor(A, B) {
+    super("Selects between A and B randomly.", arguments);
+    this.add_arg("A", "COLOR", "A");
+    this.add_arg("B", "COLOR", "B");
+    this.SetExpansion(Layers(A, RandomFlickerL(B)));
   }
 };
 
@@ -4262,6 +4279,8 @@ function newCall(Cls) {
     PulsingL : PulsingL,
     PulsingF : PulsingF,
     RandomFlicker : RandomFlicker,
+    RandomFlickerL : RandomFlickerL,
+    RandomF : RandomF,
     RandomPerLEDFlicker : RandomPerLEDFlicker,
     RandomBlink : RandomBlink,
     RandomBlinkX : RandomBlinkX,
