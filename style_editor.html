@@ -1177,6 +1177,7 @@ AddFunction("IsLessThan<SwingSpeed<250>, Int<100>>");
 AddFunction("LayerFunctions<Bump<Int<0>>, Bump<Int<32768>>>");
 AddFunction("OnSparkF<200>");
 AddFunction("PulsingF<800>");
+AddFunction("RandomBlinkF<3000>");
 
 AddColor("AliceBlue", 223, 239, 255);
 AddColor("Aqua", 0, 255, 255);
@@ -1803,12 +1804,10 @@ function RetractionDelay(millis, base) {
   return new RetractionDelayClass(millis, base);
 }
 
-class RandomBlinkXClass extends STYLE {
-  constructor(MILLIHZ, COLOR1, COLOR2) {
+class RandomBlinkFClass extends FUNCTION {
+  constructor(MILLIHZ) {
     super("Blink each LED randomly MILLIHZ times per second.", arguments);
     this.add_arg("MILLIHZ", "FUNCTION", "how often to blink");
-    this.add_arg("COLOR1", "COLOR", "first color", WHITE.DOCOPY());
-    this.add_arg("COLOR2", "COLOR", "second color", BLACK.DOCOPY());
     this.last_update = 0;
     this.state = [];
   }
@@ -1823,8 +1822,35 @@ class RandomBlinkXClass extends STYLE {
     }
   }
   
-  getColor(led) {
-    return this.state[led] ? this.COLOR1.getColor(led) : this.COLOR2.getColor(led);
+  getInteger(led) {
+    return this.state[led] ? 32768 : 0;
+  }
+};
+
+function RandomBlinkF(millihz) {
+  return new RandomBlinkFClass(millihz);
+}
+
+class RandomBlinkLClass extends MACRO {
+  constructor(MILLIHZ, COLOR1, COLOR2) {
+    super("Blink each LED randomly MILLIHZ times per second.", arguments);
+    this.add_arg("MILLIHZ", "FUNCTION", "how often to blink");
+    this.add_arg("COLOR2", "COLOR", "second color", BLACK.DOCOPY());
+    this.SetExpansion(AlphaL(this.COLOR2, RandomBlinkF(MILLIHZ)));
+  }
+};
+
+function RandomBlinkL(millihz, c1) {
+  return new RandomBlinkLClass(millihz, c1);
+}
+
+class RandomBlinkXClass extends MACRO {
+  constructor(MILLIHZ, COLOR1, COLOR2) {
+    super("Blink each LED randomly MILLIHZ times per second.", arguments);
+    this.add_arg("MILLIHZ", "FUNCTION", "how often to blink");
+    this.add_arg("COLOR1", "COLOR", "first color", WHITE.DOCOPY());
+    this.add_arg("COLOR2", "COLOR", "second color", BLACK.DOCOPY());
+    this.SetExpansion(Layers(this.COLOR1, RandomBlinkL(this.MILLIHZ, this.COLOR2)));
   }
 };
 
@@ -4237,8 +4263,10 @@ function newCall(Cls) {
     PulsingF : PulsingF,
     RandomFlicker : RandomFlicker,
     RandomPerLEDFlicker : RandomPerLEDFlicker,
-    RandomBlinkX : RandomBlinkX,
     RandomBlink : RandomBlink,
+    RandomBlinkX : RandomBlinkX,
+    RandomBlinkL : RandomBlinkL,
+    RandomBlinkF : RandomBlinkF,
     Sequence : Sequence,
     Rgb : Rgb,
     Rgb16 : Rgb16,
