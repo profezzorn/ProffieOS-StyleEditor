@@ -1176,6 +1176,7 @@ AddFunction("SlowNoise");
 AddFunction("IsLessThan<SwingSpeed<250>, Int<100>>");
 AddFunction("LayerFunctions<Bump<Int<0>>, Bump<Int<32768>>>");
 AddFunction("OnSparkF<200>");
+AddFunction("PulsingF<800>");
 
 AddColor("AliceBlue", 223, 239, 255);
 AddColor("Aqua", 0, 255, 255);
@@ -1535,31 +1536,49 @@ function OnSpark(T, SPARK_COLOR, MILLIS) {
   return new OnSparkClass(T, SPARK_COLOR, MILLIS);
 }
 
-class PulsingClass extends STYLE {
+class PulsingFClass extends FUNCTION {
   constructor(COLOR1, COLOR2, PULSE_MILLIS) {
     console.log(arguments);
+    super("Pulses between 0 and 32768 every M milliseconds", Array.from(arguments));
+    this.add_arg("PULSE_MILLIS", "INT", "M");
+  }
+  run(blade) {
+    super.run(blade)
+    this.var_ = 0.5 + 0.5 * Math.sin(millis() * 3.1415 * 2.0/ this.PULSE_MILLIS.getInteger(0));
+  }
+  getInteger(led) {
+    return this.var_ * 32768;
+  }
+}
+
+function PulsingF(PULSE_MILLIS) {
+  return new PulsingFClass(PULSE_MILLIS);
+}
+
+class PulsingLClass extends MACRO {
+  constructor(COLOR2, PULSE_MILLIS) {
+    super("Pulses between transparent and B every M milliseconds", Array.from(arguments));
+    this.add_arg("COLOR2", "COLOR", "B");
+    this.add_arg("PULSE_MILLIS", "INT", "M");
+    this.SetExpansion(AlphaL(COLOR2, PulsingF(PULSE_MILLIS)));
+  }
+}
+
+function PulsingL(COLOR2, PULSE_MILLIS) {
+  return new PulsingLClass(COLOR2, PULSE_MILLIS);
+}
+
+class PulsingClass extends MACRO {
+  constructor(COLOR1, COLOR2, PULSE_MILLIS) {
     super("Pulses between A and B every M milliseconds", Array.from(arguments));
     this.add_arg("COLOR1", "COLOR", "A");
     this.add_arg("COLOR2", "COLOR", "B");
     this.add_arg("PULSE_MILLIS", "INT", "M");
-  }
-  run(blade) {
-    this.COLOR1.run(blade);
-    this.COLOR2.run(blade);
-    this.var_ = 0.5 + 0.5 * Math.sin(millis() * 3.1415 * 2.0/ this.PULSE_MILLIS.getInteger(0));
-  }
-  getColor(led) {
-    var c = this.COLOR1.getColor(led);
-    var c2 = this.COLOR2.getColor(led);
-    return c.mix(c2, this.var_);
+    this.SetExpansion(Layers(COLOR1, PulsingL(COLOR2, PULSE_MILLIS)));
   }
 }
 
 function Pulsing(COLOR1, COLOR2, PULSE_MILLIS) {
-  //console.log(COLOR1);
-  //console.log(COLOR2);
-  //console.log(PULSE_MILLIS);
-  //console.log(arguments);
   return new PulsingClass(COLOR1, COLOR2, PULSE_MILLIS);
 }
 
@@ -4199,6 +4218,8 @@ function newCall(Cls) {
     OnSparkF : OnSparkF,
     OriginalBlast : OriginalBlast,
     Pulsing : Pulsing,
+    PulsingL : PulsingL,
+    PulsingF : PulsingF,
     RandomFlicker : RandomFlicker,
     RandomPerLEDFlicker : RandomPerLEDFlicker,
     RandomBlinkX : RandomBlinkX,
