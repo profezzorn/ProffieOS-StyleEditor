@@ -283,7 +283,7 @@ function initGL()
   }
 
   width = width * 2 / 3;
-  height /= 2;
+  height /= 4;
   canvas.width = width * dpr;
   canvas.height = height * dpr;
   canvas.style.width = width + 'px';
@@ -786,6 +786,8 @@ AddEnum(EFFECTClass, "EFFECT_PLI_OFF");
 class LOCKUP_TYPEClass extends ENUM {
   getType() { return "LOCKUP_TYPE"; }
 };
+
+LOCKUP_TYPE.prefix = "SaberBase::";
 
 function LOCKUP_TYPE(v) {
   return new LOCKUP_TYPEClass(v);
@@ -4230,6 +4232,200 @@ function IsLessThan(F, V) {
   return new IsLessThanClass(F, V);
 }
 
+
+class ResponsiveLockupLClass extends MACRO {
+  constructor(COLOR, TR1, TR2, TOP, BOTTOM, SIZE) {
+    super("Responsive localized lockup layer.", arguments);
+    this.add_arg("COLOR", "COLOR", "Color.");
+    this.add_arg("TR1", "TRANSITION", "Begin transition", TrInstant());
+    this.add_arg("TR2", "TRANSITION", "End transition", TrInstant());
+    this.add_arg("TOP", "FUNCTION", "uppermost lockup limit", Scale(BladeAngle(0, 16000), Int(4000), Int(26000)));
+    this.add_arg("BOTTOM", "FUNCTION", "lowermost lockup limit", Int(6000));
+    this.add_arg("SIZE", "FUNCTION", "lockup size", Scale(SwingSpeed(100), Int(9000), Int(14000)));
+    this.SetExpansion(LockupTrL(AlphaL(COLOR, Bump(Scale(BladeAngle(), this.TOP, this.BOTTOM), this.SIZE)),
+    				       this.TR1,
+    				       this.TR2,
+				       LOCKUP_NORMAL));   					      
+  }
+};
+
+function ResponsiveLockupL(COLOR, TR1, TR2, TOP, BOTTOM, SIZE) {
+  return new ResponsiveLockupLClass(COLOR, TR1, TR2, TOP, BOTTOM, SIZE);
+}
+
+class ResponsiveDragLClass extends MACRO {
+  constructor(COLOR, TR1, TR2, TOP, BOTTOM, SIZE) {
+    super("Responsive localized drag layer.", arguments);
+    this.add_arg("COLOR", "COLOR", "Color.");
+    this.add_arg("TR1", "TRANSITION", "Begin transition", TrInstant());
+    this.add_arg("TR2", "TRANSITION", "End transition", TrInstant());
+    this.add_arg("SIZE1", "FUNCTION", "lower twist limit", Int(2000));
+    this.add_arg("SIZE2", "FUNCTION", "upper twist limit", Int(10000));
+    this.SetExpansion(LockupTrL(AlphaL(COLOR, SmoothStep(Int(32000), Scale(TwistAngle(), this.SIZE1, this.SIZE2))),
+    				       this.TR1,
+    				       this.TR2,
+				       LOCKUP_DRAG));
+  }
+};
+
+function ResponsiveDragL(COLOR, TR1, TR2, TOP, BOTTOM, SIZE) {
+  return new ResponsiveDragLClass(COLOR, TR1, TR2, TOP, BOTTOM, SIZE);
+}
+
+class ResponsiveMeltLClass extends MACRO {
+  constructor(COLOR, TR1, TR2, TOP, BOTTOM, SIZE) {
+    super("Responsive localized melt layer.", arguments);
+    this.add_arg("COLOR", "COLOR", "Color.", Mix(TwistAngle(), OrangeRed.DOCOPY(), Red.DOCOPY()));
+    this.add_arg("TR1", "TRANSITION", "Begin transition", TrWipeIn(600));
+    this.add_arg("TR2", "TRANSITION", "End transition", TrWipe(600));
+    this.add_arg("SIZE1", "FUNCTION", "lower twist limit", Int(4000));
+    this.add_arg("SIZE2", "FUNCTION", "upper twist limit", Int(10000));
+    this.SetExpansion(LockupTrL(AlphaL(this.COLOR, SmoothStep(Int(30000), Scale(TwistAngle(), this.SIZE1, this.SIZE2))),
+    				       this.TR1,
+    				       this.TR2,
+				       LOCKUP_MELT));
+  }
+};
+
+function ResponsiveMeltL(COLOR, TR1, TR2, TOP, BOTTOM, SIZE) {
+  return new ResponsiveMeltLClass(COLOR, TR1, TR2, TOP, BOTTOM, SIZE);
+}
+
+class ResponsiveLightningBlockLClass extends MACRO {
+  constructor(COLOR, TR1, TR2) {
+    super("Responsive lightning block layer", arguments);
+    this.add_arg("COLOR", "COLOR", "Color.");
+    this.add_arg("TR1", "TRANSITION", "Begin transition", TrInstant());
+    this.add_arg("TR2", "TRANSITION", "End transition", TrInstant());
+    this.SetExpansion(
+     LockupTrL(
+       AlphaL(COLOR,
+         LayerFunctions(
+           Bump(Scale(SlowNoise(Scale(BladeAngle(24000,32768),Int(2100),Int(1000))),Scale(BladeAngle(24000,32768),Int(3000),Int(10000)),Int(16000)),
+                Scale(BrownNoiseF(Int(10)),Scale(TwistAngle(),Int(4000),Int(10000)),Scale(TwistAngle(),Int(9000),Int(14000)))),
+           Bump(Scale(SlowNoise(Int(2200)),Scale(BladeAngle(24000,32768),Int(26000),Int(18000)),Int(8000)),
+                Scale(NoisySoundLevel,Scale(TwistAngle(),Int(6000),Int(10000)),Scale(TwistAngle(),Int(10000),Int(14000)))),
+           Bump(Scale(SlowNoise(Int(2300)),Scale(BladeAngle(24000,32768),Int(20000),Int(16000)),Scale(BladeAngle(24000,32768),Int(30000),Int(24000))),
+                Scale(IsLessThan(SlowNoise(Int(2000)),Int(12000)),Scale(NoisySoundLevel,Scale(TwistAngle(),Int(9000),Int(5000)),Int(0)),Int(0))))),
+     TR1,
+     TR2,
+     LOCKUP_LIGHTNING_BLOCK));
+  }
+};
+
+function ResponsiveLightningBlockL(COLOR, TR1, TR2) {
+  return new ResponsiveLightningBlockL(COLOR, TR1, TR2);
+}
+
+class ResponsiveClashLClass extends MACRO {
+  constructor(COLOR, TR1, TR2, TOP, BOTTOM, SIZE) {
+    super("Responsive localized lockup layer.", arguments);
+    this.add_arg("COLOR", "COLOR", "Color.");
+    this.add_arg("TR1", "TRANSITION", "Begin transition", TrInstant());
+    this.add_arg("TR2", "TRANSITION", "End transition", TrFade(200));
+    this.add_arg("TOP", "FUNCTION", "uppermost lockup limit", Scale(BladeAngle(0, 16000), Int(4000), Int(26000)));
+    this.add_arg("BOTTOM", "FUNCTION", "lowermost lockup limit", Int(6000));
+    this.add_arg("SIZE", "FUNCTION", "lockup size", Int(10000));
+    this.SetExpansion(TransitionEffectL(TrConcat(this.TR1,
+                                                 AlphaL(COLOR, Bump(Scale(BladeAngle(), this.TOP, this.BOTTOM), this.SIZE)),
+						 this.TR2),
+				        EFFECT_CLASH));
+  }
+};
+
+function ResponsiveClashL(COLOR, TR1, TR2, TOP, BOTTOM, SIZE) {
+  return new ResponsiveClashLClass(COLOR, TR1, TR2, TOP, BOTTOM, SIZE);
+}
+
+class ResponsiveBlastLClass extends MACRO {
+  constructor(COLOR, FADE, SIZE, SPEED, TOP, BOTTOM, EFFECT) {
+    super("Responsive localized blast layer.", arguments);
+    this.add_arg("COLOR", "COLOR", "Color.");
+    this.add_arg("FADE", "FUNCTION", "fadeout time", Int(400));
+    this.add_arg("SIZE", "FUNCTION", "blast size", Int(100));
+    this.add_arg("SPEED", "FUNCTION", "blast speed", Int(400));
+    this.add_arg("TOP", "FUNCTION", "uppermost blast limit", Int(28000));
+    this.add_arg("BOTTOM", "FUNCTION", "lowermost blast limit", Int(8000));
+    this.add_arg("EFFECT", "EFFECT", "effect type", EFFECT(EFFECT_BLAST));
+    this.SetExpansion(
+      AlphaL(MultiTransitionEffectL(
+                   TrWaveX(this.COLOR, this.FADE, this.SIZE, this.SPEED, Scale(BladeAngle(), this.TOP, this.BOTTOM)),
+                   this.EFFECT),
+             Bump(Scale(BladeAngle(), this.TOP, this.BOTTOM), Int(24000))));
+  }
+};
+
+function ResponsiveBlastL(COLOR, FADE, SIZE, SPEED, TOP, BOTTOM, EFFECT) {
+  return new ResponsiveBlastLClass(COLOR, FADE, SIZE, SPEED, TOP, BOTTOM, EFFECT);
+}
+
+class ResponsiveBlastWaveLClass extends MACRO {
+  constructor(COLOR, FADE, SIZE, SPEED, TOP, BOTTOM, EFFECT) {
+    super("Responsive localized blast layer.", arguments);
+    this.add_arg("COLOR", "COLOR", "Color.");
+    this.add_arg("FADE", "FUNCTION", "fadeout time", Int(400));
+    this.add_arg("SIZE", "FUNCTION", "blast size", Int(100));
+    this.add_arg("SPEED", "FUNCTION", "blast speed", Int(400));
+    this.add_arg("TOP", "FUNCTION", "uppermost blast limit", Int(28000));
+    this.add_arg("BOTTOM", "FUNCTION", "lowermost blast limit", Int(8000));
+    this.add_arg("EFFECT", "EFFECT", "effect type", EFFECT(EFFECT_BLAST));
+    this.SetExpansion(
+        MultiTransitionEffectL(
+                   TrWaveX(this.COLOR, this.FADE, this.SIZE, this.SPEED, Scale(BladeAngle(), this.TOP, this.BOTTOM)),
+                   this.EFFECT));
+
+  }
+};
+
+function ResponsiveBlastWaveL(COLOR, FADE, SIZE, SPEED, TOP, BOTTOM, EFFECT) {
+  return new ResponsiveBlastWaveLClass(COLOR, FADE, SIZE, SPEED, TOP, BOTTOM, EFFECT);
+}
+
+class ResponsiveBlastFadeLClass extends MACRO {
+  constructor(COLOR, FADE, SIZE, TOP, BOTTOM, EFFECT) {
+    super("Responsive localized blast layer.", arguments);
+    this.add_arg("COLOR", "COLOR", "Color.");
+    this.add_arg("FADE", "FUNCTION", "fadeout time", Int(400));
+    this.add_arg("SIZE", "FUNCTION", "blast size", Int(100));
+    this.add_arg("TOP", "FUNCTION", "uppermost blast limit", Int(28000));
+    this.add_arg("BOTTOM", "FUNCTION", "lowermost blast limit", Int(8000));
+    this.add_arg("EFFECT", "EFFECT", "effect type", EFFECT(EFFECT_BLAST));
+    this.SetExpansion(
+        MultiTransitionEffectL(
+	    TrConcat(TrInstant,
+	             AlphaL(this.COLOR, Bump(Scale(BladeAngle(), this.TOP, this.BOTTOM), this.SIZE)),
+		     TrFadeX(this.FADE)),
+            this.EFFECT));
+
+  }
+};
+
+function ResponsiveBlastFadeL(COLOR, FADE, SIZE, TOP, BOTTOM, EFFECT) {
+  return new ResponsiveBlastFadeLClass(COLOR, FADE, SIZE, TOP, BOTTOM, EFFECT);
+}
+
+class ResponsiveStabLClass extends MACRO {
+  constructor(COLOR, TR1, TR2, TOP, BOTTOM, SIZE) {
+    super("Responsive localized stab layer.", arguments);
+    this.add_arg("COLOR", "COLOR", "Color.");
+    this.add_arg("TR1", "TRANSITION", "Begin transition", TrWipeIn(600));
+    this.add_arg("TR2", "TRANSITION", "End transition", TrWipe(600));
+    this.add_arg("SIZE1", "FUNCTION", "lower twist limit", Int(14000));
+    this.add_arg("SIZE2", "FUNCTION", "upper twist limit", Int(8000));
+    this.SetExpansion(
+       TransitionEffectL(TrConcat(this.TR1,
+                                  AlphaL(COLOR, SmoothStep(Int(32000, Scale(BladeAngle(), this.SIZE1, this.SIZE2))),
+				  this.TR2),
+		         EFFECT(EFFECT_STAB))));
+
+  }
+};
+
+function ResponsiveStabL(COLOR, TR1, TR2, TOP, BOTTOM, SIZE) {
+  return new ResponsiveStabLClass(COLOR, TR1, TR2, TOP, BOTTOM, SIZE);
+}
+
+
 ///////
 
 var start = new Date().getTime();
@@ -4365,6 +4561,16 @@ function newCall(Cls) {
     LayerFunctions : LayerFunctions,
     SlowNoise : SlowNoise,
     IsLessThan : IsLessThan,
+
+    ResponsiveLockupL : ResponsiveLockupL,
+    ResponsiveDragL : ResponsiveDragL,
+    ResponsiveMeltL : ResponsiveMeltL,
+    ResponsiveLightningBlockL : ResponsiveLightningBlockL,
+    ResponsiveClashL : ResponsiveClashL,
+    ResponsiveBlastL : ResponsiveBlastL,
+    ResponsiveBlastWaveL : ResponsiveBlastWaveL,
+    ResponsiveBlastFadeL : ResponsiveBlastFadeL,
+    ResponsiveStabL : ResponsiveStabL,
 };
 
 
@@ -4918,16 +5124,18 @@ function DoExpand() {
     <input id=DRAG_BUTTON name=drag type=button value="Drag"  onclick="ClickDrag()" >
     <input id=LB_BUTTON name=drag type=button value="LB"  onclick="ClickLB()" >
     <input id=MELT_BUTTON name=drag type=button value="Melt"  onclick="ClickMelt()" >
-    <input id=ROTATE_BUTTON name=rotate type=button value="Rotate"  onclick="ClickRotate()" >
-    <input id=INHILT_BUTTON name=inhilt type=button value="Inhilt"  onclick="ClickInhilt()" >
-    <input id=SLOW_BUTTON name=inhilt type=button value="Slow"  onclick="ClickSlow()" >
     Variant:
     <input id=VARIANT_MINUS name=varminus type=button value="<"  onclick="IncreaseVariant(-1)" >
     <input id=VARIANT name=variant type=input size=6 value="0" >
     <input id=VARIANT_PLUS name=varplus type=button value=">"  onclick="IncreaseVariant(1)" >
     <span id=error_message></span>
     <br>
-    <input id=style type=text size=100 onkeydown="if (event.keyCode == 13) Run();"><input name='run' type=button value="Submit" onclick="Run()"><input name='copy' type=button value="Copy" onclick="Copy()"><input type=button name='expand' value="Expand" id='expand_button' onclick="DoExpand()"><br>
+    <input id=style type=text size=100 onkeydown="if (event.keyCode == 13) Run();"><input name='run' type=button value="Submit" onclick="Run()"><input name='copy' type=button value="Copy" onclick="Copy()"><input type=button name='expand' value="Expand"
+    id='expand_button' onclick="DoExpand()">
+    <input id=ROTATE_BUTTON name=rotate type=button value="Rotate"  onclick="ClickRotate()" >
+    <input id=INHILT_BUTTON name=inhilt type=button value="Inhilt"  onclick="ClickInhilt()" >
+    <input id=SLOW_BUTTON name=inhilt type=button value="Slow"  onclick="ClickSlow()" ><br>
+
     <div id=effect_links  class=MAGIC_CLASS_COLOR></div>
     <div id=color_links class=MAGIC_CLASS_COLOR></div>
     <div id=transition_links class=MAGIC_CLASS_TRANSITION></div>
