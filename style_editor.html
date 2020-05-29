@@ -1182,6 +1182,7 @@ AddFunction("PulsingF<800>");
 AddFunction("RandomBlinkF<3000>");
 AddFunction("RandomF");
 AddFunction("RandomPerLEDF");
+AddFunction("SequenceF<100, 37, 0b0001010100011100, 0b0111000111000101, 0b0100000000000000>");
 
 AddColor("AliceBlue", 223, 239, 255);
 AddColor("Aqua", 0, 255, 255);
@@ -1876,17 +1877,15 @@ function RandomBlink(MILLIHZ, COLOR1, COLOR2) {
   return new RandomBlinkClass(MILLIHZ, COLOR1, COLOR2);
 }
 
-class SequenceClass extends STYLE {
+class SequenceFClass extends FUNCTION {
   constructor(ARGS) {
-    super("Pre-defined sequence", ARGS);
-    this.add_arg("COLOR1", "COLOR", "Color if bit is 1");
-    this.add_arg("COLOR2", "COLOR", "Color if bit is 2");
+    super("Pre-defined sequence of 0 and 32768", ARGS);
     this.add_arg("MILLIS_PER_BIT", "INT", "Milliseconds per bit.");
     this.add_arg("BITS", "INT", "total bits");
     for (var i = 0; i < this.BITS; i+= 16) {
       this.add_arg("BITS"+i, "INT", "Bit sequence " + ((i/16)+1));
     }
-    this.SEQUENCE = Array.from(ARGS).slice(4);
+    this.SEQUENCE = Array.from(ARGS).slice(2);
   }
   run(blade) {
     super.run(blade);
@@ -1894,8 +1893,43 @@ class SequenceClass extends STYLE {
     var bit = (now / this.MILLIS_PER_BIT) % min(this.BITS, this.SEQUENCE.length * 16);
     this.on = !!(this.SEQUENCE[bit >> 4] >> ((~bit) & 0xf) & 1)
   }
-  getColor(led) {
-    return this.on ? this.COLOR1.getColor(led) : this.COLOR2.getColor(led);
+  getInteger(led) {
+    return this.on ? 32768 : 0;
+  }
+};
+
+function SequenceF(MILLIHZ_PER_BIT, BITS, SEQUENCE) {
+  return new SequenceFClass(Array.from(arguments));
+}
+
+class SequenceLClass extends MACRO {
+  constructor(ARGS) {
+    super("Pre-defined sequence", ARGS);
+    this.add_arg("COLOR", "COLOR", "Color if bit is 2");
+    this.add_arg("MILLIS_PER_BIT", "INT", "Milliseconds per bit.");
+    this.add_arg("BITS", "INT", "total bits");
+    for (var i = 0; i < this.BITS; i+= 16) {
+      this.add_arg("BITS"+i, "INT", "Bit sequence " + ((i/16)+1));
+    }
+    this.SetExpansion(AlphaL(this.COLOR, new SequenceFClass(ARGS.slice(1))));
+  }
+};
+
+function SequenceL(COLOR2, MILLIHZ_PER_BIT, BITS, SEQUENCE) {
+  return new SequenceLClass(Array.from(arguments));
+}
+
+class SequenceClass extends MACRO {
+  constructor(ARGS) {
+    super("Pre-defined sequence", ARGS);
+    this.add_arg("COLOR1", "COLOR", "Color if bit is 1");
+    this.add_arg("COLOR2", "COLOR", "Color if bit is 0");
+    this.add_arg("MILLIS_PER_BIT", "INT", "Milliseconds per bit.");
+    this.add_arg("BITS", "INT", "total bits");
+    for (var i = 0; i < this.BITS; i+= 16) {
+      this.add_arg("BITS"+i, "INT", "Bit sequence " + ((i/16)+1));
+    }
+    this.SetExpansion(Layers(this.COLOR1, new SequenceLClass(ARGS.slice(1))));
   }
 };
 
@@ -4500,6 +4534,8 @@ function newCall(Cls) {
     RandomBlinkL : RandomBlinkL,
     RandomBlinkF : RandomBlinkF,
     Sequence : Sequence,
+    SequenceL : SequenceL,
+    SequenceF : SequenceF,
     Rgb : Rgb,
     Rgb16 : Rgb16,
     SimpleClash : SimpleClash,
