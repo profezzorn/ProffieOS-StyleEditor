@@ -1183,6 +1183,7 @@ AddFunction("RandomBlinkF<3000>");
 AddFunction("RandomF");
 AddFunction("RandomPerLEDF");
 AddFunction("SequenceF<100, 37, 0b0001010100011100, 0b0111000111000101, 0b0100000000000000>");
+AddFunction("SparkleF");
 
 AddColor("AliceBlue", 223, 239, 255);
 AddColor("Aqua", 0, 255, 255);
@@ -1602,19 +1603,16 @@ function Pulsing(COLOR1, COLOR2, PULSE_MILLIS) {
   return new PulsingClass(COLOR1, COLOR2, PULSE_MILLIS);
 }
 
-class SparkleClass extends STYLE {
-  constructor(BASE, SPARKLE_COLOR, SPARK_CHANCE_PROMILLE, SPARK_INTENSITY) {
+class SparkleFClass extends FUNCTION {
+  constructor(SPARK_CHANCE_PROMILLE, SPARK_INTENSITY) {
     super("Sparkles!!", Array.from(arguments));
-    this.add_arg("BASE", "COLOR", "Normal blade color");
-    this.add_arg("SPARKLE_COLOR", "COLOR", "Spark color", Rgb(255,255,255));
     this.add_arg("SPARK_CHANCE_PROMILLE", "INT", "Chance of new sparks.", 300);
     this.add_arg("SPARK_INTENSITY", "INT", "Initial spark intensity", 1024);
     this.sparks = new Uint16Array(144 + 4);
     this.last_update = 0;
   }
   run(blade) {
-    this.BASE.run(blade);
-    this.SPARKLE_COLOR.run(blade);
+    super.run(blade);
     var m = millis();
     if (m - this.last_update >= 10) {
       this.last_update = m;
@@ -1631,15 +1629,44 @@ class SparkleClass extends STYLE {
       }
     }
   }
-  getColor(led) {
-    return this.BASE.getColor(led).mix(this.SPARKLE_COLOR.getColor(led), max(0.0, min(1.0, this.sparks[led + 2]/255.0)));
+  getInteger(led) {
+    return clamp(this.sparks[led + 2], 0, 255) << 7;
+  }
+}
+
+function SparkleF(SPARK_CHANCE_PROMILLE, SPARK_INTENSITY) {
+  return new SparkleFClass(SPARK_CHANCE_PROMILLE, SPARK_INTENSITY);
+}
+
+class SparkleLClass extends MACRO {
+  constructor(SPARKLE_COLOR, SPARK_CHANCE_PROMILLE, SPARK_INTENSITY) {
+    super("Sparkles!!", Array.from(arguments));
+    this.add_arg("SPARKLE_COLOR", "COLOR", "Spark color", Rgb(255,255,255));
+    this.add_arg("SPARK_CHANCE_PROMILLE", "INT", "Chance of new sparks.", 300);
+    this.add_arg("SPARK_INTENSITY", "INT", "Initial spark intensity", 1024);
+    this.SetExpansion(AlphaL(this.SPARKLE_COLOR, SparkleF(this.SPARK_CHANCE_PROMILLE, this.SPARK_INTENSITY)));
+  }
+}
+
+function SparkleL(SPARKLE_COLOR, SPARK_CHANCE_PROMILLE, SPARK_INTENSITY) {
+  return new SparkleLClass(SPARKLE_COLOR, SPARK_CHANCE_PROMILLE, SPARK_INTENSITY);
+}
+
+class SparkleClass extends MACRO {
+  constructor(BASE, SPARKLE_COLOR, SPARK_CHANCE_PROMILLE, SPARK_INTENSITY) {
+    super("Sparkles!!", Array.from(arguments));
+    this.add_arg("BASE", "COLOR", "Normal blade color");
+    this.add_arg("SPARKLE_COLOR", "COLOR", "Spark color", Rgb(255,255,255));
+    this.add_arg("SPARK_CHANCE_PROMILLE", "INT", "Chance of new sparks.", 300);
+    this.add_arg("SPARK_INTENSITY", "INT", "Initial spark intensity", 1024);
+    this.SetExpansion(Layers(BASE, SparkleL(this.SPARKLE_COLOR, this.SPARK_CHANCE_PROMILLE, this.SPARK_INTENSITY)));
   }
 }
 
 function Sparkle(BASE, SPARKLE_COLOR, SPARK_CHANCE_PROMILLE, SPARK_INTENSITY) {
   return new SparkleClass(BASE, SPARKLE_COLOR, SPARK_CHANCE_PROMILLE, SPARK_INTENSITY);
 }
-    
+
 class StrobeClass extends STYLE {
   constructor(T, STROBE_COLOR, STROBE_FREQUENCY, STROBE_MILLIS) {
     super();
@@ -4540,6 +4567,8 @@ function newCall(Cls) {
     Rgb16 : Rgb16,
     SimpleClash : SimpleClash,
     Sparkle : Sparkle,
+    SparkleL : SparkleL,
+    SparkleF : SparkleF,
     Strobe : Strobe,
     Stripes : Stripes,
     StripesX : StripesX,
