@@ -619,6 +619,14 @@ class STYLE {
     }
   }
 
+  isEffect() {
+    for (var i = 0; i < this.argdefs.length; i++) {
+      if (this.argdefs[i].type == "EFFECT") return true;
+      if (this.argdefs[i].type == "LOCKUP_TYPE") return true;
+    }
+    return false;
+  }
+
   // Doesn't work??
   toString() { return this.constructor.name + "[id = " + this.ID + "]"; }
 
@@ -677,6 +685,7 @@ class MACRO extends STYLE {
   getColor(A,B,C) { return this.expansion.getColor(A,B,C); }
   getType() { return this.expansion.getType(); }
   isMacro() { return true; }
+  isEffect() { return this.expansion.isEffect(); }
   begin() { this.expansion.begin(); }
   done() { return this.expansion.done(); }
   IS_RUNNING() {
@@ -1017,6 +1026,7 @@ function Rgb16(r,g,b) {
 }
 
 class AlphaLClass extends STYLE {
+  isEffect() { return this.ALPHA.isEffect(); }
   constructor(COLOR, ALPHA) {
     super("Makes transparent color", Array.from(arguments));
     this.add_arg("COLOR", "COLOR", "COLOR");
@@ -2810,6 +2820,7 @@ function LocalizedClash(T, CLASH_COLOR, CLASH_MILLIS, CLASH_WIDTH_PERCENT, EF) {
 }
 
 class LockupLClass extends STYLE {
+  isEffect() { return true; }
   constructor(LOCKUP, DRAG_COLOR, LOCKUP_SHAPE, DRAG_SHAPE) {
     super("Implements the lockup and drag effects.", arguments);
     this.add_arg("LOCKUP", "COLOR", "lockup color");
@@ -3227,6 +3238,7 @@ function InOutHelperF(EX, AD) {
 }
 
 class InOutHelperLClass extends MACRO {
+  isEffect() { return true; }
   constructor(EXTENSION, OFF_COLOR, ALLOW_DISABLE) {
     super("0=retracted, 32768=extended", arguments);
     this.add_arg("EXTENSION", "FUNCTION", "extension amount");
@@ -3432,6 +3444,7 @@ function TransitionEffect(T, EC, T1, T2, E) {
 }
 
 class InOutTrLClass extends STYLE {
+  isEffect() { return true; }
   constructor(OUT_TR, IN_TR, OFF, AD) {
     super("In-out based on transitions", arguments);
     this.add_arg("OUT_TR", "TRANSITION", "IN-OUT transition");
@@ -5278,13 +5291,19 @@ function DoExpand() {
   SetTo(url);
 }
 
+function ShouldJoin(layer1, layer2) {
+  if (layer1.LAYERS.length == 0) return true;
+  if (layer2.LAYERS.length == 0) return true;
+  return layer1.LAYERS[0].isEffect() == layer2.LAYERS[0].isEffect();
+}
+
 function RecursiveLayerize(node) {
   while (node.isMacro) {
     node = node.expansion;
   }
   if (node.constructor == LayersClass) {
     node.BASE = RecursiveLayerize(node.BASE);
-    while (node.BASE.constructor == LayersClass) {
+    while (node.BASE.constructor == LayersClass && ShouldJoin(node, node.BASE)) {
       node = new LayersClass([node.BASE.BASE].concat(node.BASE.LAYERS,node.LAYERS));
     }
   }
