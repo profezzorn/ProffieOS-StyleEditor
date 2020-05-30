@@ -411,7 +411,7 @@ function Arg(expected_type, arg, default_arg) {
   if (typeof(arg) != "number" && arg.getType() != expected_type) {
     throw "Expected " + expected_type;
   }
-  if (expected_type == "INT" || expected_type == "EFFECT") {
+  if (expected_type == "INT" || expected_type == "EFFECT" || expected_type == "LOCKUP_TYPE") {
     return arg;
   }
   if (expected_type == "COLOR" ||
@@ -424,7 +424,7 @@ function Arg(expected_type, arg, default_arg) {
     return arg;
   }
 
-  throw "Not INT, COLOR,  EFFECT, LOCKUP_TYPE, FUNCTION or TRANSITION";
+  throw "Not INT, COLOR, EFFECT, LOCKUP_TYPE, FUNCTION or TRANSITION";
 }
 
 function IntArg(arg, def_arg) { return Arg("INT", arg, def_arg); }
@@ -467,9 +467,9 @@ class STYLE {
     if (focus_trace[0] == this.args[this.argnum]) {
       focus_trace = [this, name, expected_type, focus_trace];
     }
-    console.log("add_arg");
-    console.log(name);
-    console.log(this.args);
+    // console.log("add_arg");
+    // console.log(name);
+    // console.log(this.args);
     try {
       this[name] = Arg(expected_type, this.args[this.argnum], default_value);
     } catch(e) {
@@ -722,28 +722,6 @@ class BINARY extends STYLE {
   getType() { return "INT"; }
 };
 
-class ENUM extends INTEGER {
-  pp() {
-    if (pp_is_url) {
-      if (this.super_short_desc) return "$";
-    }
-    if (this.constructor.value_to_name[this.value]) {
-      return this.constructor.value_to_name[this.value];
-    }
-    return "" + this.value;
-  }
-};
-
-ENUM.value_to_name = {};
-ENUM.prefix = "";
-
-class EFFECTClass extends ENUM {
-  getType() { return "EFFECT"; }
-};
-
-function EFFECT(v) {
-  return new EFFECTClass(v);
-}
 
 function AddEnum(enum_type, name, value) {
   if (value == undefined) {
@@ -756,50 +734,91 @@ function AddEnum(enum_type, name, value) {
   console.log(" ENUM " + name + " = " + value);
 }
 
-AddEnum(EFFECTClass, "EFFECT_NONE", 0);
-AddEnum(EFFECTClass, "EFFECT_CLASH");
-AddEnum(EFFECTClass, "EFFECT_BLAST");
-AddEnum(EFFECTClass, "EFFECT_FORCE");
-AddEnum(EFFECTClass, "EFFECT_STAB");
-AddEnum(EFFECTClass, "EFFECT_BOOT");
-AddEnum(EFFECTClass, "EFFECT_LOCKUP_BEGIN");
-AddEnum(EFFECTClass, "EFFECT_LOCKUP_END");
-AddEnum(EFFECTClass, "EFFECT_DRAG_BEGIN");
-AddEnum(EFFECTClass, "EFFECT_DRAG_END");
-AddEnum(EFFECTClass, "EFFECT_IGNITION");
-AddEnum(EFFECTClass, "EFFECT_RETRACTION");
-AddEnum(EFFECTClass, "EFFECT_CHANGE");
-AddEnum(EFFECTClass, "EFFECT_STUN");
-AddEnum(EFFECTClass, "EFFECT_FIRE");
-AddEnum(EFFECTClass, "EFFECT_CLIP_IN");
-AddEnum(EFFECTClass, "EFFECT_CLIP_OUT");
-AddEnum(EFFECTClass, "EFFECT_RELOAD");
-AddEnum(EFFECTClass, "EFFECT_MODE");
-AddEnum(EFFECTClass, "EFFECT_RANGE");
-AddEnum(EFFECTClass, "EFFECT_EMPTY");
-AddEnum(EFFECTClass, "EFFECT_FULL");
-AddEnum(EFFECTClass, "EFFECT_JAM");
-AddEnum(EFFECTClass, "EFFECT_UNJAM");
-AddEnum(EFFECTClass, "EFFECT_PLI_ON");
-AddEnum(EFFECTClass, "EFFECT_PLI_OFF");
+class EnumBuilder {
+  constructor(name, prefix) {
+    this.name = name;
+    this.prefix = prefix ? prefix : "";
+    this.last_value = -1
+    this.value_to_name = {};
+  }
+  addValue(name, value) {
+    if (value == undefined) {
+      value = this.last_value + 1;
+    }
+    this.last_value = value;
+    this.value_to_name[value] = name;
+    window[name] = value;
+    console.log(" ENUM " + name + " = " + value);
+  }
+  build() {
+    class ENUMClass extends INTEGER {
+      pp() {
+        if (pp_is_url) {
+          if (this.super_short_desc) return "$";
+        }
+	var ret = "" + this.value;
+        if (this.constructor.value_to_name[this.value]) {
+	  ret = this.constructor.prefix + this.constructor.value_to_name[this.value];
+        }
+        return this.PPshort(ret, this.getType());
+      }
+      getType() { return this.constructor.NAME; }
+    };
+    ENUMClass.value_to_name = this.value_to_name;
+    ENUMClass.NAME = this.name;
+    ENUMClass.prefix = this.prefix
 
-class LOCKUP_TYPEClass extends ENUM {
-  getType() { return "LOCKUP_TYPE"; }
-};
-
-LOCKUP_TYPE.prefix = "SaberBase::";
-
-function LOCKUP_TYPE(v) {
-  return new LOCKUP_TYPEClass(v);
+    function ENUM(value) { return new ENUMClass(value); }
+    window[this.name] = ENUM;
+    
+    var v = Object.keys(this.value_to_name);
+    for (var i = 0; i < v.length; i++) {
+      var V = parseInt(v[i]);
+      var N = this.value_to_name[V];
+      AddIdentifier(N, ENUM.bind(null, V));
+    }
+  }
 }
 
-AddEnum(LOCKUP_TYPEClass, "LOCKUP_NONE", 0);
-AddEnum(LOCKUP_TYPEClass, "LOCKUP_NORMAL");
-AddEnum(LOCKUP_TYPEClass, "LOCKUP_DRAG");
-AddEnum(LOCKUP_TYPEClass, "LOCKUP_ARMED");
-AddEnum(LOCKUP_TYPEClass, "LOCKUP_AUTOFIRE");
-AddEnum(LOCKUP_TYPEClass, "LOCKUP_MELT");
-AddEnum(LOCKUP_TYPEClass, "LOCKUP_LIGHTNING_BLOCK");
+EFFECT_ENUM_BUILDER = new EnumBuilder("EFFECT");
+EFFECT_ENUM_BUILDER.addValue("EFFECT_NONE", 0);
+EFFECT_ENUM_BUILDER.addValue("EFFECT_CLASH");
+EFFECT_ENUM_BUILDER.addValue("EFFECT_BLAST");
+EFFECT_ENUM_BUILDER.addValue("EFFECT_FORCE");
+EFFECT_ENUM_BUILDER.addValue("EFFECT_STAB");
+EFFECT_ENUM_BUILDER.addValue("EFFECT_BOOT");
+EFFECT_ENUM_BUILDER.addValue("EFFECT_LOCKUP_BEGIN");
+EFFECT_ENUM_BUILDER.addValue("EFFECT_LOCKUP_END");
+EFFECT_ENUM_BUILDER.addValue("EFFECT_DRAG_BEGIN");
+EFFECT_ENUM_BUILDER.addValue("EFFECT_DRAG_END");
+EFFECT_ENUM_BUILDER.addValue("EFFECT_IGNITION");
+EFFECT_ENUM_BUILDER.addValue("EFFECT_RETRACTION");
+EFFECT_ENUM_BUILDER.addValue("EFFECT_CHANGE");
+EFFECT_ENUM_BUILDER.addValue("EFFECT_STUN");
+EFFECT_ENUM_BUILDER.addValue("EFFECT_FIRE");
+EFFECT_ENUM_BUILDER.addValue("EFFECT_CLIP_IN");
+EFFECT_ENUM_BUILDER.addValue("EFFECT_CLIP_OUT");
+EFFECT_ENUM_BUILDER.addValue("EFFECT_RELOAD");
+EFFECT_ENUM_BUILDER.addValue("EFFECT_MODE");
+EFFECT_ENUM_BUILDER.addValue("EFFECT_RANGE");
+EFFECT_ENUM_BUILDER.addValue("EFFECT_EMPTY");
+EFFECT_ENUM_BUILDER.addValue("EFFECT_FULL");
+EFFECT_ENUM_BUILDER.addValue("EFFECT_JAM");
+EFFECT_ENUM_BUILDER.addValue("EFFECT_UNJAM");
+EFFECT_ENUM_BUILDER.addValue("EFFECT_PLI_ON");
+EFFECT_ENUM_BUILDER.addValue("EFFECT_PLI_OFF");
+EFFECT_ENUM_BUILDER.build();
+
+LOCKUP_ENUM_BUILDER = new EnumBuilder("LOCKUP_TYPE", "SaberBase::");
+LOCKUP_ENUM_BUILDER.addValue("LOCKUP_NONE", 0);
+LOCKUP_ENUM_BUILDER.addValue("LOCKUP_NORMAL");
+LOCKUP_ENUM_BUILDER.addValue("LOCKUP_DRAG");
+LOCKUP_ENUM_BUILDER.addValue("LOCKUP_ARMED");
+LOCKUP_ENUM_BUILDER.addValue("LOCKUP_AUTOFIRE");
+LOCKUP_ENUM_BUILDER.addValue("LOCKUP_MELT");
+LOCKUP_ENUM_BUILDER.addValue("LOCKUP_LIGHTNING_BLOCK");
+LOCKUP_ENUM_BUILDER.build();
+
 
 class FUNCTION  extends STYLE {
   getType() { return "FUNCTION"; }
@@ -5039,8 +5058,9 @@ function ReplaceCurrentFocus(str) {
     if (!container) {
       console.log("Lost focus when parsing " + str);
       console.log(focus_trace);
+    } else {
+      container.style.backgroundColor = 'lightblue';
     }
-    container.style.backgroundColor = 'lightblue';
   } else {
     console.log("No focus catcher found!!");
   }
