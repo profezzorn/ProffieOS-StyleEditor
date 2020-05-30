@@ -503,6 +503,10 @@ class STYLE {
     }
   }
 
+  Indent(text) {
+    return text;
+  }
+
   PPURL(name, note) {
     if (this.super_short_desc) return "$";
     pp_is_url++;
@@ -513,7 +517,7 @@ class STYLE {
       for (var i = 2; i < arguments.length; i += 2) {
 	if (comma) ret += ",";
 	comma = true;
-	ret += this.DescribeValue(arguments[i]);
+	ret += this.Indent(this.DescribeValue(arguments[i]));
       }
       ret += ">";
     }
@@ -1029,6 +1033,9 @@ function AlphaL(COLOR, ALPHA) {
 }
 
 class LayersClass extends STYLE {
+  Indent(text) {
+    return "\n  "  + text.split("\n").join("\n  ");
+  }
   constructor(ARGS) {
     super("Mix alpha-blended layers", ARGS);
     this.LAYERS = Array.from(ARGS).slice(1);
@@ -4811,7 +4818,7 @@ class Parser {
     return this.str[this.pos]
   }
   skipspace() {
-    while (this.peek() == ' ' || this.peek() == '\t') this.pos++;
+    while (this.peek() == ' ' || this.peek() == '\t' || this.peek() == '\n' || this.peek() == '\r') this.pos++;
   }
 
   identifier() {
@@ -5325,9 +5332,10 @@ function DoLayerize() {
     <input id=VARIANT_PLUS name=varplus type=button value=">"  onclick="IncreaseVariant(1)" >
     <span id=error_message></span>
     <br>
-    <input id=style type=text size=100 onkeydown="if (event.keyCode == 13) Run();"><input name='run' type=button value="Submit" onclick="Run()"><input name='copy' type=button value="Copy" onclick="Copy()"><input type=button name='expand' value="Expand"
-    id='expand_button' onclick="DoExpand()"><input type=button name='layerize' value="Layerize"
-    id='layerize_button' onclick="DoLayerize()">
+    <pre><textarea rows=10 cols=80 id=style wrap=off></textarea></pre>
+    <!-- <input id=style type=text size=100 onkeydown="if (event.keyCode == 13) Run();"> --> <input name='run' type=button value="Submit" onclick="Run()"><input name='copy' type=button value="Copy" onclick="Copy()">
+    <input type=button name='expand' value="Expand" id='expand_button' onclick="DoExpand()">
+    <input type=button name='layerize' value="Layerize" id='layerize_button' onclick="DoLayerize()">
     <input id=ROTATE_BUTTON name=rotate type=button value="Rotate"  onclick="ClickRotate()" >
     <input id=INHILT_BUTTON name=inhilt type=button value="Inhilt"  onclick="ClickInhilt()" >
     <input id=SLOW_BUTTON name=inhilt type=button value="Slow"  onclick="ClickSlow()" ><br>
