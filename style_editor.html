@@ -1035,21 +1035,29 @@ function enc(s) {
   return s.replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
+function mkbutton2(name, val) {
+  return "<input type=button class=btn onclick='SetTo(\""+val+"\")' value='"+enc(name)+"'>\n";
+  //  return "<span class=btn onclick='SetTo(\""+name+"\")'>"+enc(name)+"</span>\n";
+}
 function mkbutton(name) {
-  return "<input type=button class=btn onclick='SetTo(\""+name+"\")' value='"+enc(name)+"'>\n";
+  return mkbutton2(name, name);
+//  return "<input type=button class=btn onclick='SetTo(\""+name+"\")' value='"+enc(name)+"'>\n";
   //  return "<span class=btn onclick='SetTo(\""+name+"\")'>"+enc(name)+"</span>\n";
 }
 function AddTemplate(name) {
   template_links += mkbutton(name);
 }
-function AddEffect(name) {
-  effect_links += mkbutton(name);
+function AddEffect(val) {
+  var name = val.split("<")[0];
+  effect_links += mkbutton2(name, val);
 }
-function AddFunction(name) {
-  function_links += mkbutton(name);
+function AddFunction(val) {
+  var name = val.split("<")[0];
+  function_links += mkbutton2(name, val);
 }
-function AddTransition(name) {
-  transition_links += mkbutton(name);
+function AddTransition(val) {
+  var name = val.split("<")[0];
+  transition_links += mkbutton2(name, val);
 }
 function AddEffectType(name) {
   effect_type_links += "<input type=button class=btn onclick='SetTo(\"EFFECT_"+name+"\")' value='"+enc(name)+"'>\n";
@@ -1184,6 +1192,7 @@ AddFunction("RandomF");
 AddFunction("RandomPerLEDF");
 AddFunction("SequenceF<100, 37, 0b0001010100011100, 0b0111000111000101, 0b0100000000000000>");
 AddFunction("SparkleF");
+AddFunction("StrobeF<Int<15>, Int<1>>");
 
 AddColor("AliceBlue", 223, 239, 255);
 AddColor("Aqua", 0, 255, 255);
@@ -1667,39 +1676,73 @@ function Sparkle(BASE, SPARKLE_COLOR, SPARK_CHANCE_PROMILLE, SPARK_INTENSITY) {
   return new SparkleClass(BASE, SPARKLE_COLOR, SPARK_CHANCE_PROMILLE, SPARK_INTENSITY);
 }
 
-class StrobeClass extends STYLE {
+class StrobeFClass extends FUNCTION {
   constructor(T, STROBE_COLOR, STROBE_FREQUENCY, STROBE_MILLIS) {
-    super();
-    this.T = ColorArg(T);
-    this.STROBE_COLOR = ColorArg(STROBE_COLOR);
-    this.STROBE_FREQUENCY = IntArg(STROBE_FREQUENCY);
-    this.STROBE_MILLIS = IntArg(STROBE_MILLIS);
+    super("Stroboscope effect", arguments);
+    this.add_arg("STROBE_FREQUENCY", "FUNCTION", "Strobe frequency.");
+    this.add_arg("STROBE_MILLIS", "FUNCTION", "Pulse length in milliseconds.");
     this.strobe_ = false;
     this.strobe_start_ = 0;
   }
   run(blade) {
-    this.T.run(blade);
-    this.STROBE_COLOR.run(blade);
+    super.run(blade);
     var m = millis();
-    var timeout = this.strobe_ ?  this.STROBE_MILLIS : (1000 / this.STROBE_FREQUENCY);
+    var strobe_millis = this.STROBE_MILLIS.getInteger(0);
+    var strobe_frequency = this.STROBE_FREQUENCY.getInteger(0);
+    var timeout = this.strobe_ ?  strobe_millis : (1000 / strobe_frequency);
     if (m - this.strobe_start_ > timeout) {
       this.strobe_start_ += timeout;
-      if (m - this.strobe_start_ > this.STROBE_MILLIS + (1000 / this.STROBE_FREQUENCY))
+      if (m - this.strobe_start_ > strobe_millis + (1000 / strobe_frequency))
 	this.strobe_start_ = m;
       this.strobe_ = !this.strobe_;
     }
   }
-  getColor(led) {
-    var c = this.T.getColor(led);
-    var strobe_color = this.STROBE_COLOR.getColor(led);
-    return c.mix(strobe_color, this.strobe_ ? 1.0 : 0.0);
+  getInteger(led) {
+    return this.strobe_ ? 32768 : 0;
   }
-  pp() {
-    return this.PP("Strobe", "Stoboscope effect",
-		   this.T, "off color",
-		   this.STROBE_COLOR, "Color",
-		   this.STROBE_FREQUENCY, "Frequency",
-		   this.STROBE_MILLIS, "Strobe length in milliseconds");
+};
+
+function StrobeF(STROBE_FREQUENCY, STROBE_MILLIS) {
+  return new StrobeFClass(STROBE_FREQUENCY, STROBE_MILLIS);
+}
+
+class StrobeLClass extends MACRO {
+  constructor(STROBE_COLOR, STROBE_FREQUENCY, STROBE_MILLIS) {
+    super("Stroboscope effect", arguments);
+    this.add_arg("STROBE_COLOR", "COLOR", "Strobe color");
+    this.add_arg("STROBE_FREQUENCY", "FUNCTION", "Strobe frequency.");
+    this.add_arg("STROBE_MILLIS", "FUNCTION", "Pulse length in milliseconds.");
+    this.SetExpansion(AlphaL(STROBE_COLOR, StrobeF(STROBE_FREQUENCY, STROBE_MILLIS)));
+  }
+};
+
+function StrobeL(STROBE_COLOR, STROBE_FREQUENCY, STROBE_MILLIS) {
+  return new StrobeLClass(STROBE_COLOR, STROBE_FREQUENCY, STROBE_MILLIS);
+}
+
+class StrobeXClass extends MACRO {
+  constructor(T, STROBE_COLOR, STROBE_FREQUENCY, STROBE_MILLIS) {
+    super("Stroboscope effect", arguments);
+    this.add_arg("T", "COLOR", "Base color");
+    this.add_arg("STROBE_COLOR", "COLOR", "Strobe color");
+    this.add_arg("STROBE_FREQUENCY", "FUNCTION", "Strobe frequency.");
+    this.add_arg("STROBE_MILLIS", "FUNCTION", "Pulse length in milliseconds.");
+    this.SetExpansion(Layers(T, StrobeL(STROBE_COLOR, STROBE_FREQUENCY, STROBE_MILLIS)));
+  }
+};
+
+function StrobeX(T, STROBE_COLOR, STROBE_FREQUENCY, STROBE_MILLIS) {
+  return new StrobeXClass(T, STROBE_COLOR, STROBE_FREQUENCY, STROBE_MILLIS);
+}
+
+class StrobeClass extends MACRO {
+  constructor(T, STROBE_COLOR, STROBE_FREQUENCY, STROBE_MILLIS) {
+    super("Stroboscope effect", arguments);
+    this.add_arg("T", "COLOR", "Base color");
+    this.add_arg("STROBE_COLOR", "COLOR", "Strobe color");
+    this.add_arg("STROBE_FREQUENCY", "INT", "Strobe frequency.");
+    this.add_arg("STROBE_MILLIS", "INT", "Pulse length in milliseconds.");
+    this.SetExpansion(StrobeX(T, STROBE_COLOR, Int(STROBE_FREQUENCY), Int(STROBE_MILLIS)));
   }
 };
 
@@ -4570,6 +4613,9 @@ function newCall(Cls) {
     SparkleL : SparkleL,
     SparkleF : SparkleF,
     Strobe : Strobe,
+    StrobeX : StrobeX,
+    StrobeL : StrobeL,
+    StrobeF : StrobeF,
     Stripes : Stripes,
     StripesX : StripesX,
     StyleFire : StyleFire,
