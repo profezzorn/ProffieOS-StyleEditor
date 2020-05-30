@@ -2725,10 +2725,9 @@ function SimpleClash(T, CLASH, MILLIS, EF, SS) {
 }
 
 
-class LocalizedClashClass extends STYLE {
-  constructor(T, CLASH_COLOR, CLASH_MILLIS, CLASH_WIDTH_PERCENT, EFFECT_ARG) {
+class LocalizedClashLClass extends STYLE {
+  constructor(CLASH_COLOR, CLASH_MILLIS, CLASH_WIDTH_PERCENT, EFFECT_ARG) {
     super("Localized clash", arguments);
-    this.add_arg("T", "COLOR", "base color");
     this.add_arg("CLASH_COLOR", "COLOR", "Clash color", WHITE.DOCOPY());
     this.add_arg("CLASH_MILLIS", "INT", "Clash duration in milliseconds", 40);
     this.add_arg("CLASH_WIDTH_PERCENT", "INT", "Clash width in percent of entire blade", 50);
@@ -2736,8 +2735,7 @@ class LocalizedClashClass extends STYLE {
     this.effect_ = new OneshotEffectDetector(this.EFFECT);
   }
   run(blade) {
-    this.T.run(blade);
-    this.CLASH_COLOR.run(blade);
+    super.run(blade);
 
     var m = millis();
     var clashing = 0;
@@ -2753,17 +2751,32 @@ class LocalizedClashClass extends STYLE {
     }
   }
   getColor(led) {
+    var ret = Transparent();
     if (this.clash) {
-      var ret = this.T.getColor(led);
       var dist = Math.floor(Math.abs(led * this.mult - this.clash_location) / 1024);
       if (dist < blast_hump.length) {
-	ret = ret.mix(this.CLASH_COLOR.getColor(led), blast_hump[dist]/255.0);
+        var ret = this.CLASH_COLOR.getColor(led);
+        ret = ret.multiply(blast_hump[dist] / 255.0);
       }
-      return ret;
-    } else {
-      return this.T.getColor(led);
     }
+    return ret;
   } 
+}
+
+function LocalizedClashL(CLASH_COLOR, CLASH_MILLIS, CLASH_WIDTH_PERCENT, EF) {
+  return new LocalizedClashLClass(CLASH_COLOR, CLASH_MILLIS, CLASH_WIDTH_PERCENT, EF);
+}
+
+class LocalizedClashClass extends MACRO {
+  constructor(T, CLASH_COLOR, CLASH_MILLIS, CLASH_WIDTH_PERCENT, EFFECT_ARG) {
+    super("Localized clash", arguments);
+    this.add_arg("T", "COLOR", "base color");
+    this.add_arg("CLASH_COLOR", "COLOR", "Clash color", WHITE.DOCOPY());
+    this.add_arg("CLASH_MILLIS", "INT", "Clash duration in milliseconds", 40);
+    this.add_arg("CLASH_WIDTH_PERCENT", "INT", "Clash width in percent of entire blade", 50);
+    this.add_arg("EFFECT", "EFFECT", "effect type", EFFECT(EFFECT_CLASH));
+    this.SetExpansion(Layers(T, LocalizedClashL(this.CLASH_COLOR, this.CLASH_MILLIS, this.CLASH_WIDTH_PERCENT, this.EFFECT)));
+  }
 }
 
 function LocalizedClash(T, CLASH_COLOR, CLASH_MILLIS, CLASH_WIDTH_PERCENT, EF) {
@@ -4593,6 +4606,7 @@ function newCall(Cls) {
     InOutSparkTip : InOutSparkTip,
     Layers : Layers,
     LocalizedClash : LocalizedClash,
+    LocalizedClashL : LocalizedClashL,
     Lockup : Lockup,
     LockupL : LockupL,
     LockupTr : LockupTr,
