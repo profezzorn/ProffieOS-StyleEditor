@@ -1034,7 +1034,7 @@ class LayersClass extends STYLE {
     this.LAYERS = Array.from(ARGS).slice(1);
     this.add_arg("BASE", "COLOR", "Base layer");
     for (var i = 1; i < this.LAYERS.length + 1; i++)
-      this.add_arg("LAYER" + i, "COLOR", "COLOR " + i);
+      this.add_arg("LAYER" + i, "COLOR", "LAYER " + i);
   }
   getColor(led) {
     var ret = this.BASE.getColor(led);
@@ -5077,6 +5077,7 @@ function ReplaceCurrentFocus(str) {
   // FIND("function_links").className = type == "FUNCTION" ? "normal" : "grayout";
   // FIND("transition_links").className = type == "TRANSITION" ? "normal" : "grayout";
   FIND("expand_button").className = current_style && current_style.isMacro ? "button_on" : "button_off";
+  FIND("layerize_button").className = CanLayerize(current_style) ? "button_on" : "button_off";
 
   for (var i = 0; i < document.styleSheets.length; i++) {
     var sheet = document.styleSheets[i];
@@ -5153,9 +5154,8 @@ function SetTo(str) {
   Run();
 }
 
-function FocusOn(id, event) {
+function FocusOnLow(id) {
   console.log("FOCUSON: " + id);
-  event.stopPropagation();
   var style = style_ids[id];
   console.log(id);
   console.log(style);
@@ -5170,6 +5170,11 @@ function FocusOn(id, event) {
   current_focus_url = url;
   SetTo(url);
   return true;
+}
+
+function FocusOn(id, event) {
+  event.stopPropagation();
+  FocusOnLow(id);
 }
 
 function ClickRotate() {
@@ -5266,6 +5271,36 @@ function DoExpand() {
   SetTo(url);
 }
 
+function RecursiveLayerize(node) {
+  while (node.isMacro) {
+    node = node.expansion;
+  }
+  if (node.constructor == LayersClass) {
+    node.BASE = RecursiveLayerize(node.BASE);
+    while (node.BASE.constructor == LayersClass) {
+      node = new LayersClass([node.BASE.BASE].concat(node.BASE.LAYERS,node.LAYERS));
+    }
+  }
+  return node;
+}
+
+function CanLayerize(node) {
+  if (!node) return false;
+  if (node.constructor == LayersClass) return false;
+  while (node.isMacro) {
+    node = node.expansion;
+  }
+  return node.constructor == LayersClass;
+}
+
+function DoLayerize() {
+  var tmp = RecursiveLayerize(current_style);
+  pp_is_url++;
+  tmp = tmp.pp();
+  pp_is_url--;
+  SetTo(tmp);
+}
+
 </script>
 </head>
 
@@ -5291,7 +5326,8 @@ function DoExpand() {
     <span id=error_message></span>
     <br>
     <input id=style type=text size=100 onkeydown="if (event.keyCode == 13) Run();"><input name='run' type=button value="Submit" onclick="Run()"><input name='copy' type=button value="Copy" onclick="Copy()"><input type=button name='expand' value="Expand"
-    id='expand_button' onclick="DoExpand()">
+    id='expand_button' onclick="DoExpand()"><input type=button name='layerize' value="Layerize"
+    id='layerize_button' onclick="DoLayerize()">
     <input id=ROTATE_BUTTON name=rotate type=button value="Rotate"  onclick="ClickRotate()" >
     <input id=INHILT_BUTTON name=inhilt type=button value="Inhilt"  onclick="ClickInhilt()" >
     <input id=SLOW_BUTTON name=inhilt type=button value="Slow"  onclick="ClickSlow()" ><br>
