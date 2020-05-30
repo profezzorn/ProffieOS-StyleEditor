@@ -2669,10 +2669,9 @@ function Blinking(A, B, BM, BP) {
   return new BlinkingClass(A, B, BM, BP);
 }
 
-class SimpleClashClass extends STYLE {
+class SimpleClashLClass extends STYLE {
   constructor(T, CLASH, CLASH_MILLIS, EFFECT_ARG, STAB_SHAPE) {
     super("Implements the clash effect", Array.from(arguments));
-    this.add_arg("T", "COLOR", "base color");
     this.add_arg("CLASH", "COLOR", "Clash color");
     this.add_arg("CLASH_MILLIS", "INT", "How many MS to show the clash color for.", 40);
     this.add_arg("EFFECT", "EFFECT", "effect type", EFFECT(EFFECT_CLASH));
@@ -2694,15 +2693,30 @@ class SimpleClashClass extends STYLE {
     }
   }
   getColor(led) {
+    var ret = Transparent();
     if (this.clash_) {
       var ret = this.CLASH.getColor(led);
       if (this.stab_) {
-        var b = this.T.getColor(led);
-	ret = b.mix(ret, this.STAB_SHAPE.getInteger(led) / 32768.0);
+        ret = ret.multiply(this.STAB_SHAPE.getInteger(led) / 32768.0);
       }
-      return ret;
     }
-    return this.T.getColor(led);
+    return ret;
+  }
+};
+
+function SimpleClashL(T, CLASH, MILLIS, EF, SS) {
+  return new SimpleClashLClass(T, CLASH, MILLIS, EF, SS);
+}
+
+class SimpleClashClass extends MACRO {
+  constructor(T, CLASH, CLASH_MILLIS, EFFECT_ARG, STAB_SHAPE) {
+    super("Implements the clash effect", Array.from(arguments));
+    this.add_arg("T", "COLOR", "base color");
+    this.add_arg("CLASH", "COLOR", "Clash color");
+    this.add_arg("CLASH_MILLIS", "INT", "How many MS to show the clash color for.", 40);
+    this.add_arg("EFFECT", "EFFECT", "effect type", EFFECT(EFFECT_CLASH));
+    this.add_arg("STAB_SHAPE", "FUNCTION", "Stab shape", SmoothStep(Int(16384), Int(24000)));
+    this.SetExpansion(Layers(T, SimpleClashL(CLASH, this.CLASH_MILLIS, this.EFFECT, this.STAB_SHAPE)));
   }
 };
 
@@ -4609,6 +4623,7 @@ function newCall(Cls) {
     Rgb : Rgb,
     Rgb16 : Rgb16,
     SimpleClash : SimpleClash,
+    SimpleClashL : SimpleClashL,
     Sparkle : Sparkle,
     SparkleL : SparkleL,
     SparkleF : SparkleF,
