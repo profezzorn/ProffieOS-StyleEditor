@@ -768,8 +768,22 @@ class EnumBuilder {
       pp() {
         if (pp_is_url) {
           if (this.super_short_desc) return "$";
-        }
-	var ret = "" + this.value;
+        } else if (0) {
+          var ret = "<select>";
+          var v = Object.keys(this.constructor.value_to_name);
+          for (var i = 0; i < v.length; i++) {
+            var V = parseInt(v[i]);
+            var N = this.constructor.value_to_name[V];
+  	    ret += "<option value="+V;
+            if (this.value == V) ret+=" selected";
+	    ret += ">"+N+"</option>";
+	  }
+          ret += "</select>";
+	  return ret;
+	}
+
+
+        var ret = "" + this.value;
         if (this.constructor.value_to_name[this.value]) {
 	  ret = this.constructor.prefix + this.constructor.value_to_name[this.value];
         }
@@ -4131,6 +4145,13 @@ class IntClass extends FUNCTION {
     this.add_arg("N","INT","number to return.");
   }
   getInteger(led) { return this.N; }
+  pp() {
+    if (pp_is_url) {
+      if (this.super_short_desc) return "$";
+      return "Int<" + this.N + ">";
+    }
+    return this.PPshort("Int<" + this.N +">", "VALUE");
+  }
 };
 
 function Int(n) { return new IntClass(n); }
