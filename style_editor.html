@@ -48,6 +48,15 @@ div.MAGIC_CLASS_EFFECT input[type=button].btn {
   color: black;
   padding: 2px 3px;
 }
+div.MAGIC_INVISIBLE_CLASS_EFFECT {
+  display: inline;
+}
+div.MAGIC_INVISIBLE_CLASS_TRANSITION {
+  display: inline;
+}
+div.MAGIC_INVISIBLE_CLASS_FUNCTION {
+  display: inline;
+}
 
 span.MAGIC_CLASS_FUNCTION input[type=button].btn {
   background: green;
@@ -73,6 +82,42 @@ span.MAGIC_CLASS_EFFECT input[type=button].btn {
   background: green;
   color: black;
   padding: 2px 3px;
+}
+
+/* Style the tab */
+.tab {
+  overflow: hidden;
+  border: 1px solid #ccc;
+  background-color: #f1f1f1;
+}
+
+/* Style the buttons that are used to open the tab content */
+.tab button {
+  background-color: inherit;
+  float: left;
+  border: none;
+  outline: none;
+  cursor: pointer;
+  padding: 7px 8px;
+  transition: 0.3s;
+}
+
+/* Change background color of buttons on hover */
+.tab button:hover {
+  background-color: #ddd;
+}
+
+/* Create an active/current tablink class */
+.tab button.active {
+  background-color: #ccc;
+}
+
+/* Style the tab content */
+.tabcontent {
+  display: none;
+  padding: 6px 12px;
+  border: 1px solid #ccc;
+  border-top: none;
 }
 
 </style>
@@ -269,8 +314,18 @@ var width;
 var height;
 
 // Create n textures of about 1MB each.
-function initGL()
-{ 
+function initGL() { 
+  AddTab("color", "Styles", effect_links + qlinks);
+  AddTab("layer", "Layers");
+  AddTab("function", "Functions", function_links);
+  AddTab("transition", "Transitions", transition_links);
+  AddTab("effect", "Effects");
+  AddTab("lockup_type", "Lockup Types");
+  AddTab("example", "Examples", template_links);
+  AddTab("history", "History");
+  EFFECT_ENUM_BUILDER.addToTab("effect", "EFFECT_");
+  LOCKUP_ENUM_BUILDER.addToTab("lockup_type", "LOCKUP_");
+
   var canvas = FIND("canvas_id");
 
   width = window.innerWidth;
@@ -303,12 +358,13 @@ function initGL()
 
   Run();
 
-  FIND("color_links").innerHTML = qlinks;
-  FIND("effect_links").innerHTML = effect_links;
-  FIND("effect_type_links").innerHTML = effect_type_links;
-  FIND("template_links").innerHTML = template_links;
-  FIND("function_links").innerHTML = function_links;
-  FIND("transition_links").innerHTML = transition_links;
+
+  //FIND("color_links").innerHTML = qlinks;
+  //FIND("effect_links").innerHTML = effect_links;
+  //FIND("effect_type_links").innerHTML = effect_type_links;
+  //FIND("template_links").innerHTML = template_links;
+  //FIND("function_links").innerHTML = function_links;
+  //FIND("transition_links").innerHTML = transition_links;
 
   // Bind a vertex buffer with a single triangle
   var buffer = gl.createBuffer();
@@ -763,6 +819,18 @@ class EnumBuilder {
     window[name] = value;
     console.log(" ENUM " + name + " = " + value);
   }
+  addToTab(tab, common_prefix) {
+    if (!common_prefix) {
+      common_prefix = "florb";
+    }
+    var v = Object.keys(this.value_to_name);
+    for (var i = 0; i < v.length; i++) {
+      var V = parseInt(v[i]);
+      var N = this.value_to_name[V];
+      var label = N.replace(common_prefix, "");
+      AddTabContent(tab, mkbutton2(label, this.constructor.prefix+N));
+    }
+  }
   build() {
     class ENUMClass extends INTEGER {
       pp() {
@@ -1120,7 +1188,7 @@ function AddHistory(name, type) {
   var btn = "<input type=button class=btn onclick='SetTo(\""+name+"\")' value='"+enc(label)+"'>\n";
   var tag  = "<span class=MAGIC_CLASS_"+type+">" + btn + "</span>\n";
   history_html = tag + history_html.replace(tag, "");
-  FIND("history_links").innerHTML = history_html;
+  FIND("history_tabcontent").innerHTML = history_html;
 }
 
 function mapcolor(x) {
@@ -5120,6 +5188,8 @@ function ReplaceCurrentFocus(str) {
   FIND("expand_button").className = current_style && current_style.isMacro ? "button_on" : "button_off";
   FIND("layerize_button").className = CanLayerize(current_style) ? "button_on" : "button_off";
 
+  ActivateTab(type.toLowerCase());
+
   for (var i = 0; i < document.styleSheets.length; i++) {
     var sheet = document.styleSheets[i];
     for (var r = 0; r < sheet.cssRules.length; r++) {
@@ -5131,6 +5201,13 @@ function ReplaceCurrentFocus(str) {
 	} else {
           rule.style.background = "lightgray";
           rule.style.color = "darkgray";
+	}
+      }
+      if (rule.cssText.toLowerCase().includes("magic_invisible_class_") ) {
+        if (rule.cssText.toLowerCase().includes("magic_invisible_class_" + type.toLowerCase())) {
+          rule.style.display = 'inline';
+	} else {
+          rule.style.display = 'none';
 	}
       }
     }
@@ -5348,6 +5425,41 @@ function DoLayerize() {
   SetTo(tmp);
 }
 
+function AddTab(tab, name, contents) {
+  FIND("TABLINKS").innerHTML += "<button id="+tab+"_tab class=tablinks onclick=\"ActivateTab('"+tab+"')\">" + name + "</button>";
+  FIND("TABBODIES").innerHTML += "<div id="+tab+"_tabcontent class=tabcontent></div>";
+  if (contents) {
+    AddTabContent(tab, contents);
+  }
+}
+
+function AddTabContent(tab, data) {
+  FIND(tab + "_tabcontent").innerHTML += data;
+}
+
+function ActivateTab(tab) {
+  if(!FIND(tab+"_tab")) {
+    console.log("No such tab");
+    return;
+  }
+  // Get all elements with class="tabcontent" and hide them
+  var tabcontent = document.getElementsByClassName("tabcontent");
+  for (var i = 0; i < tabcontent.length; i++) {
+    tabcontent[i].style.display = "none";
+  }
+
+  // Get all elements with class="tablinks" and remove the class "active"
+  var tablinks = document.getElementsByClassName("tablinks");
+  for (var i = 0; i < tablinks.length; i++) {
+    tablinks[i].className = tablinks[i].className.replace(" active", "");
+  }
+
+  // Show the current tab, and add an "active" class to the button that opened the tab
+  FIND(tab+"_tabcontent").style.display = "block";
+  FIND(tab+"_tab").className += " active";
+}
+
+
 </script>
 </head>
 
@@ -5380,13 +5492,22 @@ function DoLayerize() {
     <input id=INHILT_BUTTON name=inhilt type=button value="Inhilt"  onclick="ClickInhilt()" >
     <input id=SLOW_BUTTON name=inhilt type=button value="Slow"  onclick="ClickSlow()" ><br>
 
+    <div id=TABS>
+      <div id=TABLINKS class=tab></div>
+      <div id=TABBODIES class=tabcontainer></div>
+    </div>
+
+
+<!--
     <div id=effect_links  class=MAGIC_CLASS_COLOR></div>
     <div id=color_links class=MAGIC_CLASS_COLOR></div>
-    <div id=transition_links class=MAGIC_CLASS_TRANSITION></div>
-    <div id=function_links  class=MAGIC_CLASS_FUNCTION></div>
-    <div id=effect_type_links  class=MAGIC_CLASS_EFFECT></div>
+    <div id=transition_links class=MAGIC_INVISIBLE_CLASS_TRANSITION></div>
+    <div id=function_links  class=MAGIC_INVISIBLE_CLASS_FUNCTION></div>
+    <div id=effect_type_links  class=MAGIC_INVISIBLE_CLASS_EFFECT></div>
     <div id=template_links  class=MAGIC_CLASS_COLOR></div>
     <b>History:</b><div id=history_links></div>
+-->
+
     <div>
       <font face="helvetica,arial" size=-1>
       This page has been accessed <accessed type=comma_grouped> times since
