@@ -5228,8 +5228,12 @@ function ReplaceCurrentFocus(str) {
     console.log("No focus catcher found!!");
   }
   var type = "COLOR";
+  var isLayer = false;
   if (current_focus && current_style && current_focus != current_style) {
     type = current_style.getType();
+    if (type == "COLOR" && current_focus.constructor.name.endsWith("LClass")) {
+      isLayer = true;
+    }
   }
   AddHistory(current_focus_url, current_style.getType());
   console.log("TYPE = " + type);
@@ -5242,7 +5246,11 @@ function ReplaceCurrentFocus(str) {
   FIND("expand_button").className = current_style && current_style.isMacro ? "button_on" : "button_off";
   FIND("layerize_button").className = CanLayerize(current_style) ? "button_on" : "button_off";
 
-  ActivateTab(type.toLowerCase());
+  if (isLayer) {
+    ActivateTab("layer");
+  } else {
+    ActivateTab(type.toLowerCase());
+  }
 
   for (var i = 0; i < document.styleSheets.length; i++) {
     var sheet = document.styleSheets[i];
