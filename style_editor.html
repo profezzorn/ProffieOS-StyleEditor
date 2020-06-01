@@ -1155,6 +1155,22 @@ function RemoveLayer(id, arg, event) {
   ReplaceNode(layer, new_layer);
 }
 
+function DownLayer(id, arg, event) {
+  event.stopPropagation();
+  console.log("DownLayer: "+id +", "+arg);
+  arg-=2;
+  var layer = style_ids[id];
+  var new_layer = new LayersClass( [layer.BASE].concat(layer.LAYERS.slice(0, arg),
+                                    [layer.LAYERS[arg+1], layer.LAYERS[arg]],
+				    layer.LAYERS.slice(arg+2)) );
+  ReplaceNode(layer, new_layer);
+}
+
+function UpLayer(id, arg, event) {
+  console.log("UpLayer: "+id +", "+arg);
+  DownLayer(id, arg-1, event);
+}
+
 class LayersClass extends STYLE {
   Indent(text) {
     return "\n  "  + text.split("\n").join("\n  ");
@@ -1162,7 +1178,11 @@ class LayersClass extends STYLE {
   extraButtons(arg) {
     if (arg == 1) return "";
     var id = this.get_id();
-    return "<button onclick='DuplicateLayer("+id+","+arg+",event)'>duplicate</button><button onclick='RemoveLayer("+id+","+arg+",event)'>remove</button>";
+    var ret = "<button onclick='DuplicateLayer("+id+","+arg+",event)'>+</button>";
+    ret += "<button onclick='RemoveLayer("+id+","+arg+",event)'>&#10799;</button>";
+    if (arg > 2) ret += "<button onclick='UpLayer("+id+","+arg+",event)'>&#5169;</button>";
+    if (arg <= this.LAYERS.length) ret += "<button onclick='DownLayer("+id+","+arg+",event)'>&#5167;</button>";
+    return ret;
   }
   constructor(ARGS) {
     super("Mix alpha-blended layers", ARGS);
