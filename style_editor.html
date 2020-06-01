@@ -316,7 +316,7 @@ var height;
 // Create n textures of about 1MB each.
 function initGL() { 
   AddTab("color", "Styles", effect_links + qlinks);
-  AddTab("layer", "Layers");
+  AddTab("layer", "Layers", layer_links);
   AddTab("function", "Functions", function_links);
   AddTab("transition", "Transitions", transition_links);
   AddTab("effect", "Effects");
@@ -582,6 +582,10 @@ class STYLE {
     return ret;
   }
 
+  extraButtons(arg) {
+    return "";
+  }
+
   PP(name, note) {
     if (pp_is_url) {
       return this.PPURL.apply(this, arguments);
@@ -605,7 +609,7 @@ class STYLE {
       if (arg.indexOf("<br>") == -1 && arg.indexOf("<div") == -1) {
 	ret += arg+" /* "+note+" */\n";
       } else {
-	ret += "/* "+note+" */<br>\n" + arg;
+	ret += "/* "+note+" */"+ this.extraButtons(i/2) +"<br>\n" + arg;
       }
     }
     ret += "</div>&gt;</div>\n";
@@ -974,6 +978,7 @@ function ClickColor() {
 
 var qlinks = "<b>Colors</b> <input type=color id=COLOR value='#ff0000' onclick='ClickColor()' />";
 var effect_links = "<b>Effects:</b>";
+var layer_links = "";
 var effect_type_links = "<b>Effect Types:</b>";
 var template_links = "<b>Templates:</b>";
 var function_links = "<b>Functions:</b>";
@@ -1124,16 +1129,47 @@ function AlphaL(COLOR, ALPHA) {
   return new AlphaLClass(COLOR, ALPHA);
 }
 
+function ReplaceNode(old_node, new_node) {
+  FocusOnLow(old_node.get_id());
+  pp_is_url++;
+  FIND("style").value = new_node.pp();
+  pp_is_url--;
+  Run();
+}
+
+function DuplicateLayer(id, arg, event) {
+  event.stopPropagation();
+  console.log("DuplicateLayer: "+id +", "+arg);
+  arg-=2;
+  var layer = style_ids[id];
+  var new_layer = new LayersClass( [layer.BASE].concat(layer.LAYERS.slice(0, arg), [layer.LAYERS[arg].DOCOPY()], layer.LAYERS.slice(arg)) );
+  ReplaceNode(layer, new_layer);
+}
+
+function RemoveLayer(id, arg, event) {
+  event.stopPropagation();
+  console.log("RemoveLayer: "+id +", "+arg);
+  arg-=2;
+  var layer = style_ids[id];
+  var new_layer = new LayersClass( [layer.BASE].concat(layer.LAYERS.slice(0, arg), layer.LAYERS.slice(arg+1)) );
+  ReplaceNode(layer, new_layer);
+}
+
 class LayersClass extends STYLE {
   Indent(text) {
     return "\n  "  + text.split("\n").join("\n  ");
+  }
+  extraButtons(arg) {
+    if (arg == 1) return "";
+    var id = this.get_id();
+    return "<button onclick='DuplicateLayer("+id+","+arg+",event)'>duplicate</button><button onclick='RemoveLayer("+id+","+arg+",event)'>remove</button>";
   }
   constructor(ARGS) {
     super("Mix alpha-blended layers", ARGS);
     this.LAYERS = Array.from(ARGS).slice(1);
     this.add_arg("BASE", "COLOR", "Base layer");
     for (var i = 1; i < this.LAYERS.length + 1; i++)
-      this.add_arg("LAYER" + i, "COLOR", "LAYER " + i);
+      this.add_arg("LAYER" + i, "COLOR", "Layer " + i);
   }
   getColor(led) {
     var ret = this.BASE.getColor(led);
@@ -1169,6 +1205,10 @@ function AddEffect(val) {
   var name = val.split("<")[0];
   effect_links += mkbutton2(name, val);
 }
+function AddLayer(val) {
+  var name = val.split("<")[0];
+  layer_links += mkbutton2(name, val);
+}
 function AddFunction(val) {
   var name = val.split("<")[0];
   function_links += mkbutton2(name, val);
@@ -1179,6 +1219,19 @@ function AddTransition(val) {
 }
 function AddEffectType(name) {
   effect_type_links += "<input type=button class=btn onclick='SetTo(\"EFFECT_"+name+"\")' value='"+enc(name)+"'>\n";
+}
+function AddEffectWL(val) {
+  AddEffect(val);
+  var tmp1 = val.split("<");
+  var tmp2 = val.split(",");
+  AddLayer(tmp1[0] + "L<" + tmp2.slice(1).join(","))
+}
+function AddEffectWLF(val) {
+  AddEffect(val);
+  var tmp1 = val.split("<");
+  var tmp2 = val.split(",");
+  AddLayer(tmp1[0] + "L<" + tmp2.slice(1).join(","))
+  AddLayer(tmp1[0] + "F<" + tmp2.slice(2).join(","))
 }
 
 var history_html = "";
@@ -1224,13 +1277,14 @@ AddTemplate("StyleRainbowPtr<300, 800>");
 AddTemplate("StyleStrobePtr<White, Rainbow, 15, 300, 800>");
 AddTemplate("StyleFirePtr<Red, Yellow>");
 
-AddEffect("AlphaL<Red, Int<16000>>");
-AddEffect("AudioFlicker<White, Blue>");
-AddEffect("Blast<Blue, White>");
-AddEffect("BlastFadeout<Blue, White>");
+AddLayer("AlphaL<Red, Int<16000>>");
+AddEffectWL("AudioFlicker<White, Blue>");
+AddEffectWLF("Blast<Blue, White>");
+AddEffectWL("BlastFadeout<Blue, White>");
 AddEffect("Blinking<Red, Blue, 1000, 500>");
+AddLayer("BlinkingL<Blue, 1000, 500>");
 AddEffect("BrownNoiseFlicker<Green, Magenta, 50>");
-AddEffect("ColorChange<TrInstant, Red, Green, Blue>");
+AddEffectWLF("ColorChange<TrInstant, Red, Green, Blue>");
 AddEffect("ColorCycle<Blue,  0, 1, Cyan,  100, 3000, 5000>");
 AddEffect("ColorSequence<500, Red, Green, Blue>");
 AddEffect("Cylon<Red, 5, 20>");
@@ -1238,28 +1292,28 @@ AddEffect("Gradient<Blue, Green, Yellow, Red>");
 AddEffect("Gradient<Red, Blue, Green>");
 AddEffect("Gradient<Red, Blue>");
 AddEffect("Hue<16384>");
-AddEffect("HumpFlicker<Green, Magenta, 50>");
+AddEffectWL("HumpFlicker<Green, Magenta, 50>");
 AddEffect("InOutHelper<White, 300, 800, Black>");
 AddEffect("InOutSparkTip<Red, 1000, 800, White>");
 AddEffect("InOutTr<Green, TrColorCycle<3000>, TrFade<500>>");
 AddEffect("Layers<Green, AlphaL<Red, Int<16000>>>");
 AddEffect("LocalizedClash<Red, White>");
-AddEffect("Lockup<Green, Red>");
+AddEffectWL("Lockup<Green, Red>");
 AddEffect("LockupTr<Red, White, TrFade<100>, TrFade<100>, LOCKUP_MELT>");
 AddEffect("Mix<Int<16384>, Red, Blue>");
 AddEffect("OnSpark<Green, White, 200>");
-AddEffect("OriginalBlast<Blue, White>");
-AddEffect("Pulsing<Blue, Red, 800>");
+AddEffectWL("OriginalBlast<Blue, White>");
+AddEffectWL("Pulsing<Blue, Red, 800>");
 AddEffect("Rainbow");
 AddEffect("RandomBlink<3000>");
-AddEffect("RandomFlicker<Yellow, Blue>");
-AddEffect("RandomPerLEDFlicker<Green, Magenta>");
+AddEffectWL("RandomFlicker<Yellow, Blue>");
+AddEffectWL("RandomPerLEDFlicker<Green, Magenta>");
 AddEffect("Rgb16<0,0,50>");
 AddEffect("Rgb<100,100,100>");
 AddEffect("RgbCycle");
 AddEffect("RotateColorsX<Sin<Int<10>>, Red>");
 AddEffect("Sequence<Red, Black, 100, 37, 0b0001010100011100, 0b0111000111000101, 0b0100000000000000>");
-AddEffect("SimpleClash<Red, White, 40>");
+AddEffectWL("SimpleClash<Red, White, 40>");
 AddEffect("Sparkle<Blue>");
 AddEffect("Stripes<1000, 1000, Cyan, Magenta, Yellow, Blue>");
 AddEffect("Strobe<Black, White, 15, 1>");
