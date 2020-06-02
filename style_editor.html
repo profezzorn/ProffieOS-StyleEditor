@@ -1087,13 +1087,11 @@ function Transparent(r,g,b) {
   return ret;
 }
 
-class Rgb16Class extends STYLE {
+class Rgb16Class extends RgbClass {
   constructor(r,g,b) {
-    super();
-    this.r = IntArg(r)/65535.0;
-    this.g = IntArg(g)/65535.0;
-    this.b = IntArg(b)/65535.0;
-    this.name = colorNames[r+","+g+","+b]
+    super(r * 255.0/65535.0,g * 255.0/65535.0,b * 255.0/65535.0);
+//    this.name = colorNames[r+","+g+","+b]
+//    this.name
   }
   run(blade) {}
   getColor(led) {
@@ -1105,13 +1103,6 @@ class Rgb16Class extends STYLE {
 			this.r*65535, "Red component",
 			this.g*65535, "Green component",
 			this.b*65535, "Blue component");
-  }
-  mix(other, blend) {
-    var ret = new Rgb16Class(0,0,0);
-    ret.r = other.r * blend + this.r * (1.0 - blend);
-    ret.g = other.g * blend + this.g * (1.0 - blend);
-    ret.b = other.b * blend + this.b * (1.0 - blend);
-    return ret;
   }
 };
 
@@ -1354,7 +1345,7 @@ AddEffect("Sparkle<Blue>");
 AddEffect("Stripes<1000, 1000, Cyan, Magenta, Yellow, Blue>");
 AddEffect("Strobe<Black, White, 15, 1>");
 AddEffect("StyleFire<Blue, Cyan>");
-AddEffect("TransitionEffect<Blue, White, TrWipe<50>, TrWipe<50>, EFFECT_BLAST>");
+AddEffectWL("TransitionEffect<Blue, White, TrWipe<50>, TrWipe<50>, EFFECT_BLAST>");
 AddEffect("TransitionLoop<Blue, TrConcat<TrFade<200>, Red, TrFade<200>>>");
 
 AddTransition("TrBoing<300, 2>");
@@ -1371,8 +1362,6 @@ AddTransition("TrWipe<500>");
 AddTransition("TrWipeIn<500>");
 
 AddFunction("BatteryLevel");
-AddFunction("BlastF");
-AddFunction("BlinkingF<1000, 500>");
 AddFunction("BrownNoiseF<50>");
 AddFunction("BlastFadeout");
 AddFunction("HumpFlickerF<50>");
@@ -1458,6 +1447,9 @@ AddColor("Yellow", 255, 255, 0);
 // AddLayer("ResponsiveStabL");
 // AddLayer("ResponsiveBlastL");
 // AddLayer("ResponsiveBlastWaveL");
+// AddLayer("InOutHelperL");
+// AddLayer("TransitionLoopL");
+// AddLayer("MultiTransitionEffectL");
 
 var WHITE = Rgb(255,255,255);
 var RED = Rgb(255,0,0);
