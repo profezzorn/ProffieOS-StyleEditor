@@ -315,13 +315,16 @@ var height;
 
 // Create n textures of about 1MB each.
 function initGL() { 
-  AddTab("color", "Styles", effect_links + qlinks);
-  AddTab("layer", "Layers", layer_links);
-  AddTab("function", "Functions", function_links);
-  AddTab("transition", "Transitions", transition_links);
+  AddTab("color", "Styles",effect_links.sort().join(""))
+  AddTab("rgb", "Colors",
+    "<input type=color id=COLOR value='#ff0000' onclick='ClickColor()' />" +
+    qlinks.sort().join(""));
+  AddTab("layer", "Layers", layer_links.sort().join(""));
+  AddTab("function", "Functions", function_links.sort().join(""));
+  AddTab("transition", "Transitions", transition_links.sort().join(""));
   AddTab("effect", "Effects");
   AddTab("lockup_type", "Lockup Types");
-  AddTab("example", "Examples", template_links);
+  AddTab("example", "Examples", template_links.join(""));
   AddTab("history", "History");
   EFFECT_ENUM_BUILDER.addToTab("effect", "EFFECT_");
   LOCKUP_ENUM_BUILDER.addToTab("lockup_type", "LOCKUP_");
@@ -976,13 +979,22 @@ function ClickColor() {
   SetTo("Rgb16<"+R+","+G+","+B+">");
 }
 
-var qlinks = "<b>Colors</b> <input type=color id=COLOR value='#ff0000' onclick='ClickColor()' />";
-var effect_links = "<b>Effects:</b>";
-var layer_links = "";
-var effect_type_links = "<b>Effect Types:</b>";
-var template_links = "<b>Templates:</b>";
-var function_links = "<b>Functions:</b>";
-var transition_links = "<b>Transitions:</b>";
+//var qlinks = "<b>Colors</b> <input type=color id=COLOR value='#ff0000' onclick='ClickColor()' />";
+//var effect_links = "<b>Effects:</b>";
+//var layer_links = "";
+//var effect_type_links = "<b>Effect Types:</b>";
+//var template_links = "<b>Templates:</b>";
+//var function_links = "<b>Functions:</b>";
+//var transition_links = "<b>Transitions:</b>";
+
+var qlinks = [];
+var effect_links = [];
+var layer_links = [];
+var effect_type_links = []
+var template_links = [];
+var function_links = []
+var transition_links = [];
+
 var all_colors = {};
 var colorNames = {};
 
@@ -1218,27 +1230,29 @@ function mkbutton(name) {
 //  return "<input type=button class=btn onclick='SetTo(\""+name+"\")' value='"+enc(name)+"'>\n";
   //  return "<span class=btn onclick='SetTo(\""+name+"\")'>"+enc(name)+"</span>\n";
 }
+
+
 function AddTemplate(name) {
-  template_links += mkbutton(name);
+  template_links.push( mkbutton(name) );
 }
 function AddEffect(val) {
   var name = val.split("<")[0];
-  effect_links += mkbutton2(name, val);
+  effect_links.push( mkbutton2(name, val) );
 }
 function AddLayer(val) {
   var name = val.split("<")[0];
-  layer_links += mkbutton2(name, val);
+  layer_links.push( mkbutton2(name, val) );
 }
 function AddFunction(val) {
   var name = val.split("<")[0];
-  function_links += mkbutton2(name, val);
+  function_links.push( mkbutton2(name, val) );
 }
 function AddTransition(val) {
   var name = val.split("<")[0];
-  transition_links += mkbutton2(name, val);
+  transition_links.push( mkbutton2(name, val) );
 }
 function AddEffectType(name) {
-  effect_type_links += "<input type=button class=btn onclick='SetTo(\"EFFECT_"+name+"\")' value='"+enc(name)+"'>\n";
+  effect_type_links.push( "<input type=button class=btn onclick='SetTo(\"EFFECT_"+name+"\")' value='"+enc(name)+"'>\n" );
 }
 function AddEffectWL(val) {
   AddEffect(val);
@@ -1251,7 +1265,7 @@ function AddEffectWLF(val) {
   var tmp1 = val.split("<");
   var tmp2 = val.split(",");
   AddLayer(tmp1[0] + "L<" + tmp2.slice(1).join(","))
-  AddLayer(tmp1[0] + "F<" + tmp2.slice(2).join(","))
+  AddFunction(tmp1[0] + "F<" + tmp2.slice(2).join(","))
 }
 
 var history_html = "";
@@ -1279,7 +1293,7 @@ function mkcolorbutton(name, r, g, b) {
 }
 function AddColor(name, r, g, b) {
   colorNames[r+","+g+","+b] = name;
-  qlinks += mkcolorbutton(name, r, g, b);
+  qlinks.push(mkcolorbutton(name, r, g, b));
   all_colors[name] = new RgbClass(r, g, b);
 }
 
@@ -1301,9 +1315,8 @@ AddLayer("AlphaL<Red, Int<16000>>");
 AddEffectWL("AudioFlicker<White, Blue>");
 AddEffectWLF("Blast<Blue, White>");
 AddEffectWL("BlastFadeout<Blue, White>");
-AddEffect("Blinking<Red, Blue, 1000, 500>");
-AddLayer("BlinkingL<Blue, 1000, 500>");
-AddEffect("BrownNoiseFlicker<Green, Magenta, 50>");
+AddEffectWLF("Blinking<Red, Blue, 1000, 500>");
+AddEffectWL("BrownNoiseFlicker<Green, Magenta, 50>");
 AddEffectWLF("ColorChange<TrInstant, Red, Green, Blue>");
 AddEffect("ColorCycle<Blue,  0, 1, Cyan,  100, 3000, 5000>");
 AddEffect("ColorSequence<500, Red, Green, Blue>");
@@ -1317,15 +1330,18 @@ AddEffect("InOutHelper<White, 300, 800, Black>");
 AddEffect("InOutSparkTip<Red, 1000, 800, White>");
 AddEffect("InOutTr<Green, TrColorCycle<3000>, TrFade<500>>");
 AddEffect("Layers<Green, AlphaL<Red, Int<16000>>>");
-AddEffect("LocalizedClash<Red, White>");
+AddEffectWL("LocalizedClash<Red, White>");
 AddEffectWL("Lockup<Green, Red>");
-AddEffect("LockupTr<Red, White, TrFade<100>, TrFade<100>, LOCKUP_MELT>");
+AddEffectWL("LockupTr<Red, White, TrFade<100>, TrFade<100>, LOCKUP_MELT>");
 AddEffect("Mix<Int<16384>, Red, Blue>");
 AddEffect("OnSpark<Green, White, 200>");
+AddLayer("OnSparkL<White, Int<200>>");
+AddFunction("OnSparkL<Int<200>>");
 AddEffectWL("OriginalBlast<Blue, White>");
 AddEffectWL("Pulsing<Blue, Red, 800>");
 AddEffect("Rainbow");
 AddEffect("RandomBlink<3000>");
+AddLayer("RandomBlinkL<3000>");
 AddEffectWL("RandomFlicker<Yellow, Blue>");
 AddEffectWL("RandomPerLEDFlicker<Green, Magenta>");
 AddEffect("Rgb16<0,0,50>");
@@ -1434,36 +1450,14 @@ AddColor("Tomato", 255, 31, 15);
 AddColor("White", 255, 255, 255);
 AddColor("Yellow", 255, 255, 0);
 
-AddEffectType("CLASH");
-AddEffectType("BLAST");
-AddEffectType("FORCE");
-AddEffectType("STAB");
-AddEffectType("BOOT");
-AddEffectType("LOCKUP_BEGIN");
-AddEffectType("LOCKUP_END");
-AddEffectType("DRAG_BEGIN");
-AddEffectType("DRAG_END");
-AddEffectType("IGNITION");
-AddEffectType("RETRACTION");
-AddEffectType("CHANGE");
-AddEffectType("STUN");
-AddEffectType("FIRE");
-AddEffectType("CLIP_IN");
-AddEffectType("CLIP_OUT");
-AddEffectType("RELOAD");
-AddEffectType("MODE");
-AddEffectType("RANGE");
-AddEffectType("EMPTY");
-AddEffectType("FULL");
-AddEffectType("JAM");
-AddEffectType("UNJAM");
-AddEffectType("PLI_ON");
-AddEffectType("PLI_OFF");
-
-AddEffectType("LB_BEGIN");
-AddEffectType("LB_END");
-AddEffectType("MELT_BEGIN");
-AddEffectType("MELT_END");
+// AddLayer("ResponsiveLockupL");
+// AddLayer("ResponsiveDragL");
+// AddLayer("ResponsiveMeltL");
+// AddLayer("ResponsiveLightningBlockL");
+// AddLayer("ResponsiveClashL");
+// AddLayer("ResponsiveStabL");
+// AddLayer("ResponsiveBlastL");
+// AddLayer("ResponsiveBlastWaveL");
 
 var WHITE = Rgb(255,255,255);
 var RED = Rgb(255,0,0);
@@ -5248,12 +5242,10 @@ function ReplaceCurrentFocus(str) {
     console.log("No focus catcher found!!");
   }
   var type = "COLOR";
-  var isLayer = false;
+  var classname = "Style";
   if (current_focus && current_style && current_focus != current_style) {
     type = current_style.getType();
-    if (type == "COLOR" && current_focus.constructor.name.endsWith("LClass")) {
-      isLayer = true;
-    }
+    classname = current_focus.constructor.name;
   }
   AddHistory(current_focus_url, current_style.getType());
   console.log("TYPE = " + type);
@@ -5266,8 +5258,10 @@ function ReplaceCurrentFocus(str) {
   FIND("expand_button").className = current_style && current_style.isMacro ? "button_on" : "button_off";
   FIND("layerize_button").className = CanLayerize(current_style) ? "button_on" : "button_off";
 
-  if (isLayer) {
+  if (type == "COLOR" && classname.endsWith("LClass")) {
     ActivateTab("layer");
+  } else if (type == "COLOR" && (classname == "Rgb16Class" || classname == "RgbClass")) {
+    ActivateTab("rgb");
   } else {
     ActivateTab(type.toLowerCase());
   }
