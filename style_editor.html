@@ -3547,7 +3547,40 @@ class TransitionLoopClass extends STYLE {
 
 function TransitionLoop(C, T) { return new TransitionLoopClass(C, T); }
 
-class TransitionEffectClass extends STYLE {
+class TransitionEffectLClass extends STYLE {
+  constructor(EFFECT_COLOR, TRANSITION1, TRANSITION2, EFFECT) {
+    super("Trigger transitions on an effect.", arguments);
+    this.add_arg("TRANSITION", "TRANSITION", "from EFFECT_COLOR T");
+    this.add_arg("EFFECT", "EFFECT", "Effect type");
+    this.effect_ = new OneshotEffectDetector(this.EFFECT);
+    this.run_ = false;
+  }
+  run(blade) {
+    var e = this.effect_.Detect(blade);
+    if (e) {
+      this.TRANSITION.begin();
+      this.run_ = true;
+    }
+    this.TRANSITION.run(blade);
+    if (this.run_ && this.TRANSITION.done()) {
+      this.run_ = false;
+    }
+  }
+  getColor(led) {
+    var ret = Transparent();
+    if (this.run_) {
+      ret = this.TRANSITION.getColor(ret, ret, led);
+    }
+    return ret;
+  }
+  IS_RUNNING() { return this.run_; }
+};
+
+function TransitionEffectL(T, E) {
+  return new TransitionEffectLClass(T, E);
+}
+
+class TransitionEffectClass extends MACRO {
   constructor(T, EFFECT_COLOR, TRANSITION1, TRANSITION2, EFFECT) {
     super("Trigger transitions on an effect.", arguments);
     this.add_arg("T", "COLOR", "Base color.");
@@ -3555,30 +3588,8 @@ class TransitionEffectClass extends STYLE {
     this.add_arg("TRANSITION1", "TRANSITION", "from T to EFFECT_COLOR");
     this.add_arg("TRANSITION2", "TRANSITION", "from EFFECT_COLOR T");
     this.add_arg("EFFECT", "EFFECT", "Effect type");
-    this.effect_ = new OneshotEffectDetector(this.EFFECT);
-    this.transition_ = TrConcat(this.TRANSITION1, this.EFFECT_COLOR, this.TRANSITION2);
-    this.run_ = false;
+    this.SetExpansion(Layers(this.T, TransitionEffectL(TrConcat(this.TRANSITION1, this.EFFECT_COLOR, this.TRANSITION2), this.EFFECT)));
   }
-  run(blade) {
-    this.T.run(blade);
-    var e = this.effect_.Detect(blade);
-    if (e) {
-      this.transition_.begin();
-      this.run_ = true;
-    }
-    this.transition_.run(blade);
-    if (this.run_ && this.transition_.done()) {
-      this.run_ = false;
-    }
-  }
-  getColor(led) {
-    var ret = this.T.getColor(led);
-    if (this.run_) {
-      ret = this.transition_.getColor(ret, ret, led);
-    }
-    return ret;
-  }
-  IS_RUNNING() { return this.run_; }
 };
 
 function TransitionEffect(T, EC, T1, T2, E) {
@@ -4843,6 +4854,7 @@ function newCall(Cls) {
     StyleStrobePtr : StyleStrobePtr,
     TransitionLoop : TransitionLoop,
     TransitionEffect : TransitionEffect,
+    TransitionEffectL : TransitionEffectL,
     InOutTr : InOutTr,
     InOutTrL : InOutTrL,
 
