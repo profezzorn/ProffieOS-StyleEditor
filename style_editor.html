@@ -1346,6 +1346,7 @@ AddEffect("Stripes<1000, 1000, Cyan, Magenta, Yellow, Blue>");
 AddEffect("Strobe<Black, White, 15, 1>");
 AddEffect("StyleFire<Blue, Cyan>");
 AddEffectWL("TransitionEffect<Blue, White, TrWipe<50>, TrWipe<50>, EFFECT_BLAST>");
+AddEffectWL("MultiTransitionEffect<Blue, White, TrWipe<50>, TrWipe<50>, EFFECT_BLAST>");
 AddEffect("TransitionLoop<Blue, TrConcat<TrFade<200>, Red, TrFade<200>>>");
 
 AddTransition("TrBoing<300, 2>");
@@ -3547,6 +3548,79 @@ class TransitionLoopClass extends STYLE {
 
 function TransitionLoop(C, T) { return new TransitionLoopClass(C, T); }
 
+class MultiTransitionEffectLClass extends STYLE {
+  constructor(EFFECT_COLOR, TRANSITION1, TRANSITION2, EFFECT) {
+    super("Trigger transitions on an effect.", arguments);
+    this.add_arg("TRANSITION", "TRANSITION", "from EFFECT_COLOR T");
+    this.add_arg("EFFECT", "EFFECT", "Effect type");
+    this.add_arg("N", "INT", "Simultaneous effects.", 3);
+    this.effect_ = new OneshotEffectDetector(this.EFFECT);
+    this.TRANSITIONS=[];
+    this.running=[];
+    this.pos = 0;
+    for (var i = 0; i < this.N; i++) {
+      this.TRANSITIONS.push(this.TRANSITION.DOCOPY());
+      this.running.push(false);
+    }
+  }
+  run(blade) {
+    var e = this.effect_.Detect(blade);
+    if (e) {
+      this.TRANSITIONS[this.pos].begin();
+      this.running[this.pos] = true;
+      this.pos++;
+      if (this.pos == this.N) this.pos = 0;
+    }
+    for (var i = 0; i < this.N; i++) {
+      if (this.running[i]) {
+        this.TRANSITIONS[i].run(blade);
+	if (this.TRANSITIONS[i].done()) {
+	  this.running[i] = false;
+	}
+      }
+    }
+  }
+  getColor(led) {
+    var ret = Transparent();
+    var P = this.pos + 1;
+    for (var i = 0; i < this.N; i++) {
+      if (P > this.N) P = 0;
+      if (this.running[P]) {
+        ret = this.TRANSITIONS[P].getColor(ret, ret, led);
+      }
+      P++;
+    }
+    return ret;
+  }
+  IS_RUNNING() {
+    for (var i = 0; i < this.N; i++) {
+      if(this.running[i]) return true;
+    }
+    return false;
+  }
+};
+
+function MultiTransitionEffectL(T, E, N) {
+  return new MultiTransitionEffectLClass(T, E, N);
+}
+
+class MultiTransitionEffectClass extends MACRO {
+  constructor(T, EFFECT_COLOR, TRANSITION1, TRANSITION2, EFFECT, N) {
+    super("Trigger transitions on an effect.", arguments);
+    this.add_arg("T", "COLOR", "Base color.");
+    this.add_arg("EFFECT_COLOR", "COLOR", "Effect color.");
+    this.add_arg("TRANSITION1", "TRANSITION", "from T to EFFECT_COLOR");
+    this.add_arg("TRANSITION2", "TRANSITION", "from EFFECT_COLOR T");
+    this.add_arg("EFFECT", "EFFECT", "Effect type");
+    this.add_arg("N", "INT", "Number of simultaneous effects.", 3);
+    this.SetExpansion(Layers(this.T, MultiTransitionEffectL(TrConcat(this.TRANSITION1, this.EFFECT_COLOR, this.TRANSITION2), this.EFFECT, this.N)));
+  }
+};
+
+function MultiTransitionEffect(T, EC, T1, T2, E, N) {
+  return new MultiTransitionEffectClass(T, EC, T1, T2, E, N);
+}
+
 class TransitionEffectLClass extends STYLE {
   constructor(EFFECT_COLOR, TRANSITION1, TRANSITION2, EFFECT) {
     super("Trigger transitions on an effect.", arguments);
@@ -4855,6 +4929,8 @@ function newCall(Cls) {
     TransitionLoop : TransitionLoop,
     TransitionEffect : TransitionEffect,
     TransitionEffectL : TransitionEffectL,
+    MultiTransitionEffect : MultiTransitionEffect,
+    MultiTransitionEffectL : MultiTransitionEffectL,
     InOutTr : InOutTr,
     InOutTrL : InOutTrL,
 
