@@ -1351,7 +1351,7 @@ AddLayer("StrobeL<White, Int<15>, Int<1>>");
 AddEffect("StyleFire<Blue, Cyan>");
 AddEffectWL("TransitionEffect<Blue, White, TrWipe<50>, TrWipe<50>, EFFECT_BLAST>");
 AddEffectWL("MultiTransitionEffect<Blue, White, TrWipe<50>, TrWipe<50>, EFFECT_BLAST>");
-AddEffect("TransitionLoop<Blue, TrConcat<TrFade<200>, Red, TrFade<200>>>");
+AddEffectWL("TransitionLoop<Blue, TrConcat<TrFade<200>, Red, TrFade<200>>>");
 
 AddTransition("TrBoing<300, 2>");
 AddTransition("TrColorCycle<3000>");
@@ -3536,10 +3536,9 @@ function ColorChange(T, A, B) {
   return new ColorChangeClass(Array.from(arguments));
 }
 
-class TransitionLoopClass extends STYLE {
-  constructor(COLOR, TRANSITION) {
+class TransitionLoopLClass extends STYLE {
+  constructor(TRANSITION) {
     super("Continiously loop a transition",arguments);
-    this.add_arg("COLOR", "COLOR", "Color");
     this.add_arg("TRANSITION", "TRANSITION", "Transition");
     this.TRANSITION.begin();
   }
@@ -3548,8 +3547,18 @@ class TransitionLoopClass extends STYLE {
     super.run(blade);
   }
   getColor(led) {
-    var ret = this.COLOR.getColor(led);
-    return this.TRANSITION.getColor(ret, ret, led);
+    return this.TRANSITION.getColor(Transparent(), Transparent(), led);
+  }
+};
+
+function TransitionLoopL(T) { return new TransitionLoopLClass(T); }
+
+class TransitionLoopClass extends MACRO {
+  constructor(COLOR, TRANSITION) {
+    super("Continiously loop a transition",arguments);
+    this.add_arg("COLOR", "COLOR", "Color");
+    this.add_arg("TRANSITION", "TRANSITION", "Transition");
+    this.SetExpansion(Layers(COLOR, TransitionLoopL(TRANSITION)));
   }
 };
 
@@ -4934,6 +4943,7 @@ function newCall(Cls) {
     StyleRainbowPtr : StyleRainbowPtr,
     StyleStrobePtr : StyleStrobePtr,
     TransitionLoop : TransitionLoop,
+    TransitionLoopL : TransitionLoopL,
     TransitionEffect : TransitionEffect,
     TransitionEffectL : TransitionEffectL,
     MultiTransitionEffect : MultiTransitionEffect,
