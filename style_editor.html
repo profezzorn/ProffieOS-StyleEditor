@@ -1395,6 +1395,7 @@ AddFunction("SequenceF<100, 37, 0b0001010100011100, 0b0111000111000101, 0b010000
 AddFunction("SparkleF");
 AddFunction("StrobeF<Int<15>, Int<1>>");
 AddFunction("BlastFadeoutF");
+AddFunction("OriginalBlastF");
 
 AddColor("AliceBlue", 223, 239, 255);
 AddColor("Aqua", 0, 255, 255);
@@ -2754,23 +2755,18 @@ function BlastFadeout(BASE, BLAST, FADEOUT_MS, EFFECT) {
   return new BlastFadeoutClass(BASE, BLAST, FADEOUT_MS, EFFECT);
 }
 
-class OriginalBlastClass extends STYLE {
+class OriginalBlastFClass extends FUNCTION {
   constructor(BASE, BLAST, EFFECT_ARG) {
     super("Original blast effect", Array.from(arguments));
-    this.add_arg("BASE", "COLOR", "base color");
-    this.add_arg("BLAST", "COLOR", "blast color");
     this.add_arg("EFFECT", "EFFECT", "effect type", EFFECT(EFFECT_BLAST));
   }
   run(blade) {
-    this.BASE.run(blade);
-    this.BLAST.run(blade);
+    super.run(blade);
     this.T = micros();
     this.num_leds_ = 1.0 * blade.num_leds();
     this.effects_ = blade.GetEffects();
   }
-  getColor(led) {
-    var base = this.BASE.getColor(led);
-    var blast = this.BLAST.getColor(led);
+  getInteger(led) {
     var b = 0.0;
     for (var i = 0; i < this.effects_.length; i++) {
       if (this.effects_[i].type != this.EFFECT) continue;
@@ -2783,7 +2779,34 @@ class OriginalBlastClass extends STYLE {
 	b += sin(x / (t*t)) / x;
       }
     }
-    return base.mix(blast, min(b, 1.0));
+    return min(b, 1.0) * 32768;
+  }
+};
+
+function OriginalBlastF(EFFECT) {
+  return new OriginalBlastFClass(EFFECT);
+}
+
+class OriginalBlastLClass extends MACRO {
+  constructor(BLAST, EFFECT_ARG) {
+    super("Original blast effect", Array.from(arguments));
+    this.add_arg("BLAST", "COLOR", "blast color");
+    this.add_arg("EFFECT", "EFFECT", "effect type", EFFECT(EFFECT_BLAST));
+    this.SetExpansion(AlphaL(BLAST, OriginalBlastF(this.EFFECT)));
+  }
+};
+
+function OriginalBlastL(BLAST, EFFECT) {
+  return new OriginalBlastLClass(BLAST, EFFECT);
+}
+
+class OriginalBlastClass extends MACRO {
+  constructor(BASE, BLAST, EFFECT_ARG) {
+    super("Original blast effect", Array.from(arguments));
+    this.add_arg("BASE", "COLOR", "base color");
+    this.add_arg("BLAST", "COLOR", "blast color");
+    this.add_arg("EFFECT", "EFFECT", "effect type", EFFECT(EFFECT_BLAST));
+    this.SetExpansion(Layers(BASE, OriginalBlastL(BLAST, this.EFFECT)));
   }
 };
 
@@ -4906,6 +4929,8 @@ function newCall(Cls) {
     OnSparkL : OnSparkL,
     OnSparkF : OnSparkF,
     OriginalBlast : OriginalBlast,
+    OriginalBlastL : OriginalBlastL,
+    OriginalBlastF : OriginalBlastF,
     Pulsing : Pulsing,
     PulsingX : PulsingX,
     PulsingL : PulsingL,
