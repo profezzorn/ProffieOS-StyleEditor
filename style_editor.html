@@ -1333,7 +1333,8 @@ AddEffectWL("Pulsing<Blue, Red, 800>");
 AddEffect("Rainbow");
 AddEffect("RandomBlink<3000>");
 AddLayer("RandomBlinkL<3000>");
-AddEffectWL("RandomFlicker<Yellow, Blue>");
+AddEffect("RandomFlicker<Yellow, Blue>");
+AddLayer("RandomL<Blue>");
 AddEffectWL("RandomPerLEDFlicker<Green, Magenta>");
 AddEffect("Rgb16<0,0,50>");
 AddEffect("Rgb<100,100,100>");
@@ -2324,7 +2325,7 @@ function RandomF() {
   return new RandomFClass();
 }
 
-class RandomFlickerLClass extends MACRO {
+class RandomLClass extends MACRO {
   constructor(A) {
     super("Selects between A and transparent randomly.", arguments);
     this.add_arg("A", "COLOR", "A");
@@ -2332,8 +2333,8 @@ class RandomFlickerLClass extends MACRO {
   }
 };
 
-function RandomFlickerL(A) {
-  return new RandomFlickerLClass(A);
+function RandomL(A) {
+  return new RandomLClass(A);
 }
 
 class RandomFlickerClass extends MACRO {
@@ -2341,7 +2342,7 @@ class RandomFlickerClass extends MACRO {
     super("Selects between A and B randomly.", arguments);
     this.add_arg("A", "COLOR", "A");
     this.add_arg("B", "COLOR", "B");
-    this.SetExpansion(Layers(A, RandomFlickerL(B)));
+    this.SetExpansion(Layers(A, RandomL(B)));
   }
 };
 
@@ -4901,7 +4902,7 @@ function newCall(Cls) {
     PulsingL : PulsingL,
     PulsingF : PulsingF,
     RandomFlicker : RandomFlicker,
-    RandomFlickerL : RandomFlickerL,
+    RandomL : RandomL,
     RandomF : RandomF,
     RandomPerLEDFlicker : RandomPerLEDFlicker,
     RandomPerLEDFlickerL : RandomPerLEDFlickerL,
