@@ -1396,6 +1396,7 @@ AddFunction("SparkleF");
 AddFunction("StrobeF<Int<15>, Int<1>>");
 AddFunction("BlastFadeoutF");
 AddFunction("OriginalBlastF");
+AddFunction("Variation");
 
 AddColor("AliceBlue", 223, 239, 255);
 AddColor("Aqua", 0, 255, 255);
@@ -4675,6 +4676,19 @@ function IsLessThan(F, V) {
   return new IsLessThanClass(F, V);
 }
 
+class VariationClass extends FUNCTION {
+  constructor() {
+    super("Returns the current variation", arguments);
+  }
+  getInteger(led) {
+    return Variant() & 0x7fff;
+  }
+};
+
+function Variation() {
+  return new VariationClass();
+}
+
 
 class ResponsiveLockupLClass extends MACRO {
   constructor(COLOR, TR1, TR2, TOP, BOTTOM, SIZE) {
@@ -5019,6 +5033,7 @@ function newCall(Cls) {
     LayerFunctions : LayerFunctions,
     SlowNoise : SlowNoise,
     IsLessThan : IsLessThan,
+    Variation : Variation,
 
     ResponsiveLockupL : ResponsiveLockupL,
     ResponsiveDragL : ResponsiveDragL,
