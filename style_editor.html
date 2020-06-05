@@ -1301,6 +1301,8 @@ AddTemplate("StyleNormalPtr<Pulsing<Red, Rgb<50,0,0>, 5000>, White, 300, 800, Re
 AddTemplate("StyleRainbowPtr<300, 800>");
 AddTemplate("StyleStrobePtr<White, Rainbow, 15, 300, 800>");
 AddTemplate("StyleFirePtr<Red, Yellow>");
+AddTemplate("Layers<Red,ResponsiveLockupL<White, TrInstant, TrInstant, Int<26000>, Int<6000>>,ResponsiveLightningBlockL<White, TrInstant, TrInstant>,ResponsiveMeltL<Mix<TwistAngle,Red,Yellow>, TrWipeIn<600>, TrWipe<600>, Int<4000>, Int<10000>>,ResponsiveDragL<White, TrInstant, TrInstant, Int<2000>, Int<10000>>,ResponsiveClashL<White, TrInstant, TrFade<200>, Int<26000>, Int<6000>>,ResponsiveBlastL<White, Int<400>, Int<100>, Int<400>, Int<28000>, Int<8000>>,ResponsiveBlastWaveL<White, Int<400>, Int<100>, Int<400>, Int<28000>, Int<8000>>,ResponsiveBlastFadeL<White, Int<8000>, Int<400>, Int<28000>, Int<8000>>,ResponsiveStabL<White, TrWipeIn<600>, TrWipe<600>, Int<14000>, Int<8000>>,InOutTrL<TrWipe<300>, TrWipeIn<500>>>");
+
 
 AddLayer("AlphaL<Red, Int<16000>>");
 AddEffectWL("AudioFlicker<White, Blue>");
@@ -1365,6 +1367,7 @@ AddTransition("TrRandom<TrFade<500>, TrWipe<500>, TrBoing<500, 2>>");
 AddTransition("TrSmoothFade<300>");
 AddTransition("TrWipe<500>");
 AddTransition("TrWipeIn<500>");
+AddTransition("TrWaveX<White>");
 
 AddFunction("BatteryLevel");
 AddFunction("BrownNoiseF<50>");
@@ -1397,6 +1400,8 @@ AddFunction("StrobeF<Int<15>, Int<1>>");
 AddFunction("BlastFadeoutF");
 AddFunction("OriginalBlastF");
 AddFunction("Variation");
+AddFunction("TwistAngle");
+AddFunction("BladeAngle");
 
 AddColor("AliceBlue", 223, 239, 255);
 AddColor("Aqua", 0, 255, 255);
@@ -1446,20 +1451,18 @@ AddColor("Tomato", 255, 31, 15);
 AddColor("White", 255, 255, 255);
 AddColor("Yellow", 255, 255, 0);
 
-// AddLayer("ResponsiveLockupL");
-// AddLayer("ResponsiveDragL");
-// AddLayer("ResponsiveMeltL");
-// AddLayer("ResponsiveLightningBlockL");
-// AddLayer("ResponsiveClashL");
-// AddLayer("ResponsiveStabL");
-// AddLayer("ResponsiveBlastL");
-// AddLayer("ResponsiveBlastWaveL");
-// AddLayer("InOutHelperL");
-// AddLayer("TransitionLoopL");
-// AddLayer("MultiTransitionEffectL");
-
 AddLayer("InOutHelperL<InOutFuncX<Int<300>,Int<800>>>");
 AddLayer("InOutTrL<TrColorCycle<3000>,TrFade<500>>");
+
+AddLayer("ResponsiveLockupL<White, TrInstant, TrInstant, Int<26000>, Int<6000>>");
+AddLayer("ResponsiveLightningBlockL<White, TrInstant, TrInstant>");
+AddLayer("ResponsiveMeltL<Mix<TwistAngle,Red,Yellow>, TrInstant, TrInstant, Int<4000>, Int<10000>>");
+AddLayer("ResponsiveDragL<White, TrInstant, TrInstant, Int<2000>, Int<10000>>");
+AddLayer("ResponsiveClashL<White, TrInstant, TrFade<200>, Int<26000>, Int<6000>>");
+AddLayer("ResponsiveBlastL<White, Int<400>, Int<100>, Int<400>, Int<28000>, Int<8000>>");
+AddLayer("ResponsiveBlastWaveL<White, Int<400>, Int<100>, Int<400>, Int<28000>, Int<8000>>");
+AddLayer("ResponsiveBlastFadeL<White, Int<8000>, Int<400>, Int<28000>, Int<8000>>");
+AddLayer("ResponsiveStabL<White, TrWipeIn<600>, TrWipe<600>, Int<14000>, Int<8000>>");
 
 var WHITE = Rgb(255,255,255);
 var RED = Rgb(255,0,0);
@@ -1470,6 +1473,7 @@ var CYAN = Rgb(0,255,255);
 var MAGENTA = Rgb(255,0,255);
 var WHITE = Rgb(255,255,255);
 var BLACK = Rgb(0,0,0);
+var OrangeRed = Rgb(255,14,0);
 
 
 //--
@@ -1503,11 +1507,16 @@ var STATE_CLASH = 0;
 var STATE_ROTATE = 0;
 var STATE_NUM_LEDS = 144;
 
+var handled_lockups = {};
 
-function IsHandled(lockup_type) {
-  // TODO
-  return false;
+function IsHandledLockup(lockup_type) {
+  return handled_lockups[lockup_type];
 }
+
+function HandleLockup(lockup_type) {
+  handled_lockups[lockup_type] = 1;
+}
+
 
 class BladeEffect {
   constructor(type, start_micros, location) {
@@ -3012,7 +3021,7 @@ class LockupLClass extends STYLE {
   run(blade) {
     super.run(blade);
     this.single_pixel_ = blade.num_leds() == 1;
-    this.handled = IsHandled(STATE_LOCKUP);
+    this.handled = IsHandledLockup(STATE_LOCKUP);
   }
   getColor(led) {
     var ret = Transparent();
@@ -3159,7 +3168,7 @@ function fract(v) {
 function FIND(id) {
   ret = document.getElementById(id);
   if (!ret) {
-    console.log("Failed to find " + id);
+    // console.log("Failed to find " + id);
   }
   return ret;
 }
@@ -3201,6 +3210,7 @@ class Blade {
 var handled_types = {};
 function ResetHandledTypes() {
   handled_types = {};
+  handled_lockups = {};
 }
 function HandleEffectType(t) {
   handled_types[t] = 1;
@@ -3589,7 +3599,7 @@ class TransitionLoopClass extends MACRO {
 function TransitionLoop(C, T) { return new TransitionLoopClass(C, T); }
 
 class MultiTransitionEffectLClass extends STYLE {
-  constructor(EFFECT_COLOR, TRANSITION1, TRANSITION2, EFFECT) {
+  constructor(EFFECT_COLOR, TRANSITION1, TRANSITION2, EFFECT_ARG) {
     super("Trigger transitions on an effect.", arguments);
     this.add_arg("TRANSITION", "TRANSITION", "from EFFECT_COLOR T");
     this.add_arg("EFFECT", "EFFECT", "Effect type");
@@ -3662,7 +3672,7 @@ function MultiTransitionEffect(T, EC, T1, T2, E, N) {
 }
 
 class TransitionEffectLClass extends STYLE {
-  constructor(EFFECT_COLOR, TRANSITION1, TRANSITION2, EFFECT) {
+  constructor(EFFECT_COLOR, TRANSITION1, TRANSITION2, EFFECT_ARG) {
     super("Trigger transitions on an effect.", arguments);
     this.add_arg("TRANSITION", "TRANSITION", "from EFFECT_COLOR T");
     this.add_arg("EFFECT", "EFFECT", "Effect type");
@@ -3695,7 +3705,7 @@ function TransitionEffectL(T, E) {
 }
 
 class TransitionEffectClass extends MACRO {
-  constructor(T, EFFECT_COLOR, TRANSITION1, TRANSITION2, EFFECT) {
+  constructor(T, EFFECT_COLOR, TRANSITION1, TRANSITION2, EFFECT_ARG) {
     super("Trigger transitions on an effect.", arguments);
     this.add_arg("T", "COLOR", "Base color.");
     this.add_arg("EFFECT_COLOR", "COLOR", "Effect color.");
@@ -4091,6 +4101,64 @@ class TrWipeInClass extends MACRO {
 }
 
 function TrWipeIn(MILLIS) { return new TrWipeInClass(MILLIS); }
+
+
+class TrWaveXClass extends TRANSITION {
+  constructor(COLOR, FADEOUT_MS, WAVE_SIZE, WAVE_MS, WAVE_CENTER) {
+    super("Wave travelling outwards.", arguments);
+    this.add_arg("COLOR", "COLOR", "Wave color.");
+    this.add_arg("FADEOUT_MS", "FUNCTION", "Fadeout time in milliseconds.", Int(200));
+    this.add_arg("WAVE_SIZE", "FUNCTION", "Wave size.", Int(100));
+    this.add_arg("WAVE_MS", "FUNCTION", "Wave millis.", Int(400));
+    this.add_arg("WAVE_CENTER", "FUNCTION", "Wave center.", Int(16384));
+    this.restart_ = false;
+    this.start_millis = 0;
+    this.len_ = 0;
+  }
+  begin() { this.restart_ = true; }
+  done() { return this.len_ == 0; }
+  run(blade) {
+    super.run(blade);
+
+    if (this.restart_) {
+      this.center_ = this.WAVE_CENTER.getInteger(0);
+      this.size_ = this.WAVE_SIZE.getInteger(0);
+
+      this.start_millis_ = millis();
+      this.len_ = this.FADEOUT_MS.getInteger(0);
+      this.restart_ = false;
+    }
+
+    this.mix_ = 32768 - this.update(32768);
+    this.num_leds_ = blade.num_leds();
+    this.offset_ = (millis() - this.start_millis_) * 32768 / this.WAVE_MS.getInteger(0);
+  }
+  getColor(A, B, led) {
+    var dist = Math.abs(this.center_ - led * 32768 / this.num_leds_);
+    var N = Math.abs(dist - this.offset_) * this.size_ >> 15;
+    var mix;
+    if (N <= 32) {
+      mix = blast_hump[N] * this.mix_ >> 8;
+    } else {
+      mix = 0;
+    }
+    return A.mix(this.COLOR.getColor(led), mix / 32768.0);
+  }
+
+  update(scale) {
+    if (this.len_ == 0) return scale;
+    var ms = millis() - this.start_millis_;
+    if (ms > this.len_) {
+      this.len_ = 0;
+      return scale;
+    }
+    return ms * scale / this.len_;
+  }
+};
+
+function TrWaveX(COLOR, FADEOUT_MS, WAVE_SIZE, WAVE_MS, WAVE_CENTER) {
+  return new TrWaveXClass(COLOR, FADEOUT_MS, WAVE_SIZE, WAVE_MS, WAVE_CENTER);
+}
 
 class TrColorCycleClass extends TRANSITION_BASE2 {
   constructor(MILLIS, START_RPM, END_RPM) {
@@ -4689,6 +4757,52 @@ function Variation() {
   return new VariationClass();
 }
 
+class BladeAngleXClass extends FUNCTION {
+  constructor() {
+    super("Blade Angle", arguments);
+    this.add_arg("MIN", "FUNCTION", "What angle returns 0.", Int(0));
+    this.add_arg("MAX", "FUNCTION", "What angle returns 0.", Int(32768));
+  }
+  run(blade) {
+    var v = Math.sin(millis() * Math.PI / 10000.0)/2.0 + 0.5;
+    this.var_ = clamp(v * 32768, 0, 32768);
+  }
+  getInteger(led) { return this.var_; }
+};
+
+function BladeAngleX(MIN, MAX) {
+  return new BladeAngleXClass(MIN, MAX);
+}
+
+class TwistAngleClass extends FUNCTION {
+  constructor() {
+    super("Blade Angle", arguments);
+    this.add_arg("N", "INT", "Number of up/downs per rotation.", 2);
+    this.add_arg("OFFSET", "INT", "Angular offset", 0);
+  }
+  run(blade) {
+    var v = Math.sin(millis() * Math.PI / 3000.0)/2.0 + 0.5;
+    this.var_ = clamp(v * 32768, 0, 32768);
+  }
+  getInteger(led) { return this.var_; }
+};
+
+function TwistAngle(N, OFFSET) {
+  return new TwistAngleClass(N, OFFSET);
+}
+
+class BladeAngleClass extends MACRO {
+  constructor() {
+    super("Blade Angle", arguments);
+    this.add_arg("MIN", "INT", "What angle returns 0.", 0);
+    this.add_arg("MAX", "INT", "What angle returns 0.", 32768);
+    this.SetExpansion(BladeAngleX(Int(this.MIN), Int(this.MAX)));
+  }
+};
+
+function BladeAngle(MIN, MAX) {
+  return new BladeAngleClass(MIN, MAX);
+}
 
 class ResponsiveLockupLClass extends MACRO {
   constructor(COLOR, TR1, TR2, TOP, BOTTOM, SIZE) {
@@ -4732,7 +4846,7 @@ function ResponsiveDragL(COLOR, TR1, TR2, TOP, BOTTOM, SIZE) {
 class ResponsiveMeltLClass extends MACRO {
   constructor(COLOR, TR1, TR2, TOP, BOTTOM, SIZE) {
     super("Responsive localized melt layer.", arguments);
-    this.add_arg("COLOR", "COLOR", "Color.", Mix(TwistAngle(), OrangeRed.DOCOPY(), Red.DOCOPY()));
+    this.add_arg("COLOR", "COLOR", "Color.", Mix(TwistAngle(), OrangeRed.DOCOPY(), RED.DOCOPY()));
     this.add_arg("TR1", "TRANSITION", "Begin transition", TrWipeIn(600));
     this.add_arg("TR2", "TRANSITION", "End transition", TrWipe(600));
     this.add_arg("SIZE1", "FUNCTION", "lower twist limit", Int(4000));
@@ -4761,9 +4875,9 @@ class ResponsiveLightningBlockLClass extends MACRO {
            Bump(Scale(SlowNoise(Scale(BladeAngle(24000,32768),Int(2100),Int(1000))),Scale(BladeAngle(24000,32768),Int(3000),Int(10000)),Int(16000)),
                 Scale(BrownNoiseF(Int(10)),Scale(TwistAngle(),Int(4000),Int(10000)),Scale(TwistAngle(),Int(9000),Int(14000)))),
            Bump(Scale(SlowNoise(Int(2200)),Scale(BladeAngle(24000,32768),Int(26000),Int(18000)),Int(8000)),
-                Scale(NoisySoundLevel,Scale(TwistAngle(),Int(6000),Int(10000)),Scale(TwistAngle(),Int(10000),Int(14000)))),
+                Scale(NoisySoundLevel(),Scale(TwistAngle(),Int(6000),Int(10000)),Scale(TwistAngle(),Int(10000),Int(14000)))),
            Bump(Scale(SlowNoise(Int(2300)),Scale(BladeAngle(24000,32768),Int(20000),Int(16000)),Scale(BladeAngle(24000,32768),Int(30000),Int(24000))),
-                Scale(IsLessThan(SlowNoise(Int(2000)),Int(12000)),Scale(NoisySoundLevel,Scale(TwistAngle(),Int(9000),Int(5000)),Int(0)),Int(0))))),
+                Scale(IsLessThan(SlowNoise(Int(2000)),Int(12000)),Scale(NoisySoundLevel(),Scale(TwistAngle(),Int(9000),Int(5000)),Int(0)),Int(0))))),
      TR1,
      TR2,
      LOCKUP_LIGHTNING_BLOCK));
@@ -4771,7 +4885,7 @@ class ResponsiveLightningBlockLClass extends MACRO {
 };
 
 function ResponsiveLightningBlockL(COLOR, TR1, TR2) {
-  return new ResponsiveLightningBlockL(COLOR, TR1, TR2);
+  return new ResponsiveLightningBlockLClass(COLOR, TR1, TR2);
 }
 
 class ResponsiveClashLClass extends MACRO {
@@ -4795,7 +4909,7 @@ function ResponsiveClashL(COLOR, TR1, TR2, TOP, BOTTOM, SIZE) {
 }
 
 class ResponsiveBlastLClass extends MACRO {
-  constructor(COLOR, FADE, SIZE, SPEED, TOP, BOTTOM, EFFECT) {
+  constructor(COLOR, FADE, SIZE, SPEED, TOP, BOTTOM, EFFECT_ARG) {
     super("Responsive localized blast layer.", arguments);
     this.add_arg("COLOR", "COLOR", "Color.");
     this.add_arg("FADE", "FUNCTION", "fadeout time", Int(400));
@@ -4817,7 +4931,7 @@ function ResponsiveBlastL(COLOR, FADE, SIZE, SPEED, TOP, BOTTOM, EFFECT) {
 }
 
 class ResponsiveBlastWaveLClass extends MACRO {
-  constructor(COLOR, FADE, SIZE, SPEED, TOP, BOTTOM, EFFECT) {
+  constructor(COLOR, FADE, SIZE, SPEED, TOP, BOTTOM, EFFECT_ARG) {
     super("Responsive localized blast layer.", arguments);
     this.add_arg("COLOR", "COLOR", "Color.");
     this.add_arg("FADE", "FUNCTION", "fadeout time", Int(400));
@@ -4839,17 +4953,17 @@ function ResponsiveBlastWaveL(COLOR, FADE, SIZE, SPEED, TOP, BOTTOM, EFFECT) {
 }
 
 class ResponsiveBlastFadeLClass extends MACRO {
-  constructor(COLOR, FADE, SIZE, TOP, BOTTOM, EFFECT) {
+  constructor(COLOR, FADE, SIZE, TOP, BOTTOM, EFFECT_ARG) {
     super("Responsive localized blast layer.", arguments);
     this.add_arg("COLOR", "COLOR", "Color.");
+    this.add_arg("SIZE", "FUNCTION", "blast size", Int(8000));
     this.add_arg("FADE", "FUNCTION", "fadeout time", Int(400));
-    this.add_arg("SIZE", "FUNCTION", "blast size", Int(100));
     this.add_arg("TOP", "FUNCTION", "uppermost blast limit", Int(28000));
     this.add_arg("BOTTOM", "FUNCTION", "lowermost blast limit", Int(8000));
     this.add_arg("EFFECT", "EFFECT", "effect type", EFFECT(EFFECT_BLAST));
     this.SetExpansion(
         MultiTransitionEffectL(
-	    TrConcat(TrInstant,
+	    TrConcat(TrInstant(),
 	             AlphaL(this.COLOR, Bump(Scale(BladeAngle(), this.TOP, this.BOTTOM), this.SIZE)),
 		     TrFadeX(this.FADE)),
             this.EFFECT));
@@ -4871,9 +4985,9 @@ class ResponsiveStabLClass extends MACRO {
     this.add_arg("SIZE2", "FUNCTION", "upper twist limit", Int(8000));
     this.SetExpansion(
        TransitionEffectL(TrConcat(this.TR1,
-                                  AlphaL(COLOR, SmoothStep(Int(32000, Scale(BladeAngle(), this.SIZE1, this.SIZE2))),
+                                  AlphaL(COLOR, SmoothStep(Int(32000), Scale(BladeAngle(), this.SIZE1, this.SIZE2))),
 				  this.TR2),
-		         EFFECT(EFFECT_STAB))));
+		         EFFECT(EFFECT_STAB)));
 
   }
 };
@@ -5013,6 +5127,7 @@ function newCall(Cls) {
     TrJoin : TrJoin,
     TrJoinR : TrJoinR,
     TrRandom : TrRandom,
+    TrWaveX : TrWaveX,
 
     BatteryLevel : BatteryLevel,
     Bump : Bump,
@@ -5034,6 +5149,9 @@ function newCall(Cls) {
     SlowNoise : SlowNoise,
     IsLessThan : IsLessThan,
     Variation : Variation,
+    BladeAngleX : BladeAngleX,
+    BladeAngle : BladeAngle,
+    TwistAngle : TwistAngle,
 
     ResponsiveLockupL : ResponsiveLockupL,
     ResponsiveDragL : ResponsiveDragL,
