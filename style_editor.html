@@ -1351,9 +1351,11 @@ AddEffect("Stripes<1000, 1000, Cyan, Magenta, Yellow, Blue>");
 AddEffect("Strobe<Black, White, 15, 1>");
 AddLayer("StrobeL<White, Int<15>, Int<1>>");
 AddEffect("StyleFire<Blue, Cyan>");
-AddEffectWL("TransitionEffect<Blue, White, TrWipe<50>, TrWipe<50>, EFFECT_BLAST>");
-AddEffectWL("MultiTransitionEffect<Blue, White, TrWipe<50>, TrWipe<50>, EFFECT_BLAST>");
+AddEffect("MultiTransitionEffect<Blue, White, TrWipe<50>, TrWipe<50>, EFFECT_BLAST>");
 AddEffectWL("TransitionLoop<Blue, TrConcat<TrFade<200>, Red, TrFade<200>>>");
+
+AddLayer("TransitionEffectL<TrConcat<TrWipe<50>, White, TrWipe<50>>, EFFECT_BLAST>");
+AddLayer("MultiTransitionEffectL<TrConcat<TrWipe<50>, White, TrWipe<50>>, EFFECT_BLAST>");
 
 AddTransition("TrBoing<300, 2>");
 AddTransition("TrColorCycle<3000>");
@@ -3599,7 +3601,7 @@ class TransitionLoopClass extends MACRO {
 function TransitionLoop(C, T) { return new TransitionLoopClass(C, T); }
 
 class MultiTransitionEffectLClass extends STYLE {
-  constructor(EFFECT_COLOR, TRANSITION1, TRANSITION2, EFFECT_ARG) {
+  constructor(TRANSITION, EFFECT_ARG, N) {
     super("Trigger transitions on an effect.", arguments);
     this.add_arg("TRANSITION", "TRANSITION", "from EFFECT_COLOR T");
     this.add_arg("EFFECT", "EFFECT", "Effect type");
