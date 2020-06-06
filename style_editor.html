@@ -4126,8 +4126,8 @@ class TrWipeSparkTipClass extends MACRO {
   constructor(SPARK_COLOR, MILLIS, SIZE) {
     super("TrWipe with sparktip", arguments);
     this.add_arg("SPARK_COLOR", "COLOR", "Spark color");
-    this.add_arg("MILLIS", "FUNCTION", "wipe milliseconds");
-    this.add_arg("SIZE", "FUNCTION", "Size of spark.", Int(400));
+    this.add_arg("MILLIS", "INT", "wipe milliseconds");
+    this.add_arg("SIZE", "INT", "Size of spark.", 400);
     this.SetExpansion(TrJoin(TrWipe(MILLIS),TrWaveX(SPARK_COLOR,Int(400),Int(this.SIZE),Int(MILLIS),Int(0))));
   }
 };
@@ -4150,8 +4150,8 @@ class TrWipeInSparkTipClass extends MACRO {
   constructor(SPARK_COLOR, MILLIS, SIZE) {
     super("TrWipeIn with sparktip", arguments);
     this.add_arg("SPARK_COLOR", "COLOR", "Spark color");
-    this.add_arg("MILLIS", "FUNCTION", "wipe milliseconds");
-    this.add_arg("SIZE", "FUNCTION", "Size of spark.", Int(400));
+    this.add_arg("MILLIS", "INT", "wipe milliseconds");
+    this.add_arg("SIZE", "INT", "Size of spark.", 400);
     this.SetExpansion(TrJoin(TrWipeIn(MILLIS),TrWaveX(SPARK_COLOR,Int(400),Int(this.SIZE),Int(MILLIS),Int(32768))));
   }
 };
