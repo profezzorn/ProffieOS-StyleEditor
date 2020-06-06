@@ -877,7 +877,7 @@ class EnumBuilder {
     for (var i = 0; i < v.length; i++) {
       var V = parseInt(v[i]);
       var N = this.value_to_name[V];
-      AddIdentifier(N, ENUM.bind(null, V));
+      AddIdentifier(this.prefix + N, ENUM.bind(null, V));
     }
   }
 }
@@ -2422,7 +2422,8 @@ class BrownNoiseFClass extends FUNCTION {
     this.mix = Math.floor(Math.random()*32768);
   }
   getInteger(led) {
-    this.mix += Math.floor(Math.random() * (this.GRADE * 2 + 1)) - this.GRADE;
+    var grade = this.GRADE.getInteger(led);
+    this.mix += Math.floor(Math.random() * (grade * 2 + 1)) - grade;
     this.mix = clamp(this.mix, 0, 32768);
     return this.mix;
   }
@@ -4878,7 +4879,7 @@ class ResponsiveLockupLClass extends MACRO {
     this.SetExpansion(LockupTrL(AlphaL(COLOR, Bump(Scale(BladeAngle(), this.TOP, this.BOTTOM), this.SIZE)),
     				       this.TR1,
     				       this.TR2,
-				       LOCKUP_NORMAL));   					      
+				       LOCKUP_TYPE(LOCKUP_NORMAL)));;
   }
 };
 
@@ -4897,7 +4898,7 @@ class ResponsiveDragLClass extends MACRO {
     this.SetExpansion(LockupTrL(AlphaL(COLOR, SmoothStep(Int(32000), Scale(TwistAngle(), this.SIZE1, this.SIZE2))),
     				       this.TR1,
     				       this.TR2,
-				       LOCKUP_DRAG));
+				       LOCKUP_TYPE(LOCKUP_DRAG)));
   }
 };
 
@@ -4916,7 +4917,7 @@ class ResponsiveMeltLClass extends MACRO {
     this.SetExpansion(LockupTrL(AlphaL(this.COLOR, SmoothStep(Int(30000), Scale(TwistAngle(), this.SIZE1, this.SIZE2))),
     				       this.TR1,
     				       this.TR2,
-				       LOCKUP_MELT));
+				       LOCKUP_TYPE(LOCKUP_MELT)));
   }
 };
 
@@ -4942,7 +4943,7 @@ class ResponsiveLightningBlockLClass extends MACRO {
                 Scale(IsLessThan(SlowNoise(Int(2000)),Int(12000)),Scale(NoisySoundLevel(),Scale(TwistAngle(),Int(9000),Int(5000)),Int(0)),Int(0))))),
      this.TR1,
      this.TR2,
-     LOCKUP_LIGHTNING_BLOCK));
+     LOCKUP_TYPE(LOCKUP_LIGHTNING_BLOCK)));
   }
 };
 
@@ -4962,7 +4963,7 @@ class ResponsiveClashLClass extends MACRO {
     this.SetExpansion(TransitionEffectL(TrConcat(this.TR1,
                                                  AlphaL(COLOR, Bump(Scale(BladeAngle(), this.TOP, this.BOTTOM), this.SIZE)),
 						 this.TR2),
-				        EFFECT_CLASH));
+				        EFFECT(EFFECT_CLASH)));
   }
 };
 
@@ -5318,7 +5319,7 @@ class Parser {
       var c = this.peek();
       if ((c >= 'a' && c <= 'z') ||
 	  (c >= 'A' && c <= 'Z') ||
-	  (c >= '0' && c <= '9') || c == '_') {
+	  (c >= '0' && c <= '9') || c == '_' || c == ':') {
 	ret += c;
 	this.pos++;
       } else {
