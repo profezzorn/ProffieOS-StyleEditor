@@ -5344,22 +5344,18 @@ class Parser {
       this.pos++;
       this.skipspace();
       args = [null];
-      while (true) {
-	args.push(this.parse());
-	this.skipspace();
-	if (this.peek() == '>') {
-	  this.pos++;
-	  break;
-	}
-	if (this.peek() == "") {
-	  throw "Missing > or ,";
-	}
-	if (this.peek() != ',') {
-	  throw "Comma expected";
-	}
-	this.pos++;
-	this.skipspace();
+      if (this.peek() != '>') {
+        while (true) {
+          args.push(this.parse());
+          this.skipspace();
+          if (this.peek() != ',') break;
+          this.pos++;
+        }
       }
+      if (this.peek() != '>') {
+        throw "Missing > or ,";
+      }
+      this.pos++;
     }
     if (this.identifiers[id]) {
       if (args != 0) {
