@@ -513,7 +513,7 @@ class ARG {
 class STYLE {
   constructor(comment, args) {
     this.comment = comment;
-    if (args) console.log(args);
+    // if (args) console.log(args);
     this.args = args;
     this.argnum = 0;
     this.argdefs = [];
@@ -835,7 +835,7 @@ class EnumBuilder {
       var V = parseInt(v[i]);
       var N = this.value_to_name[V];
       var label = N.replace(common_prefix, "");
-      AddTabContent(tab, mkbutton2(label, this.constructor.prefix+N));
+      AddTabContent(tab, mkbutton2(label, this.prefix+N));
     }
   }
   build() {
@@ -1127,6 +1127,13 @@ class AlphaLClass extends STYLE {
   getColor(led) {
     var ret = this.COLOR.getColor(led);
     return ret.multiply(this.ALPHA.getInteger(led)/32768.0)
+  }
+  IS_RUNNING() {
+    if (this.ALPHA.IS_RUNNING)
+      return this.ALPHA.IS_RUNNING();
+    if (this.COLOR.IS_RUNNING)
+      return this.COLOR.IS_RUNNING();
+    return false;
   }
 };
 
@@ -1523,10 +1530,13 @@ var STATE_NUM_LEDS = 144;
 var handled_lockups = {};
 
 function IsHandledLockup(lockup_type) {
-  return handled_lockups[lockup_type];
+  return current_style.__handled_lockups[lockup_type];
 }
 
 function HandleLockup(lockup_type) {
+  if (lockup_type.getInteger) {
+    lockup_type = lockup_type.getInteger(0);
+  }
   handled_lockups[lockup_type] = 1;
 }
 
@@ -2935,6 +2945,9 @@ class SimpleClashLClass extends STYLE {
     }
     return ret;
   }
+  IS_RUNNING() {
+    return this.clash_;
+  }
 };
 
 function SimpleClashL(T, CLASH, MILLIS, EF, SS) {
@@ -2994,6 +3007,9 @@ class LocalizedClashLClass extends STYLE {
     }
     return ret;
   } 
+  IS_RUNNING() {
+    return this.clash;
+  }
 }
 
 function LocalizedClashL(CLASH_COLOR, CLASH_MILLIS, CLASH_WIDTH_PERCENT, EF) {
@@ -3051,6 +3067,13 @@ class LockupLClass extends STYLE {
       ret = ret.mix(this.LOCKUP.getColor(led), this.LOCKUP_SHAPE.getInteger(led) / 32768.0);
     }
     return ret;
+  }
+  IS_RUNNING() {
+    if (this.handled) return false;
+    if (STATE_LOCKUP == LOCKUP_LIGHTNING_BLOCK) true;
+    if (STATE_LOCKUP == LOCKUP_DRAG) return true;
+    if (STATE_LOCKUP == LOCKUP_NORMAL) return true;
+    return false;
   }
 };
 
@@ -3140,6 +3163,9 @@ class LockupTrLClass extends STYLE {
       }
     }
   }
+  IS_RUNNING() {
+    return this.active;
+  }
 };
 
 function LockupTrL(COLOR, BeginTr, EndTr, LOCKUP_TYPE) {
@@ -3222,12 +3248,22 @@ class Blade {
 };
 
 var handled_types = {};
-function ResetHandledTypes() {
+function PushHandledTypes() {
+  ret = [ handled_types, handled_lockups ];
   handled_types = {};
   handled_lockups = {};
+  return ret;
+}
+function PopHandledTypes(old) {
+  handled_types = old[0];
+  handled_lockups = old[1];
 }
 function HandleEffectType(t) {
+  if (t.getInteger) t = t.getInteger(0);
   handled_types[t] = 1;
+}
+function IsHandledEffectType(t) {
+  return current_style.__handled_types[EFFECT_STAB];
 }
 
 class OneshotEffectDetector {
@@ -3626,6 +3662,7 @@ class MultiTransitionEffectLClass extends STYLE {
       this.TRANSITIONS.push(this.TRANSITION.DOCOPY());
       this.running.push(false);
     }
+    HandleEffectType(EFFECT_ARG);
   }
   run(blade) {
     var e = this.effect_.Detect(blade);
@@ -4649,6 +4686,9 @@ class TriggerClass extends FUNCTION {
     return 10000000;
   }
   getInteger(led) { return this.value; }
+  IS_RUNNING() {
+    return this.trigger_state != TRIGGER_OFF;
+  }
 };
 
 function Trigger(EFFECT, FADE_IN_MILLIS, SUSTAIN_MILLIS, FADE_OUT_MILLIS) {
@@ -5349,7 +5389,7 @@ class Parser {
       args = [null];
       if (this.peek() != '>') {
         while (true) {
-          args.push(this.parse());
+          args.push(this.parse_internal());
           this.skipspace();
           if (this.peek() != ',') break;
           this.pos++;
@@ -5367,9 +5407,9 @@ class Parser {
       return this.identifiers[id]();
     }
     if (this.classes[id]) {
-      console.log(id);
-      console.log(this.classes[id]);
-      console.log(args);
+      //console.log(id);
+      //console.log(this.classes[id]);
+      //console.log(args);
       if (args == 0) args = [null];
       // var ret = new (Function.prototype.bind.apply(this.classes[id], args));
       var ret;
@@ -5399,8 +5439,7 @@ class Parser {
     return this.parse_atom();
   }
 
-  parse() {
-    ResetHandledTypes();
+  parse_internal() {
     var ret = this.parse_unary();
     this.skipspace();
     while (this.peek() == '|') {
@@ -5412,8 +5451,17 @@ class Parser {
     // console.log(ret);
     //    console.trace();
 
+    return ret;
+  }
+
+  parse() {
+    var OLD = PushHandledTypes();
+    var ret = this.parse_internal();
+
     // secret handshake
     ret.__handled_types = handled_types;
+    ret.__handled_lockups = handled_lockups;
+    PopHandledTypes(OLD);
 
     return ret;
   }
