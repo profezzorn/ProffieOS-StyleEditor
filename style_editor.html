@@ -2655,6 +2655,15 @@ function AddClash() {
 function AddStab() {
   blade.addEffect(EFFECT_STAB, 1.0);
 }
+function AddNewfont() {
+  blade.addEffect(EFFECT_NEWFONT, Math.random() * 0.7 + 0.2);
+}
+function AddBoot() {
+  blade.addEffect(EFFECT_BOOT, Math.random() * 0.7 + 0.2);
+}
+function AddPreon() {
+  blade.addEffect(EFFECT_PREON, 0.0);
+}
 
 var blast_hump = [ 255,255,252,247,240,232,222,211,
 		   199,186,173,159,145,132,119,106,
@@ -5772,6 +5781,22 @@ function UpdateLockupButtons() {
   button.style.backgroundColor = STATE_LOCKUP == LOCKUP_LIGHTNING_BLOCK ? "lightblue" : "";
 }
 
+var lockups_to_event = {};
+lockups_to_event[LOCKUP_NORMAL] = [ EFFECT_LOCKUP_BEGIN, EFFECT_LOCKUP_END ];
+lockups_to_event[LOCKUP_DRAG] = [ EFFECT_DRAG_BEGIN, EFFECT_DRAG_END ];
+
+function OnLockupChange() {
+  console.log("OnLockupChange");
+  var select = FIND("LOCKUP");
+  var old = STATE_LOCKUP;
+  STATE_LOCKUP = window[select.value];
+  if (STATE_LOCKUP && lockups_to_event[STATE_LOCKUP]) {
+    blade.addEffect(lockups_to_event[STATE_LOCKUP][0], Math.random() * 0.7 + 0.2);
+  } else if (old && lockups_to_event[old]) {
+    blade.addEffect(lockups_to_event[old][1], Math.random() * 0.7 + 0.2);
+  }
+}
+
 function ClickLockup() {
   STATE_LOCKUP = STATE_LOCKUP == LOCKUP_NORMAL ? 0 : LOCKUP_NORMAL;
   UpdateLockupButtons();
@@ -5925,10 +5950,18 @@ function ActivateTab(tab) {
     <input name=stab type=button value="Stab" onclick="AddStab();" >
     <input name=blast type=button value="Blast" onclick="AddBlast()"; >
     <input name=force type=button value="Force" onclick="AddForce()"; >
-    <input id=LOCKUP_BUTTON name=lockup type=button value="Lockup" onclick="ClickLockup()" >
-    <input id=DRAG_BUTTON name=drag type=button value="Drag"  onclick="ClickDrag()" >
-    <input id=LB_BUTTON name=drag type=button value="LB"  onclick="ClickLB()" >
-    <input id=MELT_BUTTON name=drag type=button value="Melt"  onclick="ClickMelt()" >
+    <input name=boot type=button value="Boot" onclick="AddBoot()"; >
+    <input name=newfont type=button value="NewFont" onclick="AddNewFont()"; >
+    <input name=preon type=button value="Preon" onclick="AddPreon()"; >
+
+    <select name=lockup id=LOCKUP onchange='OnLockupChange()'>
+      <option value=LOCKUP_NONE>No lockup</option>
+      <option value=LOCKUP_NORMAL>Lockup</option>
+      <option value=LOCKUP_DRAG>Drag</option>
+      <option value=LOCKUP_MELT>Melt</option>
+      <option value=LOCKUP_LIGHTNING_BLOCK>LB</option>
+    </select>
+
     Variant:
     <input id=VARIANT_MINUS name=varminus type=button value="<"  onclick="IncreaseVariant(-1)" >
     <input id=VARIANT name=variant type=input size=6 value="0" >
