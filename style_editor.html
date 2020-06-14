@@ -4441,7 +4441,7 @@ class BatteryLevelClass extends FUNCTION {
     super("Returns 0-32768 based on battery leve.", []);
   }
   run(blade) {}
-  getInteger(led) { return BATTERY_LEVEL; }
+  getInteger(led) { return 32768 - ((millis() * 3) & 0x7fff); }
 };
 
 function BatteryLevel() {
