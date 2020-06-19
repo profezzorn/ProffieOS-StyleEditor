@@ -1260,16 +1260,18 @@ function AddTransition(val) {
 }
 function AddEffectWL(val) {
   AddEffect(val);
+  val=val.slice(0, val.length-2);
   var tmp1 = val.split("<");
   var tmp2 = val.split(",");
-  AddLayer(tmp1[0] + "L<" + tmp2.slice(1).join(","))
+  AddLayer(tmp1[0] + "L<" + tmp2.slice(1).join(",") + ">")
 }
 function AddEffectWLF(val) {
   AddEffect(val);
+  val=val.slice(0, val.length-1);
   var tmp1 = val.split("<");
   var tmp2 = val.split(",");
-  AddLayer(tmp1[0] + "L<" + tmp2.slice(1).join(","))
-  AddFunction(tmp1[0] + "F<" + tmp2.slice(2).join(","))
+  AddLayer(tmp1[0] + "L<" + tmp2.slice(1).join(",") + ">")
+  AddFunction(tmp1[0] + "F<" + tmp2.slice(2).join(",") + ">")
 }
 
 var history_html = "";
@@ -1343,7 +1345,6 @@ AddEffectWL("LockupTr<Red, White, TrFade<100>, TrFade<100>, LOCKUP_MELT>");
 AddEffect("Mix<Int<16384>, Red, Blue>");
 AddEffect("OnSpark<Green, White, 200>");
 AddLayer("OnSparkL<White, Int<200>>");
-AddFunction("OnSparkL<Int<200>>");
 AddEffectWL("OriginalBlast<Blue, White>");
 AddEffectWL("Pulsing<Blue, Red, 800>");
 AddEffect("Rainbow");
@@ -1390,7 +1391,7 @@ AddTransition("TrWipeSparkTipX<White, Int<300>>");
 AddTransition("TrWipeInSparkTipX<White, Int<300>>");
 
 AddFunction("BatteryLevel");
-AddFunction("BrownNoiseF<50>");
+AddFunction("BrownNoiseF<Int<50>>");
 AddFunction("HumpFlickerF<50>");
 AddFunction("NoisySoundLevel");
 AddFunction("NoisySoundLevelCompat");
@@ -1399,19 +1400,19 @@ AddFunction("SwingSpeed<250>");
 AddFunction("Bump<Int<16384>>");
 AddFunction("Ifon<Int<0>, Int<32768>>");
 AddFunction("InOutFunc<300, 800>");
-AddFunction("InOutHelperF<300, 800>");
+AddFunction("InOutHelperF<InOutFunc<300, 800>>");
 AddFunction("Int<32768>");
 AddFunction("Scale<Sin<Int<10>>,Int<0>,Int<4000>>");
 AddFunction("Sin<Int<10>>");
 AddFunction("SmoothStep<Sin<Int<10>>, Sin<Int<7>>>");
 AddFunction("Trigger<EFFECT_FORCE, Int<500>, Int<1000>, Int<500>>");
 AddFunction("ChangeSlowly<NoisySoundLevel, Int<50000>>");
-AddFunction("SlowNoise");
+AddFunction("SlowNoise<Int<1000>>");
 AddFunction("IsLessThan<SwingSpeed<250>, Int<100>>");
 AddFunction("LayerFunctions<Bump<Int<0>>, Bump<Int<32768>>>");
-AddFunction("OnSparkF<200>");
-AddFunction("PulsingF<800>");
-AddFunction("RandomBlinkF<3000>");
+AddFunction("OnSparkF<Int<200>>");
+AddFunction("PulsingF<Int<800>>");
+AddFunction("RandomBlinkF<Int<3000>>");
 AddFunction("RandomF");
 AddFunction("RandomPerLEDF");
 AddFunction("SequenceF<100, 37, 0b0001010100011100, 0b0111000111000101, 0b0100000000000000>");
