@@ -1371,6 +1371,10 @@ AddEffect("StyleFire<Blue, Cyan>");
 AddEffect("MultiTransitionEffect<Blue, White, TrWipe<50>, TrWipe<50>, EFFECT_BLAST>");
 AddEffectWL("TransitionLoop<Blue, TrConcat<TrFade<200>, Red, TrFade<200>>>");
 
+AddEffect("IgnitionDelay<500, InOutHelper<EasyBlade<OnSpark<Green>, White>, 300, 800>>>");
+AddEffect("RetractionDelay<500, InOutHelper<EasyBlade<OnSpark<Green>, White>, 300, 800>>>");
+
+
 AddLayer("TransitionEffectL<TrConcat<TrWipe<50>, White, TrWipe<50>>, EFFECT_BLAST>");
 AddLayer("MultiTransitionEffectL<TrConcat<TrWipe<50>, White, TrWipe<50>>, EFFECT_BLAST>");
 
@@ -2022,10 +2026,10 @@ function Mix(F, C1, C2) {
   return new MixClass(Array.from(arguments));
 };
 
-class IgnitionDelayClass extends STYLE {
+class IgnitionDelayXClass extends STYLE {
   constructor(DELAY_MILLIS, BASE) {
     super("Delays ignition by DELAY_MILLIS", Array.from(arguments));
-    this.add_arg("DELAY_MILLIS", "INT", "Ignition delay, in milliseconds");
+    this.add_arg("DELAY_MILLIS", "FUNCTION", "Ignition delay, in milliseconds");
     this.add_arg("BASE", "COLOR", "Blade style");
   }
   is_on() {
@@ -2036,6 +2040,8 @@ class IgnitionDelayClass extends STYLE {
   }
   GetEffects() { return this.blade.GetEffects(); }
   run(blade) {
+    this.DELAY_MILLIS.run(blade);
+    var delay_millis = this.DELAY_MILLIS.getInteger(0);
     this.blade = blade;
     if (blade.is_on()) {
       if (!this.waiting) {
@@ -2043,9 +2049,9 @@ class IgnitionDelayClass extends STYLE {
 	this.wait_start_time = millis();
       }
       var waited = millis() - this.wait_start_time;
-      if (waited > this.DELAY_MILLIS) {
+      if (waited > delay_millis) {
 	this.is_on_ = true;
-	this.wait_start_time = millis() - this.DELAY_MILLIS - 1;
+	this.wait_start_time = millis() - delay_millis - 1;
       }
     } else {
       this.waiting = false;
@@ -2058,14 +2064,27 @@ class IgnitionDelayClass extends STYLE {
   }
 }
 
+function IgnitionDelayX(millis, base) {
+  return new IgnitionDelayXClass(millis, base);
+}
+
+class IgnitionDelayClass extends MACRO {
+  constructor(DELAY_MILLIS, BASE) {
+    super("Delays ignition by DELAY_MILLIS", Array.from(arguments));
+    this.add_arg("DELAY_MILLIS", "INT", "Ignition delay, in milliseconds");
+    this.add_arg("BASE", "COLOR", "Blade style");
+    this.SetExpansion(IgnitionDelayX(Int(DELAY_MILLIS), BASE));
+  }
+}
+
 function IgnitionDelay(millis, base) {
   return new IgnitionDelayClass(millis, base);
 }
 
-class RetractionDelayClass extends STYLE {
+class RetractionDelayXClass extends STYLE {
   constructor(DELAY_MILLIS, BASE) {
     super("Delays retraction by DELAY_MILLIS", Array.from(arguments));
-    this.add_arg("DELAY_MILLIS", "INT", "Ignition delay, in milliseconds");
+    this.add_arg("DELAY_MILLIS", "FUNCTION", "Ignition delay, in milliseconds");
     this.add_arg("BASE", "COLOR", "Blade style");
   }
   is_on() {
@@ -2076,6 +2095,8 @@ class RetractionDelayClass extends STYLE {
   }
   GetEffects() { return this.blade.GetEffects(); }
   run(blade) {
+    this.DELAY_MILLIS.run(blade);
+    var delay_millis = this.DELAY_MILLIS.getInteger(0);
     this.blade = blade;
     if (!blade.is_on()) {
       if (!this.waiting) {
@@ -2083,9 +2104,9 @@ class RetractionDelayClass extends STYLE {
 	this.wait_start_time = millis();
       }
       var waited = millis() - this.wait_start_time;
-      if (waited > this.DELAY_MILLIS) {
+      if (waited > delay_millis) {
 	this.is_on_ = false;
-	this.wait_start_time = millis() - this.DELAY_MILLIS - 1;
+	this.wait_start_time = millis() - delay_millis - 1;
       }
     } else {
       this.waiting = false;
@@ -2098,6 +2119,18 @@ class RetractionDelayClass extends STYLE {
   }
 }
 
+function RetractionDelayX(millis, base) {
+  return new RetractionDelayXClass(millis, base);
+}
+
+class RetractionDelayClass extends MACRO {
+  constructor(DELAY_MILLIS, BASE) {
+    super("Delays retraction by DELAY_MILLIS", Array.from(arguments));
+    this.add_arg("DELAY_MILLIS", "INT", "Ignition delay, in milliseconds");
+    this.add_arg("BASE", "COLOR", "Blade style");
+    this.SetExpansion(RetractionDelayX(Int(DELAY_MILLIS), BASE));
+  }
+}
 function RetractionDelay(millis, base) {
   return new RetractionDelayClass(millis, base);
 }
@@ -5153,7 +5186,9 @@ function newCall(Cls) {
     HumpFlickerL : HumpFlickerL,
     HumpFlickerF : HumpFlickerF,
     IgnitionDelay : IgnitionDelay,
+    IgnitionDelayX : IgnitionDelayX,
     RetractionDelay : RetractionDelay,
+    RetractionDelayX : RetractionDelayX,
     InOutHelper : InOutHelper,
     InOutHelperX : InOutHelperX,
     InOutHelperL : InOutHelperL,
