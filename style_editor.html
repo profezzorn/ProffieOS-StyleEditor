@@ -1260,7 +1260,7 @@ function AddTransition(val) {
 }
 function AddEffectWL(val) {
   AddEffect(val);
-  val=val.slice(0, val.length-2);
+  val=val.slice(0, val.length-1);
   var tmp1 = val.split("<");
   var tmp2 = val.split(",");
   AddLayer(tmp1[0] + "L<" + tmp2.slice(1).join(",") + ">")
@@ -1325,7 +1325,8 @@ AddEffectWL("AudioFlicker<White, Blue>");
 AddEffectWLF("Blast<Blue, White>");
 AddEffectWL("BlastFadeout<Blue, White>");
 AddEffectWLF("Blinking<Red, Blue, 1000, 500>");
-AddEffectWL("BrownNoiseFlicker<Green, Magenta, 50>");
+AddEffect("BrownNoiseFlicker<Green, Magenta, 50>");
+AddLayer("BrownNoiseFlickerL<Magenta, Int<50>>");
 AddEffect("ColorChange<TrInstant, Red, Green, Blue>");
 AddEffect("ColorCycle<Blue,  0, 1, Cyan,  100, 3000, 5000>");
 AddEffect("ColorSequence<500, Red, Green, Blue>");
@@ -1341,19 +1342,20 @@ AddEffect("InOutTr<Green, TrColorCycle<3000>, TrFade<500>>");
 AddEffect("Layers<Green, AlphaL<Red, Int<16000>>>");
 AddEffectWL("LocalizedClash<Red, White>");
 AddEffectWL("Lockup<Green, Red>");
-AddEffectWL("LockupTr<Red, White, TrFade<100>, TrFade<100>, LOCKUP_MELT>");
+AddEffectWL("LockupTr<Red, White, TrFade<100>, TrFade<100>, SaberBase::LOCKUP_MELT>");
 AddEffect("Mix<Int<16384>, Red, Blue>");
 AddEffect("OnSpark<Green, White, 200>");
 AddLayer("OnSparkL<White, Int<200>>");
 AddEffectWL("OriginalBlast<Blue, White>");
 AddEffectWL("Pulsing<Blue, Red, 800>");
+AddLayer("PulsingL<Red, Int<800>>");
 AddEffect("Rainbow");
 AddEffect("RandomBlink<3000>");
 AddLayer("RandomBlinkL<Int<3000>, Green>");
 AddEffect("RandomFlicker<Yellow, Blue>");
 AddLayer("RandomL<Blue>");
 AddEffectWL("RandomPerLEDFlicker<Green, Magenta>");
-AddEffect("Rgb16<0,0,50>");
+AddEffect("Rgb16<0,0,65536>");
 AddEffect("Rgb<100,100,100>");
 AddEffect("RgbCycle");
 AddEffect("RotateColorsX<Sin<Int<10>>, Red>");
@@ -2463,7 +2465,7 @@ class BrownNoiseFlickerClass extends MACRO {
     this.add_arg("A", "COLOR", "A");
     this.add_arg("B", "COLOR", "B");
     this.add_arg("GRADE", "INT", "grade", 50);
-    this.SetExpansion(Layers(A, BrownNoiseFlickerL(B, Int(GRADE * 128))))
+    this.SetExpansion(Layers(A, BrownNoiseFlickerL(B, Int(this.GRADE * 128))))
   }
 };
 
@@ -3182,7 +3184,7 @@ function LockupTrL(COLOR, BeginTr, EndTr, LOCKUP_TYPE) {
   return new LockupTrLClass(COLOR, BeginTr, EndTr, LOCKUP_TYPE);
 }
 
-class LockupTrClass extends STYLE {
+class LockupTrClass extends MACRO {
   constructor(BASE, COLOR, BeginTr, EndTr, LOCKUP_TYPE) {
     super("Transition based lockup effect.", arguments);
     this.add_arg("BASE", "COLOR", "Base color.");
