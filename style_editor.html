@@ -2461,7 +2461,7 @@ function RandomPerLEDFlicker(A, B) {
 class BrownNoiseFClass extends FUNCTION {
   constructor(grade) {
     super("Randomly return values between 0 and 32768, but keeps nearby values similar", Array.from(arguments));
-    this.add_arg("GRADE", "FUNCTION", "grade", 50);
+    this.add_arg("GRADE", "FUNCTION", "grade");
   }
   run(blade) {
     super.run(blade);
@@ -2483,7 +2483,7 @@ class BrownNoiseFlickerLClass extends MACRO {
   constructor(B, GRADE) {
     super("Randomly selects between A and B but keeps nearby pixels similar", Array.from(arguments));
     this.add_arg("B", "COLOR", "B");
-    this.add_arg("GRADE", "FUNCTION", "grade", Int(50));
+    this.add_arg("GRADE", "FUNCTION", "grade");
     this.SetExpansion(AlphaL(B, BrownNoiseF(GRADE)))
   }
 };
@@ -2497,7 +2497,7 @@ class BrownNoiseFlickerClass extends MACRO {
     super("Randomly selects between A and B but keeps nearby pixels similar", Array.from(arguments));
     this.add_arg("A", "COLOR", "A");
     this.add_arg("B", "COLOR", "B");
-    this.add_arg("GRADE", "INT", "grade", 50);
+    this.add_arg("GRADE", "INT", "grade");
     this.SetExpansion(Layers(A, BrownNoiseFlickerL(B, Int(this.GRADE * 128))))
   }
 };
