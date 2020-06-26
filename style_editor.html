@@ -1020,9 +1020,9 @@ class RgbClass extends STYLE {
   pp() {
     if (this.name) return this.PPshort(this.name,"Color");
     return this.PPshort("Rgb",  "RGB Color",
-			this.r*255, "Red component",
-			this.g*255, "Green component",
-			this.b*255, "Blue component");
+			Math.round(this.r*255), "Red component",
+			Math.round(this.g*255), "Green component",
+			Math.round(this.b*255), "Blue component");
   }
   mix(other, blend) {
     var ret = new RgbClass(0,0,0);
@@ -1102,9 +1102,9 @@ class Rgb16Class extends RgbClass {
   pp() {
     if (this.name) return this.PPshort(this.name,"Color");
     return this.PPshort("Rgb16",  "RGB Color",
-			this.r*65535, "Red component",
-			this.g*65535, "Green component",
-			this.b*65535, "Blue component");
+			Math.round(this.r*65535), "Red component",
+			Math.round(this.g*65535), "Green component",
+			Math.round(this.b*65535), "Blue component");
   }
 };
 
@@ -5656,10 +5656,16 @@ function ReplaceCurrentFocus(str) {
   }
   var type = "COLOR";
   var classname = "Style";
-  if (current_focus && current_style && current_focus != current_style) {
+//  if (current_focus && current_style && current_focus != current_style) {
+//    type = current_style.getType();
+//    classname = current_focus.constructor.name;
+//  }
+
+  if (current_style) {
     type = current_style.getType();
-    classname = current_focus.constructor.name;
+    classname = current_style.constructor.name;
   }
+  
   AddHistory(current_focus_url, current_style.getType());
   console.log("TYPE = " + type);
   // FIND("color_links").className = type == "COLOR" ? "normal" : "grayout";
