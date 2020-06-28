@@ -571,7 +571,7 @@ class STYLE {
     pp_is_url++;
     var ret = name;
     var comma = false;
-    if (arguments.length > 2) {
+    if (arguments.length > 2 || this.argdefs.length > 0) {
       ret += "<";
       for (var i = 2; i < arguments.length; i += 2) {
 	if (comma) ret += ",";
@@ -1317,7 +1317,7 @@ AddTemplate("StyleNormalPtr<Pulsing<Red, Rgb<50,0,0>, 5000>, White, 300, 800, Re
 AddTemplate("StyleRainbowPtr<300, 800>");
 AddTemplate("StyleStrobePtr<White, Rainbow, 15, 300, 800>");
 AddTemplate("StyleFirePtr<Red, Yellow>");
-AddTemplate("Layers<Red, ResponsiveLockupL<White, TrInstant, TrInstant, Int<26000>, Int<6000>>,ResponsiveLightningBlockL<White, TrInstant, TrInstant>,ResponsiveMeltL<Mix<TwistAngle,Red,Yellow>, TrWipeIn<600>, TrWipe<600>, Int<4000>, Int<10000>>,ResponsiveDragL<White, TrInstant, TrInstant, Int<2000>, Int<10000>>,ResponsiveClashL<White, TrInstant, TrFade<200>, Int<26000>, Int<6000>>,ResponsiveBlastL<White, Int<400>, Int<100>, Int<400>, Int<28000>, Int<8000>>,ResponsiveBlastWaveL<White, Int<400>, Int<100>, Int<400>, Int<28000>, Int<8000>>,ResponsiveBlastFadeL<White, Int<8000>, Int<400>, Int<28000>, Int<8000>>,ResponsiveStabL<White, TrWipeIn<600>, TrWipe<600>, Int<14000>, Int<8000>>,InOutTrL<TrWipe<300>, TrWipeIn<500>>>");
+AddTemplate("Layers<Red, ResponsiveLockupL<White, TrInstant, TrInstant, Int<26000>, Int<6000>>,ResponsiveLightningBlockL<White, TrInstant, TrInstant>,ResponsiveMeltL<Mix<TwistAngle<>,Red,Yellow>, TrWipeIn<600>, TrWipe<600>, Int<4000>, Int<10000>>,ResponsiveDragL<White, TrInstant, TrInstant, Int<2000>, Int<10000>>,ResponsiveClashL<White, TrInstant, TrFade<200>, Int<26000>, Int<6000>>,ResponsiveBlastL<White, Int<400>, Int<100>, Int<400>, Int<28000>, Int<8000>>,ResponsiveBlastWaveL<White, Int<400>, Int<100>, Int<400>, Int<28000>, Int<8000>>,ResponsiveBlastFadeL<White, Int<8000>, Int<400>, Int<28000>, Int<8000>>,ResponsiveStabL<White, TrWipeIn<600>, TrWipe<600>, Int<14000>, Int<8000>>,InOutTrL<TrWipe<300>, TrWipeIn<500>>>");
 
 
 AddLayer("AlphaL<Red, Int<16000>>");
@@ -1427,8 +1427,8 @@ AddFunction("StrobeF<Int<15>, Int<1>>");
 AddFunction("BlastFadeoutF");
 AddFunction("OriginalBlastF");
 AddFunction("Variation");
-AddFunction("TwistAngle");
-AddFunction("BladeAngle");
+AddFunction("TwistAngle<>");
+AddFunction("BladeAngle<>");
 
 AddColor("AliceBlue", 223, 239, 255);
 AddColor("Aqua", 0, 255, 255);
@@ -1483,7 +1483,7 @@ AddLayer("InOutTrL<TrColorCycle<3000>,TrFade<500>>");
 
 AddLayer("ResponsiveLockupL<White, TrInstant, TrInstant, Int<26000>, Int<6000>>");
 AddLayer("ResponsiveLightningBlockL<White, TrInstant, TrInstant>");
-AddLayer("ResponsiveMeltL<Mix<TwistAngle,Red,Yellow>, TrInstant, TrInstant, Int<4000>, Int<10000>>");
+AddLayer("ResponsiveMeltL<Mix<TwistAngle<>,Red,Yellow>, TrInstant, TrInstant, Int<4000>, Int<10000>>");
 AddLayer("ResponsiveDragL<White, TrInstant, TrInstant, Int<2000>, Int<10000>>");
 AddLayer("ResponsiveClashL<White, TrInstant, TrFade<200>, Int<26000>, Int<6000>>");
 AddLayer("ResponsiveBlastL<White, Int<400>, Int<100>, Int<400>, Int<28000>, Int<8000>>");
@@ -3079,7 +3079,7 @@ function LocalizedClash(T, CLASH_COLOR, CLASH_MILLIS, CLASH_WIDTH_PERCENT, EF) {
 
 class LockupLClass extends STYLE {
   isEffect() { return true; }
-  constructor(LOCKUP, DRAG_COLOR, LOCKUP_SHAPE, DRAG_SHAPE) {
+  constructor(LOCKUP, DRAG_COLOR, LOCKUP_SHAPE, DRAG_SHAPE, LB_SHAPE) {
     super("Implements the lockup and drag effects.", arguments);
     this.add_arg("LOCKUP", "COLOR", "lockup color");
     this.add_arg("DRAG_COLOR", "COLOR", "drag color", this.LOCKUP.DOCOPY());
@@ -3122,8 +3122,8 @@ class LockupLClass extends STYLE {
   }
 };
 
-function LockupL(LOCKUP, DRAG, LOCKUP_SHAPE, DRAG_SHAPE) {
-  return new LockupLClass(LOCKUP, DRAG, LOCKUP_SHAPE, DRAG_SHAPE);
+function LockupL(LOCKUP, DRAG, LOCKUP_SHAPE, DRAG_SHAPE, LB_SHAPE) {
+  return new LockupLClass(LOCKUP, DRAG, LOCKUP_SHAPE, DRAG_SHAPE, LB_SHAPE);
 }
 
 class LockupClass extends MACRO {
