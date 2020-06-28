@@ -4548,7 +4548,7 @@ function ChangeSlowly(F, SPEED) {
   return new ChangeSlowlyClass(F, SPEED);
 }
 
-class IfOnClass extends FUNCTION {
+class IfonClass extends FUNCTION {
   constructor(A, B) {
     super("A if on, B if off.", arguments);
     this.add_arg("A", "FUNCTION", "A");
@@ -4565,7 +4565,7 @@ class IfOnClass extends FUNCTION {
   }
 };
 
-function Ifon(A, B) { return new IfOnClass(A, B); }
+function Ifon(A, B) { return new IfonClass(A, B); }
 
 class InOutFuncXClass extends FUNCTION {
   constructor(OUT_MILLIS, IN_MILLIS) {
