@@ -1557,7 +1557,6 @@ var STATE_ON = 0;
 // 3 = lb
 // 4 = melt
 var STATE_LOCKUP = 0;
-var STATE_CLASH = 0;
 var STATE_ROTATE = 0;
 var STATE_NUM_LEDS = 144;
 
@@ -2614,6 +2613,7 @@ class StyleFireClass extends STYLE {
     this.heat = new Uint16Array(144 + 13);
     this.state = FIRE_STATE_OFF;
     this.last_update = 0;
+    this.clash_detector_ = new OneshotEffectDetector(EFFECT_CLASH);
   }
   On(blade) {
     if (!blade.is_on()) {
@@ -2643,9 +2643,8 @@ class StyleFireClass extends STYLE {
     var num_leds = blade.num_leds();
     this.num_leds = num_leds;
     var conf = this.OFF;
-    if (STATE_CLASH) {
+    if (this.clash_detector_.Detect(blade)) {
       conf = this.CLASH;
-      STATE_CLASH = 0;
     } else if (this.On(blade)) {
       if (STATE_LOCKUP == 0) {
 	conf = this.NORM;
