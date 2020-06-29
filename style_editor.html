@@ -448,6 +448,31 @@ function setvar(variable, val) {
   console.log("SETVAR ERROR " + variable);
 }
 
+class MyError {
+  constructor(desc) {
+    this.desc = desc;
+    this.begin_pos = -1;
+    this.end_pos = -1;
+  }
+  setBegin(pos) { this.begin_pos = pos; return this; }
+  setEnd(pos) { this.end_pos = pos; return this; }
+  setArg(arg) {
+    if (arg && arg.__end_pos) {
+      this.begin_pos = arg.__begin_pos;
+      this.end_pos = arg.__end_pos;
+    }
+    return this;
+  }
+  setThis(arg) {
+    if (arg && arg.__end_pos && this.begin_pos == -1) {
+      this.begin_pos = arg.__begin_pos;
+      this.end_pos = arg.__end_pos;
+    }
+    return this;
+  }
+  valueOf() { return this.desc; }
+};
+
 function Arg(expected_type, arg, default_arg) {
   //console.log("ARGUMENT: " + expected_type);
   //console.log(arg);
@@ -532,8 +557,10 @@ class STYLE {
     try {
       this[name] = Arg(expected_type, this.args[this.argnum], default_value);
     } catch(e) {
-      if (typeof(e) == "string")
-	e = e + " for argument " + (this.argnum + 1) + " (" + name + ")";
+      if (typeof(e) == "string") {
+        e = new MyError(e + " for argument " + (this.argnum + 1) + " (" + name + ")");
+	e.setArg(this.args[this.argnum]);
+      }
       throw e;
     }
     this.argnum++;
@@ -5418,6 +5445,7 @@ class Parser {
   // recursive descent parser
   parse_atom() {
     this.skipspace();
+    var start_of_atom = this.pos;
     var id = this.identifier();
     if (id == "") {
       throw "Expected identifier or number";
@@ -5464,7 +5492,13 @@ class Parser {
 	ret = classes[id].apply(args[0], args.slice(1));
       } catch(e) {
 	if (typeof(e) == "string")
-	  e = id +":" + e;
+	  e = new MyError(id +":" + e);
+	if (typeof(e) == "object" && e.constructor == MyError)
+	  e.desc = id + ":" + e.desc;
+	if (typeof(e) == "object" && e.constructor == MyError && e.end_pos == -1) {
+	  e.setBegin(start_of_atom);
+	  e.setEnd(this.pos);
+	}
 	throw e;
       }
       // console.log(ret);
@@ -5503,9 +5537,12 @@ class Parser {
 
   parse() {
     var OLD = PushHandledTypes();
+    var begin_pos = this.pos;
     var ret = this.parse_internal();
 
     // secret handshake
+    ret.__begin_pos = begin_pos;
+    ret.__end_pos = this.pos;
     ret.__handled_types = handled_types;
     ret.__handled_lockups = handled_lockups;
     PopHandledTypes(OLD);
@@ -5725,11 +5762,26 @@ function Run() {
     console.log(e);
     console.log(e.stack);
     console.log(typeof(e));
-      if (typeof(e) == "string") {
+    if (typeof(e) == "string") {
 
 	err.innerHTML = e;
 	sty.focus();
 	sty.setSelectionRange(parser.pos, parser.pos);
+
+	parser = new Parser("BLACK",
+			    classes,
+			    identifiers);
+	current_style = parser.parse();
+	compile();
+	return;
+      } else if (typeof(e) == "object" && e.constructor == MyError) {
+	err.innerHTML = e.desc;
+	sty.focus();
+	if (e.begin_pos > -1) {
+          sty.setSelectionRange(e.begin_pos, e.end_pos);
+	} else {
+          sty.setSelectionRange(parser.pos, parser.pos);
+	}
 
 	parser = new Parser("BLACK",
 			    classes,
