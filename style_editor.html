@@ -2535,7 +2535,7 @@ function BrownNoiseFlicker(A, B, grade) {
 class HumpFlickerFClass extends FUNCTION {
   constructor(hump_width) {
     super("Picks a random spot for a bump each frame.", Array.from(arguments));
-    this.add_arg("hump_width", "INT", "Hump width",  50);
+    this.add_arg("hump_width", "INT", "Hump width");
   }
   run(blade) {
     super.run(blade);
@@ -2554,7 +2554,7 @@ class HumpFlickerLClass extends MACRO {
   constructor(B, hump_width) {
     super("Picks a random spot for a bump each frame.", Array.from(arguments));
     this.add_arg("B", "COLOR", "B");
-    this.add_arg("hump_width", "INT", "Hump width",  50);
+    this.add_arg("hump_width", "INT", "Hump width");
     this.SetExpansion(AlphaL(B, HumpFlickerF(hump_width)));
   }
 };
@@ -2568,7 +2568,7 @@ class HumpFlickerClass extends MACRO {
     super("Picks a random spot for a bump each frame.", Array.from(arguments));
     this.add_arg("A", "COLOR", "A");
     this.add_arg("B", "COLOR", "B");
-    this.add_arg("hump_width", "INT", "Hump width",  50);
+    this.add_arg("hump_width", "INT", "Hump width");
     this.SetExpansion(Layers(A, HumpFlickerL(B, hump_width)));
   }
 };
