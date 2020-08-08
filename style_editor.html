@@ -5422,8 +5422,29 @@ class Parser {
     if (this.pos >= this.str.length) return ""
     return this.str[this.pos]
   }
+  peek2() {
+    if (this.pos + 1 >= this.str.length) return ""
+    return this.str[this.pos + 1]
+  }
   skipspace() {
-    while (this.peek() == ' ' || this.peek() == '\t' || this.peek() == '\n' || this.peek() == '\r') this.pos++;
+    while (true) {
+      if (this.peek() == ' ' || this.peek() == '\t' || this.peek() == '\n' || this.peek() == '\r') { this.pos++; continue; }
+      if (this.peek() == '/')  {
+        if (this.peek2() == '*') {
+	  this.pos += 2;
+	  while (this.pos < this.str.length && !(this.peek() == '*' && this.peek2() == '/')) this.pos++;
+	  this.pos += 2;
+	  continue;
+	}
+        if (this.peek2() == '/') {
+	  this.pos += 2;
+	  while (this.pos < this.str.length && this.peek() != '\n') this.pos++;
+	  this.pos ++;
+	  continue;
+	}
+      }
+      return;
+    }
   }
 
   identifier() {
