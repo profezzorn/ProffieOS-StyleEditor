@@ -5975,10 +5975,12 @@ function Copy() {
 }
 
 function DoExpand() {
-  pp_is_url++;
-  var url = current_style.expansion.pp();
-  pp_is_url--;
-  SetTo(url);
+  if (current_style && current_style.expansion) {
+    pp_is_url++;
+    var url = current_style.expansion.pp();
+    pp_is_url--;
+    SetTo(url);
+  }
 }
 
 function ShouldJoin(layer1, layer2) {
