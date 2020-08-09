@@ -5494,6 +5494,9 @@ class Parser {
         throw "Missing > or ,";
       }
       this.pos++;
+      if (this.peek() == '(' && this.peek2() == ')') {
+        this.pos += 2;
+      }
     }
     if (this.identifiers[id]) {
       if (args != 0) {
