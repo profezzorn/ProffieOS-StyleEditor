@@ -2922,8 +2922,8 @@ function OriginalBlast(BASE, BLAST, EFFECT) {
 class BlinkingFClass extends FUNCTION {
   constructor(BLINK_MILLIS, BLINK_PROMILLE) {
     super("Blinks between 0 and 32768", Array.from(arguments));
-    this.add_arg("BLINK_MILLIS", "INT", "milliseconds between blinks");
-    this.add_arg("BLINK_PROMILLE", "INT", "0 = off, 1000 = on");
+    this.add_arg("BLINK_MILLIS", "FUNCTION", "milliseconds between blinks");
+    this.add_arg("BLINK_PROMILLE", "FUNCTION", "0 = off, 1000 = on");
     this.on_ = false;
     this.pulse_start_micros_ = 0;
   }
@@ -2958,14 +2958,29 @@ class BlinkingLClass extends MACRO {
   constructor(COLOR, BLINK_MILLIS, BLINK_PROMILLE) {
     super("Blinks transparent/opaque COLOR", Array.from(arguments));
     this.add_arg("COLOR", "COLOR", "COLOR");
-    this.add_arg("BLINK_MILLIS", "INT", "milliseconds between blinks");
-    this.add_arg("BLINK_PROMILLE", "INT", "0 = off, 1000 = on");
+    this.add_arg("BLINK_MILLIS", "FUNCTION", "milliseconds between blinks");
+    this.add_arg("BLINK_PROMILLE", "FUNCTION", "0 = off, 1000 = on");
     this.SetExpansion(AlphaL(COLOR, BlinkingF(BLINK_MILLIS, BLINK_PROMILLE)));
   }
 };
 
 function BlinkingL(A, B, BM, BP) {
   return new BlinkingLClass(A, B, BM, BP);
+}
+
+class BlinkingXClass extends MACRO {
+  constructor(COLOR1, COLOR2, BLINK_MILLIS, BLINK_PROMILLE) {
+    super("Blinks between A and B", Array.from(arguments));
+    this.add_arg("COLOR1", "COLOR", "A");
+    this.add_arg("COLOR2", "COLOR", "B");
+    this.add_arg("BLINK_MILLIS", "FUNCTION", "milliseconds between blinks");
+    this.add_arg("BLINK_PROMILLE", "FUNCTION", "0 = off, 1000 = on");
+    this.SetExpansion(Layers(COLOR1, BlinkingL(COLOR2, BLINK_MILLIS, BLINK_PROMILLE)));
+  }
+};
+
+function BlinkingX(A, B, BM, BP) {
+  return new BlinkingXClass(A, B, BM, BP);
 }
 
 class BlinkingClass extends MACRO {
@@ -2975,7 +2990,7 @@ class BlinkingClass extends MACRO {
     this.add_arg("COLOR2", "COLOR", "B");
     this.add_arg("BLINK_MILLIS", "INT", "milliseconds between blinks");
     this.add_arg("BLINK_PROMILLE", "INT", "0 = off, 1000 = on");
-    this.SetExpansion(Layers(COLOR1, BlinkingL(COLOR2, BLINK_MILLIS, BLINK_PROMILLE)));
+    this.SetExpansion(BlinkingX(COLOR1, COLOR2, Int(BLINK_MILLIS), Int(BLINK_PROMILLE)));
   }
 };
 
@@ -5196,6 +5211,7 @@ function newCall(Cls) {
     BlastFadeoutF : BlastFadeoutF,
     Blinking : Blinking,
     BlinkingL : BlinkingL,
+    BlinkingX : BlinkingX,
     BlinkingF : BlinkingF,
     BrownNoiseFlicker : BrownNoiseFlicker,
     BrownNoiseFlickerL : BrownNoiseFlickerL,
