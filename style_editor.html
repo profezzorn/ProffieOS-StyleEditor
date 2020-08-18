@@ -2281,7 +2281,7 @@ class SequenceClass extends MACRO {
     for (var i = 0; i < this.BITS; i+= 16) {
       this.add_arg("BITS"+i, "INT", "Bit sequence " + ((i/16)+1));
     }
-    this.SetExpansion(Layers(this.COLOR1, new SequenceLClass(ARGS.slice(1))));
+    this.SetExpansion(Layers(this.COLOR2, new SequenceLClass([this.COLOR1].concat(ARGS.slice(2)))));
   }
 };
 
