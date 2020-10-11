@@ -347,7 +347,7 @@ function initGL() {
   canvas.style.width = width + 'px';
   canvas.style.height = height + 'px';
   
-  gl = canvas.getContext("experimental-webgl", {pixelFormat:"float16", colorSpace: "srgb", antialias:false});
+  gl = canvas.getContext("experimental-webgl", {colorSpace: "srgb", antialias:false});
 
   if (!gl) {
     throw "Unable to fetch WebGL rendering context for Canvas";
