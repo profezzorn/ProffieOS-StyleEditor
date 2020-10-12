@@ -1351,7 +1351,7 @@ AddLayer("AlphaL<Red, Int<16000>>");
 AddEffectWL("AudioFlicker<White, Blue>");
 AddEffectWLF("Blast<Blue, White>");
 AddEffectWL("BlastFadeout<Blue, White>");
-AddEffectWLF("Blinking<Red, Blue, 1000, 500>");
+AddEffectWL("Blinking<Red, Blue, 1000, 500>");
 AddEffect("BrownNoiseFlicker<Green, Magenta, 50>");
 AddLayer("BrownNoiseFlickerL<Magenta, Int<50>>");
 AddEffect("ColorChange<TrInstant, Red, Green, Blue>");
@@ -1424,6 +1424,7 @@ AddTransition("TrWipeSparkTipX<White, Int<300>>");
 AddTransition("TrWipeInSparkTipX<White, Int<300>>");
 
 AddFunction("BatteryLevel");
+AddFunction("BlinkingF<Int<1000>, Int<500>>");
 AddFunction("BrownNoiseF<Int<50>>");
 AddFunction("HumpFlickerF<50>");
 AddFunction("NoisySoundLevel");
