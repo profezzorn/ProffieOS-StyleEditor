@@ -1367,6 +1367,7 @@ AddLayer("BrownNoiseFlickerL<Magenta, Int<50>>");
 AddEffect("ColorChange<TrInstant, Red, Green, Blue>");
 AddEffect("ColorCycle<Blue,  0, 1, Cyan,  100, 3000, 5000>");
 AddEffect("ColorSequence<500, Red, Green, Blue>");
+AddEffect("EffectSequence<EFFECT_CLASH, Red, Green, Blue>");
 AddEffect("Cylon<Red, 5, 20>");
 AddEffect("Gradient<Blue, Green, Yellow, Red>");
 AddEffect("Gradient<Red, Blue, Green>");
@@ -2329,6 +2330,32 @@ class ColorSequenceClass extends STYLE {
 
 function ColorSequence(MPC, C) {
   return new ColorSequenceClass(Array.from(arguments));
+};
+
+class EffectSequenceClass extends STYLE {
+  constructor(ARGS) {
+    super("Sequence that changes on events.", ARGS);
+    this.add_arg("EFFECT", "EFFECT", "effect that goes to next color");
+    this.COLORS = Array.from(ARGS).slice(1);
+    for (var i = 1; i < this.COLORS.length + 1; i++)
+      this.add_arg("COLOR" + i, "COLOR", "COLOR " + i);
+    this.last_micros = 0;
+    this.n = this.COLORS.length - 1;
+    this.effect_ = new OneshotEffectDetector(this.EFFECT);
+  }
+  run(blade) {
+    super.run(blade);
+    var now = micros();
+
+    if (this.effect_.Detect(blade)) {
+      this.n = (this.n + 1) % this.COLORS.length;
+    }
+  }
+  getColor(led) { return this.COLORS[this.n].getColor(led); }
+};
+
+function EffectSequence(MPC, C) {
+  return new EffectSequenceClass(Array.from(arguments));
 };
 
 class StripesXClass extends STYLE {
@@ -5230,6 +5257,7 @@ function newCall(Cls) {
     ColorCycle : ColorCycle,
     ColorChange : ColorChange,
     ColorSequence : ColorSequence,
+    EffectSequence : EffectSequence,
     Cylon : Cylon,
     EasyBlade : EasyBlade,
     FOCUS : Focus,
