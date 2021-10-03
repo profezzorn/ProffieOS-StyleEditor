@@ -1388,6 +1388,7 @@ AddEffectWL("OriginalBlast<Blue, White>");
 AddEffectWL("Pulsing<Blue, Red, 800>");
 AddLayer("PulsingL<Red, Int<800>>");
 AddEffect("Rainbow");
+AddEffect("Remap<SmoothStep<Sin<Int<10>>, Sin<Int<7>>>, Rainbow>");
 AddEffect("RandomBlink<3000>");
 AddLayer("RandomBlinkL<Int<3000>, Green>");
 AddEffect("RandomFlicker<Yellow, Blue>");
@@ -2520,6 +2521,31 @@ class RandomPerLEDFlickerClass extends MACRO {
 
 function RandomPerLEDFlicker(A, B) {
   return new RandomPerLEDFlickerClass(A, B);
+}
+
+class RemapClass extends STYLE {
+  constructor(F, COLOR) {
+    super("Remaps the pixels of COLOR based on F", arguments);
+    this.add_arg("F", "FUNCTION", "remap function");
+    this.add_arg("COLOR", "COLOR", "COLOR");
+  }
+  run(blade) {
+    super.run(blade);
+    this.num_leds = blade.num_leds();
+  }
+  getColor(led) {
+    var pos = this.F.getInteger(led);
+    var led = clamp(pos * this.num_leds, 0, this.num_leds * 32768 - 1);
+    var fraction = led & 0x7fff;
+    led = clamp(led >> 15, 0, this.num_leds);
+    return this.COLOR.getColor(led).mix(
+        this.COLOR.getColor(min(led + 1, this.num_leds - 1)),
+	fraction / 32768);
+  }
+}
+
+function Remap(F, COLOR) {
+  return new RemapClass(F, COLOR);
 }
 
 class BrownNoiseFClass extends FUNCTION {
@@ -5304,6 +5330,7 @@ function newCall(Cls) {
     RandomBlinkX : RandomBlinkX,
     RandomBlinkL : RandomBlinkL,
     RandomBlinkF : RandomBlinkF,
+    Remap : Remap,
     Sequence : Sequence,
     SequenceL : SequenceL,
     SequenceF : SequenceF,
