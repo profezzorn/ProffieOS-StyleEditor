@@ -1365,6 +1365,7 @@ AddEffectWL("Blinking<Red, Blue, 1000, 500>");
 AddEffect("BrownNoiseFlicker<Green, Magenta, 50>");
 AddLayer("BrownNoiseFlickerL<Magenta, Int<50>>");
 AddEffect("ColorChange<TrInstant, Red, Green, Blue>");
+AddEffect("ColorSelect<Variation, TrInstant, Red, Green, Blue>");
 AddEffect("ColorCycle<Blue,  0, 1, Cyan,  100, 3000, 5000>");
 AddEffect("ColorSequence<500, Red, Green, Blue>");
 AddEffect("EffectSequence<EFFECT_CLASH, Red, Green, Blue>");
@@ -3748,48 +3749,67 @@ function InOutSparkTip(T, I, O, S) {
   return new InOutSparkTipClass(T, I, O, S);
 }
 
-class ColorChangeClass extends STYLE {
+class ColorChangeClass extends MACRO {
   constructor(ARGS) {
     super("Change color based on variation", ARGS);
     this.COLORS = Array.from(ARGS).slice(1);
     this.add_arg("TRANSITION", "TRANSITION","Transition");
     for (var i = 1; i < this.COLORS.length + 1; i++)
       this.add_arg("COLOR" + i, "COLOR", "COLOR " + i);
-    this.variation = this.getVariation();
-    this.old_variation = this.getVariation();
-    HandleEffectType(EFFECT_CHANGE);
+    this.SetExpansion(new ColorSelectClass([Variation(), this.TRANSITION].concat(this.COLORS)));
   }
-  getVariation() {
-    return Variant() % this.COLORS.length
+};
+
+function ColorChange(T, A, B) {
+  return new ColorChangeClass(Array.from(arguments));
+}
+
+class ColorSelectClass extends STYLE {
+  constructor(ARGS) {
+    super("Change color based on function", ARGS);
+    this.COLORS = Array.from(ARGS).slice(2);
+    this.add_arg("F", "FUNCTION","Selector function");
+    this.add_arg("TRANSITION", "TRANSITION","Transition");
+    for (var i = 1; i < this.COLORS.length + 1; i++)
+      this.add_arg("COLOR" + i, "COLOR", "COLOR " + i);
+    this.selection = this.F.getInteger(0);
+    this.old_selection = this.selection;
+    if (this.F.pp() == "Variation") {
+      HandleEffectType(EFFECT_CHANGE);
+    }
   }
   run(blade) {
+    this.F.run(blade);
     for (var i = 0; i < this.COLORS.length; i++)
       this.COLORS[i].run(blade);
-    if (this.getVariation() != this.variation) {
+    var f = this.F.getInteger(0);
+    while (f < 0) f += this.COLORS.length * 256;
+    var selection = f % this.COLORS.length;
+    if (selection != this.selection) {
       // Start transition
-      this.old_variation = this.variation;
-      this.variation = this.getVariation();
+      this.old_selection = this.selection;
+      this.selection = selection;
       this.TRANSITION.begin();
     }
-    if (this.variation != this.old_variation) {
+    if (this.selection != this.old_selection) {
       this.TRANSITION.run(blade);
       if (this.TRANSITION.done()) {
-        this.old_variation = this.variation;
+        this.old_selection = this.selection;
       }
     }
   }
   getColor(led) {
-    var ret = this.COLORS[this.variation].getColor(led);
-    if (this.variation != this.old_variation) {
-      var old = this.COLORS[this.old_variation].getColor(led);
+    var ret = this.COLORS[this.selection].getColor(led);
+    if (this.selection != this.old_selection) {
+      var old = this.COLORS[this.old_selection].getColor(led);
       ret = this.TRANSITION.getColor(old, ret, led);
     }
     return ret;
   }
 };
 
-function ColorChange(T, A, B) {
-  return new ColorChangeClass(Array.from(arguments));
+function ColorSelect(F, T, A, B) {
+  return new ColorSelectClass(Array.from(arguments));
 }
 
 class TransitionLoopLClass extends STYLE {
@@ -5304,6 +5324,7 @@ function newCall(Cls) {
     BrownNoiseF : BrownNoiseF,
     ColorCycle : ColorCycle,
     ColorChange : ColorChange,
+    ColorSelect : ColorSelect,
     ColorSequence : ColorSequence,
     EffectSequence : EffectSequence,
     Cylon : Cylon,
