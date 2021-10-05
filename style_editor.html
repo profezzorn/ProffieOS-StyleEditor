@@ -1430,6 +1430,7 @@ AddTransition("TrRandom<TrFade<500>, TrWipe<500>, TrBoing<500, 2>>");
 AddTransition("TrSmoothFade<300>");
 AddTransition("TrWipe<500>");
 AddTransition("TrWipeIn<500>");
+AddTransition("TrCenterWipe<500>");
 AddTransition("TrWaveX<White>");
 AddTransition("TrWipeSparkTip<White, 300>");
 AddTransition("TrWipeInSparkTip<White, 300>");
@@ -4345,6 +4346,42 @@ class TrWipeInClass extends MACRO {
 
 function TrWipeIn(MILLIS) { return new TrWipeInClass(MILLIS); }
 
+/////
+
+class TrCenterWipeXClass extends TRANSITION_BASE {
+  constructor(MILLIS, POS) {
+    super("Center Wipe transition", arguments);
+    this.add_arg("POS", "FUNCTION", "Position", Int(16384));
+  }
+  run(blade) {
+    super.run(blade);
+    var center = (this.POS.getInteger(0) * blade.num_leds()) / 32768.0;
+    var fade_top = this.update(blade.num_leds() - center);
+    var fade_bottom = this.update(center);
+    var top = clamp(center + fade_top, center, blade.num_leds());
+    var bottom = clamp(center - fade_bottom, 0, center);
+    this.range = new Range(bottom, top);
+  }
+  getColor(A, B, led) {
+    var mix = this.range.Intersect(new Range(led, (led + 1))).Size();
+    return A.mix(B, mix);
+  }
+}
+
+function TrCenterWipeX(MILLIS, POS) { return new TrCenterWipeXClass(MILLIS, POS); }
+
+class TrCenterWipeClass extends MACRO {
+  constructor(MILLIS, POS) {
+    super("WipeIn transition", arguments);
+    this.add_arg("MILLIS", "INT", "Center Wipe time in milliseconds.");
+    this.add_arg("POS", "INT", "Position", 16384);
+    this.SetExpansion(TrCenterWipeX(Int(MILLIS), Int(this.POS)));
+  }
+}
+
+function TrCenterWipe(MILLIS, POS) { return new TrCenterWipeClass(MILLIS, POS); }
+
+/////
 
 class TrWipeSparkTipXClass extends MACRO {
   constructor(SPARK_COLOR, MILLIS, SIZE) {
@@ -5424,6 +5461,8 @@ function newCall(Cls) {
     TrWipeX : TrWipeX,
     TrWipeIn : TrWipeIn,
     TrWipeInX : TrWipeInX,
+    TrCenterWipe : TrCenterWipe,
+    TrCenterWipeX : TrCenterWipeX,
     TrColorCycle : TrColorCycle,
     TrConcat : TrConcat,
     TrJoin : TrJoin,
