@@ -1431,6 +1431,7 @@ AddTransition("TrSmoothFade<300>");
 AddTransition("TrWipe<500>");
 AddTransition("TrWipeIn<500>");
 AddTransition("TrCenterWipe<500>");
+AddTransition("TrCenterWipeSpark<WHITE, 500>");
 AddTransition("TrWaveX<White>");
 AddTransition("TrWipeSparkTip<White, 300>");
 AddTransition("TrWipeInSparkTip<White, 300>");
@@ -1471,6 +1472,7 @@ AddFunction("OriginalBlastF");
 AddFunction("Variation");
 AddFunction("TwistAngle<>");
 AddFunction("BladeAngle<>");
+AddFunction("Sum<RandomPerLEDF, Bump<Int<16384>>>");
 
 AddColor("AliceBlue", 223, 239, 255);
 AddColor("Aqua", 0, 255, 255);
@@ -4381,6 +4383,30 @@ class TrCenterWipeClass extends MACRO {
 
 function TrCenterWipe(MILLIS, POS) { return new TrCenterWipeClass(MILLIS, POS); }
 
+class TrCenterWipeSparkXClass extends MACRO {
+  constructor(COLOR, MILLIS, POS) {
+    super("WipeIn transition", arguments);
+    this.add_arg("COLOR", "COLOR", "Color");
+    this.add_arg("MILLIS", "FUNCTION", "Center Wipe time in milliseconds.");
+    this.add_arg("POS", "INT", "Position", Int(16384));
+    this.SetExpansion(TrJoin(TrCenterWipeX(MILLIS, this.POS),TrWaveX(COLOR, Sum(MILLIS, MILLIS, MILLIS, MILLIS), Int(200), Sum(MILLIS, MILLIS), this.POS)));
+  }
+}
+
+function TrCenterWipeSparkX(COLOR, MILLIS, POS) { return new TrCenterWipeSparkXClass(COLOR, MILLIS, POS); }
+
+class TrCenterWipeSparkClass extends MACRO {
+  constructor(COLOR, MILLIS, POS) {
+    super("WipeIn transition", arguments);
+    this.add_arg("COLOR", "COLOR", "Color");
+    this.add_arg("MILLIS", "INT", "Center Wipe time in milliseconds.");
+    this.add_arg("POS", "INT", "Position", 16384);
+    this.SetExpansion(TrJoin(TrCenterWipeX(Int(MILLIS), Int(this.POS)),TrWaveX(COLOR, Sum(Int(MILLIS), Int(MILLIS), Int(MILLIS), Int(MILLIS)), Int(200), Sum(Int(MILLIS), Int(MILLIS)), Int(this.POS))));
+  }
+}
+
+function TrCenterWipeSpark(COLOR, MILLIS, POS) { return new TrCenterWipeSparkClass(COLOR, MILLIS, POS); }
+
 /////
 
 class TrWipeSparkTipXClass extends MACRO {
@@ -5328,6 +5354,28 @@ function ResponsiveStabL(COLOR, TR1, TR2, TOP, BOTTOM, SIZE) {
   return new ResponsiveStabLClass(COLOR, TR1, TR2, TOP, BOTTOM, SIZE);
 }
 
+///////
+
+class SumClass extends FUNCTION {
+  constructor(ARGS) {
+    super("Add functions together", ARGS);
+    this.F = Array.from(ARGS);
+    for (var i = 1; i <= this.F.length; i++) {
+      this.add_arg("FUN" + i, "FUNCTION", "Function " + i);
+    }
+  }
+  getInteger(led) {
+    var ret = 0;
+    for (var i = 0; i < this.F.length; i++) {
+      ret += this.F[i].getInteger(led);
+    }
+    return ret;
+  }
+}
+
+function Sum(ARGS) {
+  return new SumClass(Array.from(arguments));
+}
 
 ///////
 
@@ -5463,6 +5511,8 @@ function newCall(Cls) {
     TrWipeInX : TrWipeInX,
     TrCenterWipe : TrCenterWipe,
     TrCenterWipeX : TrCenterWipeX,
+    TrCenterWipeSpark : TrCenterWipeSpark,
+    TrCenterWipeSparkX : TrCenterWipeSparkX,
     TrColorCycle : TrColorCycle,
     TrConcat : TrConcat,
     TrJoin : TrJoin,
@@ -5497,6 +5547,7 @@ function newCall(Cls) {
     BladeAngleX : BladeAngleX,
     BladeAngle : BladeAngle,
     TwistAngle : TwistAngle,
+    Sum : Sum,
 
     ResponsiveLockupL : ResponsiveLockupL,
     ResponsiveDragL : ResponsiveDragL,
