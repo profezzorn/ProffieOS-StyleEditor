@@ -1432,6 +1432,8 @@ AddTransition("TrWipe<500>");
 AddTransition("TrWipeIn<500>");
 AddTransition("TrCenterWipe<500>");
 AddTransition("TrCenterWipeSpark<WHITE, 500>");
+AddTransition("TrCenterWipeIn<500>");
+AddTransition("TrCenterWipeInSpark<WHITE, 500>");
 AddTransition("TrWaveX<White>");
 AddTransition("TrWipeSparkTip<White, 300>");
 AddTransition("TrWipeInSparkTip<White, 300>");
@@ -4348,7 +4350,7 @@ class TrWipeInClass extends MACRO {
 
 function TrWipeIn(MILLIS) { return new TrWipeInClass(MILLIS); }
 
-/////
+///// CenterWipe
 
 class TrCenterWipeXClass extends TRANSITION_BASE {
   constructor(MILLIS, POS) {
@@ -4406,6 +4408,66 @@ class TrCenterWipeSparkClass extends MACRO {
 }
 
 function TrCenterWipeSpark(COLOR, MILLIS, POS) { return new TrCenterWipeSparkClass(COLOR, MILLIS, POS); }
+
+///// CenterWipeIn
+
+class TrCenterWipeInXClass extends TRANSITION_BASE {
+  constructor(MILLIS, POS) {
+    super("Center Wipe-in transition", arguments);
+    this.add_arg("POS", "FUNCTION", "Position", Int(16384));
+  }
+  run(blade) {
+    super.run(blade);
+    var center = (this.POS.getInteger(0) * blade.num_leds()) / 32768.0;
+    var fade_top = this.update(blade.num_leds() - center);
+    var fade_bottom = this.update(center);
+    var top = clamp(blade.num_leds() - fade_top, center, blade.num_leds());
+    var bottom = clamp(fade_bottom, 0, center);
+    this.range = new Range(bottom, top);
+  }
+  getColor(A, B, led) {
+    var mix = this.range.Intersect(new Range(led, (led + 1))).Size();
+    return A.mix(B, mix);
+  }
+}
+
+function TrCenterWipeInX(MILLIS, POS) { return new TrCenterWipeInXClass(MILLIS, POS); }
+
+class TrCenterWipeInClass extends MACRO {
+  constructor(MILLIS, POS) {
+    super("WipeIn transition", arguments);
+    this.add_arg("MILLIS", "INT", "Center Wipe time in milliseconds.");
+    this.add_arg("POS", "INT", "Position", 16384);
+    this.SetExpansion(TrCenterWipeInX(Int(MILLIS), Int(this.POS)));
+  }
+}
+
+function TrCenterWipeIn(MILLIS, POS) { return new TrCenterWipeInClass(MILLIS, POS); }
+
+class TrCenterWipeInSparkXClass extends MACRO {
+  constructor(COLOR, MILLIS, POS) {
+    super("WipeIn transition", arguments);
+    this.add_arg("COLOR", "COLOR", "Color");
+    this.add_arg("MILLIS", "FUNCTION", "Center Wipe time in milliseconds.");
+    this.add_arg("POS", "INT", "Position", Int(16384));
+    this.SetExpansion(TrJoin(TrCenterWipeInX(MILLIS, this.POS),TrJoin(TrWaveX(COLOR, MILLIS, Int(200), Sum(MILLIS, MILLIS), Int(0)),TrWaveX(COLOR, MILLIS, Int(200), Sum(MILLIS, MILLIS), Int(32768)))));
+
+  }
+}
+
+function TrCenterWipeInSparkX(COLOR, MILLIS, POS) { return new TrCenterWipeInSparkXClass(COLOR, MILLIS, POS); }
+
+class TrCenterWipeInSparkClass extends MACRO {
+  constructor(COLOR, MILLIS, POS) {
+    super("WipeIn transition", arguments);
+    this.add_arg("COLOR", "COLOR", "Color");
+    this.add_arg("MILLIS", "INT", "Center Wipe time in milliseconds.");
+    this.add_arg("POS", "INT", "Position", 16384);
+    this.SetExpansion(TrJoin(TrCenterWipeInX(Int(MILLIS), Int(this.POS)),TrJoin(TrWaveX(COLOR, Int(MILLIS), Int(200), Sum(Int(MILLIS), Int(MILLIS)), Int(0)),TrWaveX(COLOR, Int(MILLIS), Int(200), Sum(Int(MILLIS), Int(MILLIS)), Int(32768)))));
+  }
+}
+
+function TrCenterWipeInSpark(COLOR, MILLIS, POS) { return new TrCenterWipeInSparkClass(COLOR, MILLIS, POS); }
 
 /////
 
@@ -5513,6 +5575,10 @@ function newCall(Cls) {
     TrCenterWipeX : TrCenterWipeX,
     TrCenterWipeSpark : TrCenterWipeSpark,
     TrCenterWipeSparkX : TrCenterWipeSparkX,
+    TrCenterWipeIn : TrCenterWipeIn,
+    TrCenterWipeInX : TrCenterWipeInX,
+    TrCenterWipeInSpark : TrCenterWipeInSpark,
+    TrCenterWipeInSparkX : TrCenterWipeInSparkX,
     TrColorCycle : TrColorCycle,
     TrConcat : TrConcat,
     TrJoin : TrJoin,
