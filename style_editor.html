@@ -325,10 +325,12 @@ function initGL() {
   AddTab("transition", "Transitions", transition_links.sort().join(""));
   AddTab("effect", "Effects");
   AddTab("lockup_type", "Lockup Types");
+  AddTab("arguments", "Arguments");
   AddTab("example", "Examples", template_links.join(""));
   AddTab("history", "History");
   EFFECT_ENUM_BUILDER.addToTab("effect", "EFFECT_");
   LOCKUP_ENUM_BUILDER.addToTab("lockup_type", "LOCKUP_");
+  ArgumentName_ENUM_BUILDER.addToTab("arguments", "");
 
   var canvas = FIND("canvas_id");
 
@@ -496,7 +498,7 @@ function Arg(expected_type, arg, default_arg) {
   if (typeof(arg) != "number" && arg.getType() != expected_type) {
     throw "Expected " + expected_type;
   }
-  if (expected_type == "INT" || expected_type == "EFFECT" || expected_type == "LOCKUP_TYPE") {
+  if (expected_type == "INT" || expected_type == "EFFECT" || expected_type == "LOCKUP_TYPE" || expected_type == "ArgumentName") {
     return arg;
   }
   if (expected_type == "COLOR" ||
@@ -4928,6 +4930,19 @@ class IntClass extends FUNCTION {
 
 function Int(n) { return new IntClass(n); }
 
+class IntArgClass extends FUNCTION {
+  constructor(ARG, N) {
+    super("Dynamic Integer argument", arguments);
+    this.add_arg("ARG","ArgumentName","number to return.");
+    this.add_arg("DEFAULT","INT","default.");
+  }
+  getInteger(led) { return this.N; }
+};
+
+function IntArg_(ARG, N) {
+  return new IntArgClass(ARG, N);
+}
+
 class ScaleClass extends FUNCTION {
   constructor(F, A, B) {
     super("Changes values in range 0-32768 to A-B.", arguments);
@@ -5631,6 +5646,7 @@ function newCall(Cls) {
     InOutFunc : InOutFunc,
     InOutFuncX : InOutFuncX,
     Int : Int,
+    IntArg : IntArg_,
     Scale : Scale,
     Sin : Sin,
     Trigger : Trigger,
