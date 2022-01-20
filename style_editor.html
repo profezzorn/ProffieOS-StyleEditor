@@ -1484,6 +1484,7 @@ AddFunction("NoisySoundLevel");
 AddFunction("NoisySoundLevelCompat");
 AddFunction("SmoothSoundLevel");
 AddFunction("SwingSpeed<250>");
+AddFunction("SwingAcceleration<130>");
 AddFunction("Bump<Int<16384>>");
 AddFunction("Ifon<Int<0>, Int<32768>>");
 AddFunction("InOutFunc<300, 800>");
@@ -5152,6 +5153,32 @@ class SwingSpeedClass extends MACRO {
 function SwingSpeed(MAX) { return new SwingSpeedClass(MAX); }
 
 
+class SwingAccelerationXClass extends FUNCTION {
+  constructor() {
+    super("Swing Acceleration", arguments);
+    this.add_arg("MAX", "FUNCTION", "What swing speed returns 32768.", Int(130));
+    this.var_ = 0.0;
+  }
+  run(blade) {
+    var v = (Math.cos(millis() * Math.PI / 500.0) * 100 + 100) / this.MAX.getInteger(0);
+    this.var_ = clamp(v * 32768, 0, 32768);
+  }
+  getInteger(led) { return this.var_; }
+};
+
+function SwingAccelerationX(MAX) { return new SwingAccelerationXClass(MAX); }
+
+class SwingAccelerationClass extends MACRO {
+  constructor() {
+    super("Swing Speed", arguments);
+    this.add_arg("MAX", "INT", "What swing speed returns 32768.", 130);
+    this.SetExpansion(SwingAccelerationX(Int(this.MAX)));
+  }
+};
+
+function SwingAcceleration(MAX) { return new SwingAccelerationClass(MAX); }
+
+
 class LayerFunctionsClass extends FUNCTION {
   constructor(ARGS) {
     super("Mix functions", ARGS);
@@ -5656,6 +5683,8 @@ function newCall(Cls) {
     SmoothSoundLevel : SmoothSoundLevel,
     SwingSpeedX : SwingSpeedX,
     SwingSpeed : SwingSpeed,
+    SwingAccelerationX : SwingAccelerationX,
+    SwingAcceleration : SwingAcceleration,
     LayerFunctions : LayerFunctions,
     SlowNoise : SlowNoise,
     IsLessThan : IsLessThan,
