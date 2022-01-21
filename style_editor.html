@@ -4777,6 +4777,47 @@ class TrRandomClass extends TRANSITION {
 
 function TrRandom(ARGS) { return new TrRandomClass(arguments); }
 
+class TrExtendXClass extends TRANSITION {
+  constructor(MILLIS, TRANSITION) {
+    super("Extend a transition.", arguments);
+    this.add_arg("MILLIS", "FUNCTION", "How much to extend the transition.");
+    this.add_arg("TRANSITION", "TRANSITION", "Transition to extend.");
+    this.extending = false;
+    this.millis = new TRANSITION_BASE("millis", [this.MILLIS]);
+  }
+  run(blade) {
+    this.TRANSITION.run(blade);
+    if (!this.extending && this.TRANSITION.done()) {
+       	this.extending = true;
+	this.millis.begin();
+    }
+    if (this.extending) {
+       this.millis.run(blade);
+       this.millis.update(0);
+    }
+  }
+  done() { return this.extending_ && this.millis.done(); }
+  getColor(A, B, led) {
+    return this.TRANSITION.getColor(A, B, led);
+  }
+};
+
+function TrExtendX(MILLIS, TRANSACTION) {
+  return new TrExtendXClass(MILLIS, TRANSACTION);
+}
+
+class TrExtendClass extends MACRO {
+  constructor(MILLIS, TRANSITION) {
+    super("Extend a transition.", arguments);
+    this.add_arg("MILLIS", "INT", "How much to extend the transition.");
+    this.add_arg("TRANSITION", "TRANSITION", "Transition to extend.");
+    this.SetExpansion(TrExtendX(Int(MILLIS), TRANSACTION));
+  }
+};
+
+function TrExtend(MILLIS, TRANSACTION) {
+  return new TrExtendClass(MILLIS, TRANSACTION);
+}
 
 // FUNCTIONS
 
@@ -5755,6 +5796,8 @@ function newCall(Cls) {
     TrWipeSparkTipX : TrWipeSparkTipX,
     TrWipeInSparkTip : TrWipeInSparkTip,
     TrWipeInSparkTipX : TrWipeInSparkTipX,
+    TrExtendX : TrExtendX,
+    TrExtend : TrExtend,
 
     BatteryLevel : BatteryLevel,
     Bump : Bump,
