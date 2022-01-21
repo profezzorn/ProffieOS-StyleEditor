@@ -5352,6 +5352,26 @@ function Variation() {
   return new VariationClass();
 }
 
+class EffectRandomFClass extends FUNCTION {
+  constructor() {
+    super("Select a new random value every time an effect occurs", arguments);
+    this.add_arg("EFFECT", "EFFECT", "Effect to trigger new random.");
+    this.effect = new OneshotEffectDetector(this.EFFECT);
+  }
+  run(blade) {
+    super.run(blade);
+    if (this.effect.Detect(blade)) {
+      this.value = random(32768);
+    }
+  }
+
+  getInteger(led) { return this.value; }
+};
+
+function EffectRandomF(EFFECT) {
+  return new EffectRandomFClass(EFFECT);
+}
+
 class BladeAngleXClass extends FUNCTION {
   constructor() {
     super("Blade Angle", arguments);
@@ -5863,6 +5883,7 @@ function newCall(Cls) {
     TwistAngle : TwistAngle,
     Sum : Sum,
     HoldPeakF : HoldPeakF,
+    EffectRandomF : EffectRandomF,
 
     ResponsiveLockupL : ResponsiveLockupL,
     ResponsiveDragL : ResponsiveDragL,
