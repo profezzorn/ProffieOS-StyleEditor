@@ -1514,6 +1514,9 @@ AddFunction("TwistAngle<>");
 AddFunction("BladeAngle<>");
 AddFunction("Sum<RandomPerLEDF, Bump<Int<16384>>>");
 AddFunction("HoldPeakF<RandomF, Int<300>, Int<32768>>");
+AddFunction("CenterDistF<>");
+AddFunction("EffectPosition<>");
+
 
 AddColor("AliceBlue", 223, 239, 255);
 AddColor("Aqua", 0, 255, 255);
@@ -3464,6 +3467,8 @@ class Blade {
   }
 };
 
+var last_detected_blade_effect;
+
 var handled_types = {};
 function PushHandledTypes() {
   ret = [ handled_types, handled_lockups ];
@@ -3505,6 +3510,7 @@ class OneshotEffectDetector {
         if (effects[i].start_micros == this.last_detected_)
 	  return 0;
 	this.last_detected_ = effects[i].start_micros;
+        last_detected_blade_effect = effects[i].start_micros;
 	return effects[i];
       }
     }
@@ -5401,6 +5407,24 @@ function EffectPosition(EFFECT) {
   return new EffectPositionClass(EFFECT);
 }
 
+class CenterDistFClass extends FUNCTION {
+  constructor(CENTER) {
+    super("Distance from center.", arguments);
+    this.add_arg("CENTER", "FUNCTION", "Center point", Int(32768));
+  }
+  run(blade) {
+    super.run(blade);
+    this.num_leds = blade.num_leds();
+  }
+  getInteger(led) {
+    return abs(led * 32768 / this.num_leds - this.CENTER.getInteger(led));
+  }
+};
+
+function CenterDistF(CENTER) {
+  return new CenterDistFClass(CENTER);
+}
+
 class BladeAngleXClass extends FUNCTION {
   constructor() {
     super("Blade Angle", arguments);
@@ -5914,6 +5938,7 @@ function newCall(Cls) {
     HoldPeakF : HoldPeakF,
     EffectRandomF : EffectRandomF,
     EffectPosition : EffectPosition,
+    CenterDistF : CenterDistF,
 
     ResponsiveLockupL : ResponsiveLockupL,
     ResponsiveDragL : ResponsiveDragL,
