@@ -4935,14 +4935,27 @@ function Int(n) { return new IntClass(n); }
 class IntArgClass extends FUNCTION {
   constructor(ARG, N) {
     super("Dynamic Integer argument", arguments);
-    this.add_arg("ARG","ArgumentName","number to return.");
+    this.add_arg("ARG","ArgumentName","argument number.");
     this.add_arg("DEFAULT","INT","default.");
   }
-  getInteger(led) { return this.N; }
+  getInteger(led) { return this.DEFAULT; }
 };
 
 function IntArg_(ARG, N) {
   return new IntArgClass(ARG, N);
+}
+
+class RgbArgClass extends STYLE {
+  constructor(ARG, N) {
+    super("Dynamic Color argument", arguments);
+    this.add_arg("ARG","ArgumentName","number to return.");
+    this.add_arg("DEFAULT","COLOR","default.");
+  }
+  getColor(led) { return this.DEFAULT; }
+};
+
+function RgbArg_(ARG, COLOR) {
+  return new RgbArgClass(ARG, COLOR);
 }
 
 class ScaleClass extends FUNCTION {
@@ -5715,6 +5728,7 @@ function newCall(Cls) {
     InOutFuncX : InOutFuncX,
     Int : Int,
     IntArg : IntArg_,
+    RgbArg : RgbArg_,
     Scale : Scale,
     Sin : Sin,
     Trigger : Trigger,
