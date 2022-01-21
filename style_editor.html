@@ -5141,6 +5141,16 @@ class SmoothSoundLevelClass extends FUNCTION {
 
 function SmoothSoundLevel() { return new SmoothSoundLevelClass(); }
 
+class WavLenClass extends FUNCTION {
+  constructor() {
+    super("Length of associated wav file in MS", arguments);
+    this.add_arg("EFFECT", "EFFECT", "Which effect to get the length of.", 0);
+  }
+  getInteger(led) { return 500; }
+};
+
+function WavLen(EFFECT) { return new WavLenClass(EFFECT); }
+
 class SwingSpeedXClass extends FUNCTION {
   constructor() {
     super("Swing Speed", arguments);
@@ -5508,6 +5518,32 @@ function ResponsiveStabL(COLOR, TR1, TR2, TOP, BOTTOM, SIZE) {
 
 ///////
 
+class IgnitionTimeClass extends MACRO {
+  constructor(DEFAULT_VALUE) {
+    super("arg/wavlen ignition time", arguments);
+    this.add_arg("DEFAULT_VALUE", "INT", "Default value.", 300);
+    this.SetExpansion(Scale(IsLessThan(IntArg_(IGNITION_TIME_ARG,this.DEFAULT_VALUE),Int(1)),IntArg_(IGNITION_TIME_ARG,this.DEFAULT_VALUE),WavLen(EFFECT_IGNITION)));
+  }
+}
+
+function IgnitionTime(DEFAULT_VALUE) {
+  return new IgnitionTimeClass(DEFAULT_VALUE);
+}
+
+class RetractionTimeClass extends MACRO {
+  constructor(DEFAULT_VALUE) {
+    super("arg/wavlen ignition time", arguments);
+    this.add_arg("DEFAULT_VALUE", "INT", "Default value.", 0);
+    this.SetExpansion(Scale(IsLessThan(IntArg_(RETRACTION_TIME_ARG,this.DEFAULT_VALUE),Int(1)),IntArg_(RETRACTION_TIME_ARG,this.DEFAULT_VALUE),WavLen(EFFECT_RETRACTION)));
+  }
+}
+
+function RetractionTime(DEFAULT_VALUE) {
+  return new RetractionTimeClass(DEFAULT_VALUE);
+}
+
+////////////////
+
 class SumClass extends FUNCTION {
   constructor(ARGS) {
     super("Add functions together", ARGS);
@@ -5759,8 +5795,11 @@ function newCall(Cls) {
     ResponsiveBlastWaveL : ResponsiveBlastWaveL,
     ResponsiveBlastFadeL : ResponsiveBlastFadeL,
     ResponsiveStabL : ResponsiveStabL,
-};
 
+    IgnitionTime : IgnitionTime,
+    RetractionTime : RetractionTime,
+    WavLen : WavLen,
+};
 
 
 AddIdentifier("RgbCycle", RgbCycle);
