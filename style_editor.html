@@ -1503,6 +1503,7 @@ AddFunction("NoisySoundLevelCompat");
 AddFunction("SmoothSoundLevel");
 AddFunction("SwingSpeed<250>");
 AddFunction("SwingAcceleration<130>");
+AddFunction("ClashImpactF<>");
 AddFunction("Bump<Int<16384>>");
 AddFunction("Ifon<Int<0>, Int<32768>>");
 AddFunction("InOutFunc<300, 800>");
@@ -2862,7 +2863,9 @@ function AddBlast() {
 function AddForce() {
   blade.addEffect(EFFECT_FORCE, Math.random() * 0.7 + 0.2);
 }
+var current_clash_strength = 0;
 function AddClash() {
+var current_clash_strength = 100;
   blade.addEffect(EFFECT_CLASH, Math.random() * 0.7 + 0.2);
 }
 function AddStab() {
@@ -4905,7 +4908,7 @@ class TrExtendClass extends MACRO {
     super("Extend a transition.", arguments);
     this.add_arg("MILLIS", "INT", "How much to extend the transition.");
     this.add_arg("TRANSITION", "TRANSITION", "Transition to extend.");
-    this.SetExpansion(TrExtendX(Int(MILLIS), TRANSACTION));
+    this.SetExpansion(TrExtendX(Int(MILLIS), TRANSITION));
   }
 };
 
@@ -5311,6 +5314,38 @@ class SwingSpeedClass extends MACRO {
 
 function SwingSpeed(MAX) { return new SwingSpeedClass(MAX); }
 
+class ClashImpactFXClass extends FUNCTION {
+  constructor(MIN, MAX) {
+    super("Returns clash strength.", arguments);
+    this.add_arg("MIN", "FUNCTION", "Minimum, translates to zero", Int(200));
+    this.add_arg("MAX", "FUNCTION", "Maximum, translates to 32768", Int(1600));
+  }
+  run(blade) {
+    super.run(blade);
+    current_clash_strength = max(current_clash_strength, random(random(800)) + random(800));
+    this.value = clampi32((current_clash_strengh - this.MIN) * 32768 / this.MAX, 0, 32768);
+  }
+  getInteger(led) {
+    return this.value;
+  }
+};
+
+function ClashImpactFX(MIN, MAX) {
+  return new ClashImpactFXClass(MIN, MAX);
+}
+
+class ClashImpactFClass extends MACRO {
+  constructor(MIN, MAX) {
+    super("Returns clash strength.", arguments);
+    this.add_arg("MIN", "INT", "Minimum, translates to zero", 200);
+    this.add_arg("MAX", "INT", "Maximum, translates to 32768", 1600);
+    this.SetExpansion(ClashImpactFX(Int(this.MIN), Int(this.MAX)));
+  }
+}
+
+function ClashImpactF(MIN, MAX) {
+  return new ClashImpactFClass(MIN, MAX);
+}
 
 class SwingAccelerationXClass extends FUNCTION {
   constructor() {
@@ -5983,6 +6018,8 @@ function newCall(Cls) {
     SwingSpeed : SwingSpeed,
     SwingAccelerationX : SwingAccelerationX,
     SwingAcceleration : SwingAcceleration,
+    ClashImpactFX : ClashImpactFX,
+    ClashImpactF : ClashImpactF,
     LayerFunctions : LayerFunctions,
     SlowNoise : SlowNoise,
     IsLessThan : IsLessThan,
