@@ -5256,6 +5256,39 @@ function RampF() {
   return new RampFClass();
 }
 
+class MultClass extends FUNCTION {
+  constructor(ARGS) {
+    super("Multiply values", ARGS);
+    this.FUNCTIONS = Array.from(ARGS);
+    for (var i = 1; i < this.FUNCTIONS.length + 1; i++)
+      this.add_arg("FUNCTION" + i, "FUNCTION", "COLOR " + i);
+  }
+  getInteger(led) {
+    var ret = this.FUNCTIONS[0].getInteger(led);
+    for (var i = 1; i < this.FUNCTIONS.length; i++) {
+      ret = (ret * this.FUNCTIONS[i].getInteger(led)) >> 15;
+    }
+    return ret;
+  }
+}
+
+function Mult(ARGS) {
+  return new MultClass(Array.from(arguments));
+}
+
+class PercentageClass extends MACRO {
+  constructor(F, P) {
+    super("Returns P % of F.", arguments);
+    this.add_arg("F","FUNCTION","F");
+    this.add_arg("P","INT", "Percent")
+    this.SetExpansion(Mult(this.F.DOCOPY(), Int(this.P * 32768 / 100)));
+  }
+}
+
+function Percentage(F, P) {
+  return new PercentageClass(F, P);
+}
+
 class NoisySoundLevelClass extends FUNCTION {
   constructor() {
     super("Noisy sound level.", arguments);
@@ -6028,6 +6061,8 @@ function newCall(Cls) {
     Trigger : Trigger,
     SmoothStep : SmoothStep,
     RampF : RampF,
+    Mult : Mult,
+    Percerage : Percentage,
     NoisySoundLevel : NoisySoundLevel,
     NoisySoundLevelCompat : NoisySoundLevelCompat,
     SmoothSoundLevel : SmoothSoundLevel,
