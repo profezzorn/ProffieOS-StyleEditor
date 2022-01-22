@@ -1214,6 +1214,21 @@ function AlphaL(COLOR, ALPHA) {
   return new AlphaLClass(COLOR, ALPHA);
 }
 
+class AlphaMixLClass extends MACRO {
+  constructor(ARGS) {
+    super("Mix and alpha", ARGS);
+    this.COLORS = Array.from(ARGS).slice(1);
+    this.add_arg("F", "FUNCTION", "0=first color, 32768=last color");
+    for (var i = 1; i < this.COLORS.length + 1; i++)
+      this.add_arg("COLOR" + i, "COLOR", "COLOR " + i);
+    this.SetExpansion(AlphaL(new MixClass(ARGS), this.F.DOCOPY()));
+  }
+}
+
+function AlphaMixL(F, C1, C2) {
+  return new AlphaMixLClass(Array.from(arguments));
+};
+
 function ReplaceNode(old_node, new_node) {
   FocusOnLow(old_node.get_id());
   pp_is_url++;
@@ -1394,6 +1409,7 @@ AddTemplate("Layers<Red, ResponsiveLockupL<White, TrInstant, TrInstant, Int<2600
 
 
 AddLayer("AlphaL<Red, Int<16000>>");
+AddLayer("AlphaMixL<Bump<Int<16384>,Int<16384>>,Red,Green,Blue>");
 AddEffectWL("AudioFlicker<White, Blue>");
 AddEffectWLF("Blast<Blue, White>");
 AddEffectWL("BlastFadeout<Blue, White>");
@@ -5806,6 +5822,7 @@ function newCall(Cls) {
 
   var classes = {
     AlphaL : AlphaL,
+    AlphaMixL : AlphaMixL,
     AudioFlicker : AudioFlicker,
     AudioFlickerL : AudioFlickerL,
     Blast : Blast,
