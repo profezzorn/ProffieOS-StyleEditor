@@ -1472,6 +1472,7 @@ AddTransition("TrCenterWipeSpark<WHITE, 500>");
 AddTransition("TrCenterWipeIn<500>");
 AddTransition("TrCenterWipeInSpark<WHITE, 500>");
 AddTransition("TrWaveX<White>");
+AddTransition("TrSparkX<White>");
 AddTransition("TrWipeSparkTip<White, 300>");
 AddTransition("TrWipeInSparkTip<White, 300>");
 AddTransition("TrWipeSparkTipX<White, Int<300>>");
@@ -4196,6 +4197,7 @@ class TRANSITION_BASE extends TRANSITION {
     }
     return ms * scale / this.len_;
   }
+  restart() { return this.restart_; }
 };
 
 // Same as TRANSITION_BASE, but with INT argument instead
@@ -4620,6 +4622,42 @@ class TrWaveXClass extends TRANSITION {
 
 function TrWaveX(COLOR, FADEOUT_MS, WAVE_SIZE, WAVE_MS, WAVE_CENTER) {
   return new TrWaveXClass(COLOR, FADEOUT_MS, WAVE_SIZE, WAVE_MS, WAVE_CENTER);
+}
+
+class TrSparkXClass extends TRANSITION {
+  constructor(COLOR, SPARK_SIZE, SPARK_MS, SPARK_CENTER) {
+    super("Spark wave transition", arguments);
+    this.add_arg("COLOR", "COLOR", "Color.");
+    this.add_arg("SPARK_SIZE", "FUNCTION", "Spark size.", Int(100));
+    this.add_arg("SPARK_MS", "FUNCTION", "Spark MS", Int(100));
+    this.add_arg("SPARK_CENTER", "FUNCTION", "Spark center.", Int(16384));
+    this.millis = new TRANSITION_BASE("millis", [this.SPARK_MS]);
+  }
+  run(blade) {
+    super.run(blade);
+    if (this.millis.restart()) {
+      this.center = this.SPARK_CENTER.getInteger(0);
+      this.size = this.SPARK_SIZE.getInteger(0);
+    }
+    this.millis.run(blade);
+    this.num_leds = blade.num_leds();
+    this.offset = millis.update(32768);
+  }
+  getColor(A, B, led) {
+    var dist = abs(this.center - led * 32768 / this.num_leds);
+    var N = abs(dist - this.offset) * this.size >> 15;
+    var mix;
+    if (N <= 32) {
+      mix = blast_hump[N] << 7;
+    } else {
+      mix = 0;
+    }
+    return A.mix(this.COLOR.getColor(led), mix / 32768.0);
+  }
+};
+
+function TrSparkX(COLOR, SPARK_SIZE, SPARK_MS, SPARK_CENTER) {
+  return new TrSparkXClass(COLOR, SPARK_SIZE, SPARK_MS, SPARK_CENTER);
 }
 
 class TrColorCycleClass extends TRANSITION_BASE2 {
@@ -5900,6 +5938,7 @@ function newCall(Cls) {
     TrRandom : TrRandom,
     TrSelect : TrSelect,
     TrWaveX : TrWaveX,
+    TrSparkX : TrSparkX,
     TrWipeSparkTip : TrWipeSparkTip,
     TrWipeSparkTipX : TrWipeSparkTipX,
     TrWipeInSparkTip : TrWipeInSparkTip,
