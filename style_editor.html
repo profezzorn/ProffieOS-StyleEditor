@@ -5240,6 +5240,22 @@ class SmoothStepClass extends FUNCTION {
 
 function SmoothStep(POS, WIDTH) { return new SmoothStepClass(POS, WIDTH); }
 
+class RampFClass extends FUNCTION {
+  constructor() {
+    super("0 at base, 32768 at tip", arguments);
+  }
+  run(blade) {
+    this.num_leds = blade.num_leds();
+  }
+  getInteger(led) {
+    return led * 32768 / this.num_leds;
+  }
+}
+
+function RampF() {
+  return new RampFClass();
+}
+
 class NoisySoundLevelClass extends FUNCTION {
   constructor() {
     super("Noisy sound level.", arguments);
@@ -6011,6 +6027,7 @@ function newCall(Cls) {
     Sin : Sin,
     Trigger : Trigger,
     SmoothStep : SmoothStep,
+    RampF : RampF,
     NoisySoundLevel : NoisySoundLevel,
     NoisySoundLevelCompat : NoisySoundLevelCompat,
     SmoothSoundLevel : SmoothSoundLevel,
