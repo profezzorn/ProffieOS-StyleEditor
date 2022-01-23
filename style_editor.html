@@ -1886,7 +1886,6 @@ function OnSpark(T, SPARK_COLOR, MILLIS) {
 
 class PulsingFClass extends FUNCTION {
   constructor(PULSE_MILLIS) {
-    console.log(arguments);
     super("Pulses between 0 and 32768 every M milliseconds", Array.from(arguments));
     this.add_arg("PULSE_MILLIS", "FUNCTION", "M");
   }
@@ -4652,6 +4651,9 @@ class TrSparkXClass extends TRANSITION {
     this.add_arg("SPARK_CENTER", "FUNCTION", "Spark center.", Int(16384));
     this.millis = new TRANSITION_BASE("millis", [this.SPARK_MS]);
   }
+  begin() {
+    this.millis.begin();
+  }
   run(blade) {
     super.run(blade);
     if (this.millis.restart()) {
@@ -4660,7 +4662,7 @@ class TrSparkXClass extends TRANSITION {
     }
     this.millis.run(blade);
     this.num_leds = blade.num_leds();
-    this.offset = millis.update(32768);
+    this.offset = this.millis.update(32768);
   }
   getColor(A, B, led) {
     var dist = abs(this.center - led * 32768 / this.num_leds);
@@ -4766,7 +4768,9 @@ class TrConcatClass extends TRANSITION {
   }
 };
 
-function TrConcat(ARGS) { return new TrConcatClass(arguments); }
+function TrConcat(ARGS) {
+  return new TrConcatClass(Array.from(arguments));
+}
 
 class TrJoinClass extends TRANSITION {
   constructor(ARGS) {
@@ -4839,7 +4843,7 @@ class TrRandomClass extends TRANSITION {
   }
 };
 
-function TrRandom(ARGS) { return new TrRandomClass(arguments); }
+function TrRandom(ARGS) { return new TrRandomClass(Array.from(arguments)); }
 
 class TrSelectClass extends TRANSITION {
   constructor(ARGS) {
@@ -4849,13 +4853,15 @@ class TrSelectClass extends TRANSITION {
     for (var i = 1; i < this.TRANSITIONS.length; i++) {
       this.add_arg("TRANSITION" + i, "TRANSITION", "Transiton " + i);
     }
-    this.begin = false;
+    this.begin = true;
   }
   begin() {
     this.begin = true;
   }
   run(blade) {
+    this.F.run(blade);
     if (this.begin) {
+      this.begin = false;
       var f = this.F.getInteger(0);
       while (f < 0) f += this.TRANSITIONS.length * 255;
       f %= this.TRANSITIONS.length;
@@ -4872,7 +4878,9 @@ class TrSelectClass extends TRANSITION {
   }
 };
 
-function TrSelect(ARGS) { return new TrSelectClass(arguments); }
+function TrSelect(ARGS) {
+  return new TrSelectClass(Array.from(arguments));
+}
 
 class TrExtendXClass extends TRANSITION {
   constructor(MILLIS, TRANSITION) {
@@ -4881,6 +4889,10 @@ class TrExtendXClass extends TRANSITION {
     this.add_arg("TRANSITION", "TRANSITION", "Transition to extend.");
     this.extending = false;
     this.millis = new TRANSITION_BASE("millis", [this.MILLIS]);
+  }
+  begin() {
+    this.extending = false;
+    this.TRANSITION.begin();
   }
   run(blade) {
     this.TRANSITION.run(blade);
@@ -5372,7 +5384,7 @@ class ClashImpactFXClass extends FUNCTION {
   run(blade) {
     super.run(blade);
     current_clash_strength = max(current_clash_strength, random(random(800)) + random(800));
-    this.value = clampi32((current_clash_strengh - this.MIN) * 32768 / this.MAX, 0, 32768);
+    this.value = clamp((current_clash_strength - this.MIN) * 32768 / this.MAX, 0, 32768);
   }
   getInteger(led) {
     return this.value;
