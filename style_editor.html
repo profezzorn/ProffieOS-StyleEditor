@@ -496,7 +496,7 @@ function Arg(expected_type, arg, default_arg) {
      throw "What is this?? " + arg;
   }
   if (typeof(arg) != "number" && arg.getType() != expected_type) {
-    throw "Expected " + expected_type;
+    throw "Expected " + expected_type + " but got " + arg;
   }
   if (expected_type == "INT" || expected_type == "EFFECT" || expected_type == "LOCKUP_TYPE" || expected_type == "ArgumentName") {
     return arg;
@@ -554,11 +554,13 @@ class STYLE {
     if (focus_trace[0] == this.args[this.argnum]) {
       focus_trace = [this, name, expected_type, focus_trace];
     }
-    // console.log("add_arg");
-    // console.log(name);
-    // console.log(this.args);
+//     console.log("add_arg");
+//     console.log(name);
+//     console.log(this.args);
+//     console.log(default_value);
     try {
       this[name] = Arg(expected_type, this.args[this.argnum], default_value);
+//       console.log(this[name]);
     } catch(e) {
       if (typeof(e) == "string") {
         e = new MyError(e + " for argument " + (this.argnum + 1) + " (" + name + ")");
@@ -924,6 +926,7 @@ EFFECT_ENUM_BUILDER.addValue("EFFECT_LOCKUP_END");
 EFFECT_ENUM_BUILDER.addValue("EFFECT_DRAG_BEGIN");
 EFFECT_ENUM_BUILDER.addValue("EFFECT_DRAG_END");
 EFFECT_ENUM_BUILDER.addValue("EFFECT_PREON");
+EFFECT_ENUM_BUILDER.addValue("EFFECT_POSTOFF");
 EFFECT_ENUM_BUILDER.addValue("EFFECT_IGNITION");
 EFFECT_ENUM_BUILDER.addValue("EFFECT_RETRACTION");
 EFFECT_ENUM_BUILDER.addValue("EFFECT_CHANGE");
@@ -1199,6 +1202,7 @@ class AlphaLClass extends STYLE {
   }
   getColor(led) {
     var ret = this.COLOR.getColor(led);
+    if (ret == 0) return Transparent(0,0,0);
     return ret.multiply(this.ALPHA.getInteger(led)/32768.0)
   }
   IS_RUNNING() {
@@ -1534,6 +1538,7 @@ AddFunction("Sum<RandomPerLEDF, Bump<Int<16384>>>");
 AddFunction("HoldPeakF<RandomF, Int<300>, Int<32768>>");
 AddFunction("CenterDistF<>");
 AddFunction("EffectPosition<>");
+AddFunction("WavLen<>");
 
 
 AddColor("AliceBlue", 223, 239, 255);
@@ -3868,7 +3873,7 @@ class ColorSelectClass extends STYLE {
     }
   }
   getColor(led) {
-    var ret = this.COLORS[this.selection].getColor(led);
+    var ret = this.COLORS[this.selection + 0].getColor(led);
     if (this.selection != this.old_selection) {
       var old = this.COLORS[this.old_selection].getColor(led);
       ret = this.TRANSITION.getColor(old, ret, led);
@@ -4664,6 +4669,9 @@ class TrSparkXClass extends TRANSITION {
     this.num_leds = blade.num_leds();
     this.offset = this.millis.update(32768);
   }
+  done() {
+    return this.millis.done();
+  }
   getColor(A, B, led) {
     var dist = abs(this.center - led * 32768 / this.num_leds);
     var N = abs(dist - this.offset) * this.size >> 15;
@@ -4681,7 +4689,7 @@ function TrSparkX(COLOR, SPARK_SIZE, SPARK_MS, SPARK_CENTER) {
   return new TrSparkXClass(COLOR, SPARK_SIZE, SPARK_MS, SPARK_CENTER);
 }
 
-class TrColorCycleClass extends TRANSITION_BASE2 {
+class TrColorCycleXClass extends TRANSITION_BASE {
   constructor(MILLIS, START_RPM, END_RPM) {
     super("ColorCycle transition", arguments);
     this.add_arg("START_RPM", "INT", "RPM at the beginning of transition", 0);
@@ -4723,6 +4731,17 @@ class TrColorCycleClass extends TRANSITION_BASE2 {
                   (new Range(this.start_, this.num_leds_).Intersect(led_range)).Size();
     }
     return A.mix(B, mix);
+  }
+}
+
+function TrColorCycleX(MILLIS, START_RPM, END_RPM) { return new TrColorCycleXClass(MILLIS, START_RPM, END_RPM); }
+
+class TrColorCycleClass extends MACRO {
+  constructor(MILLIS, START_RPM, END_RPM) {
+    super("ColorCycle transition", arguments);
+    this.add_arg("START_RPM", "INT", "RPM at the beginning of transition", 0);
+    this.add_arg("END_RPM", "INT", "RPM at the end of transition", 6000);
+    this.SetExpansion(TrColorCycleX(Int(MILLIS), this.START_RPM, this.END_RPM))
   }
 }
 
@@ -4850,28 +4869,31 @@ class TrSelectClass extends TRANSITION {
     super("Select transitions", ARGS);
     this.TRANSITIONS = Array.from(ARGS).slice(1);
     this.add_arg("F", "FUNCTION", "Transition to select");
-    for (var i = 1; i < this.TRANSITIONS.length; i++) {
+    for (var i = 1; i <= max(this.TRANSITIONS.length, 1); i++) {
       this.add_arg("TRANSITION" + i, "TRANSITION", "Transiton " + i);
     }
-    this.begin = true;
+    this.begin_ = true;
   }
   begin() {
-    this.begin = true;
+    this.begin_ = true;
   }
   run(blade) {
     this.F.run(blade);
-    if (this.begin) {
-      this.begin = false;
-      var f = this.F.getInteger(0);
+    if (this.begin_) {
+      var f = this.F.getInteger(0) + 0;
       while (f < 0) f += this.TRANSITIONS.length * 255;
       f %= this.TRANSITIONS.length;
+      console.log("TRANSITIONS");
+      console.log(this.TRANSITIONS);
+      console.log(f);
       this.selected = this.TRANSITIONS[f % this.TRANSITIONS.length];
       this.selected.begin();
+      this.begin_ = false;
     }
     this.selected.run(blade);
   }
   done() {
-    return this.selected.done();
+    return this.selected && this.selected.done();
   }
   getColor(A, B, led) {
     return this.selected.getColor(A, B, led);
@@ -5343,7 +5365,7 @@ function SmoothSoundLevel() { return new SmoothSoundLevelClass(); }
 class WavLenClass extends FUNCTION {
   constructor() {
     super("Length of associated wav file in MS", arguments);
-    this.add_arg("EFFECT", "EFFECT", "Which effect to get the length of.", 0);
+    this.add_arg("EFFECT", "EFFECT", "Which effect to get the length of.", EFFECT(EFFECT_NONE));
   }
   getInteger(led) { return 500; }
 };
@@ -6045,6 +6067,7 @@ function newCall(Cls) {
     TrCenterWipeInSpark : TrCenterWipeInSpark,
     TrCenterWipeInSparkX : TrCenterWipeInSparkX,
     TrColorCycle : TrColorCycle,
+    TrColorCycleX : TrColorCycleX,
     TrConcat : TrConcat,
     TrJoin : TrJoin,
     TrJoinR : TrJoinR,
