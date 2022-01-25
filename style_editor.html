@@ -1422,6 +1422,7 @@ AddEffect("BrownNoiseFlicker<Green, Magenta, 50>");
 AddLayer("BrownNoiseFlickerL<Magenta, Int<50>>");
 AddEffect("ColorChange<TrInstant, Red, Green, Blue>");
 AddEffect("ColorSelect<Variation, TrInstant, Red, Green, Blue>");
+AddFunction("IntSelect<Variation, 0, 8192,32768>");
 AddEffect("ColorCycle<Blue,  0, 1, Cyan,  100, 3000, 5000>");
 AddEffect("ColorSequence<500, Red, Green, Blue>");
 AddEffect("EffectSequence<EFFECT_CLASH, Red, Green, Blue>");
@@ -3886,6 +3887,30 @@ function ColorSelect(F, T, A, B) {
   return new ColorSelectClass(Array.from(arguments));
 }
 
+class IntSelectClass extends FUNCTION {
+  constructor(ARGS) {
+    super("Select number based on function", ARGS);
+    this.INTS = Array.from(ARGS).slice(1);
+    this.add_arg("F", "FUNCTION","Selector function");
+    for (var i = 1; i <= this.INTS.length; i++)
+      this.add_arg("INT" + i, "INT", "Integer " + i);
+  }
+  run(blade) {
+    this.F.run(blade);
+    var f = this.F.getInteger(0);
+    while (f < 0) f += this.COLORS.length * 256;
+    f = f % this.INTS.length;
+    this.value = this.INTS[f];
+  }
+  getInteger(led) {
+    return this.value;
+  }
+};
+
+function IntSelect(ARGS) {
+  return new IntSelectClass(Array.from(arguments));
+}
+	       
 class TransitionLoopLClass extends STYLE {
   constructor(TRANSITION) {
     super("Continiously loop a transition",arguments);
@@ -5959,6 +5984,7 @@ function newCall(Cls) {
     ColorCycle : ColorCycle,
     ColorChange : ColorChange,
     ColorSelect : ColorSelect,
+    IntSelect : IntSelect,
     ColorSequence : ColorSequence,
     EffectSequence : EffectSequence,
     Cylon : Cylon,
