@@ -5553,7 +5553,7 @@ function EffectRandomF(EFFECT) {
 class EffectPositionClass extends FUNCTION {
   constructor() {
     super("Select a new random value every time an effect occurs", arguments);
-    this.add_arg("EFFECT", "EFFECT", "Effect to trigger new random.", 0);
+    this.add_arg("EFFECT", "EFFECT", "Effect to trigger new random.", EFFECT(EFFECT_NONE));
   }
   run(blade) {
     super.run(blade);
@@ -6812,6 +6812,14 @@ function DoLayerize() {
   SetTo(tmp);
 }
 
+function DoArgify() {
+  var tmp = RecursiveArgify(current_style);
+  pp_is_url++;
+  tmp = tmp.pp();
+  pp_is_url--;
+  SetTo(tmp);
+}
+
 function AddTab(tab, name, contents) {
   FIND("TABLINKS").innerHTML += "<button id="+tab+"_tab class=tablinks onclick=\"ActivateTab('"+tab+"')\">" + name + "</button>";
   FIND("TABBODIES").innerHTML += "<div id="+tab+"_tabcontent class=tabcontent></div>";
@@ -6883,6 +6891,7 @@ function ActivateTab(tab) {
     <!-- <input id=style type=text size=100 onkeydown="if (event.keyCode == 13) Run();"> --> <input name='run' type=button value="Submit" onclick="Run()"><input name='copy' type=button value="Copy" onclick="Copy()">
     <input type=button name='expand' value="Expand" id='expand_button' onclick="DoExpand()">
     <input type=button name='layerize' value="Layerize" id='layerize_button' onclick="DoLayerize()">
+    <!-- <input type=button name='argify' value="Argify" id='argify_button' onclick="DoArgify()"> -->
     <input id=ROTATE_BUTTON name=rotate type=button value="Rotate"  onclick="ClickRotate()" >
     <input id=INHILT_BUTTON name=inhilt type=button value="Inhilt"  onclick="ClickInhilt()" >
     <input id=SLOW_BUTTON name=inhilt type=button value="Slow"  onclick="ClickSlow()" ><br>
