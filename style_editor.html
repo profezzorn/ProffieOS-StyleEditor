@@ -1540,6 +1540,7 @@ AddFunction("HoldPeakF<RandomF, Int<300>, Int<32768>>");
 AddFunction("CenterDistF<>");
 AddFunction("EffectPosition<>");
 AddFunction("TimeSinceEffect<>");
+AddFunction("WavNum<>");
 AddFunction("WavLen<>");
 AddFunction("CircularSectionF<Sin<Int<3>>, Sin<Int<2>>>");
 AddFunction("LinearSectionF<Sin<Int<3>>, Sin<Int<2>>>");
@@ -1666,6 +1667,7 @@ class BladeEffect {
     this.type = type;
     this.start_micros = start_micros;
     this.location = location;
+    this.wavnum = random(10);
   }
 };
 
@@ -5610,6 +5612,7 @@ class TimeSinceEffectClass extends FUNCTION {
   constructor() {
     super("Returns milliseconds since effect occured", arguments);
     this.add_arg("EFFECT", "EFFECT", "Effect to get time since.", EFFECT(EFFECT_NONE));
+    this.value = 0;
   }
   run(blade) {
     super.run(blade);
@@ -5622,8 +5625,6 @@ class TimeSinceEffectClass extends FUNCTION {
     }
     if (effect) {
        this.value = (micros() - effect.start_micros) / 1000;
-    } else {
-       this.value = 0;
     }
   }
   getInteger(led) {
@@ -5633,6 +5634,34 @@ class TimeSinceEffectClass extends FUNCTION {
 
 function TimeSinceEffect(EFFECT) {
   return new TimeSinceEffectClass(EFFECT);
+}
+
+class WavNumClass extends FUNCTION {
+  constructor() {
+    super("Returns milliseconds since effect occured", arguments);
+    this.add_arg("EFFECT", "EFFECT", "Effect to get time since.", EFFECT(EFFECT_NONE));
+    this.value = 0;
+  }
+  run(blade) {
+    super.run(blade);
+    var effect;
+    if (this.EFFECT == 0) {
+      effect = last_detected_blade_effect;
+    } else {
+      var e = new OneshotEffectDetector(this.EFFECT);
+      effect = e.Detect(blade);
+    }
+    if (effect) {
+       this.value = effect.wavnum;
+    }
+  }
+  getInteger(led) {
+    return this.value;
+  }
+};
+
+function WavNum(EFFECT) {
+  return new WavNumClass(EFFECT);
 }
 
 class CenterDistFClass extends FUNCTION {
@@ -6245,6 +6274,7 @@ function newCall(Cls) {
     EffectRandomF : EffectRandomF,
     EffectPosition : EffectPosition,
     TimeSinceEffect : TimeSinceEffect,
+    WavNum : WavNum,
     CenterDistF : CenterDistF,
     CircularSectionF : CircularSectionF,
     LinearSectionF : LinearSectionF,
