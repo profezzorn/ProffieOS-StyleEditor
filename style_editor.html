@@ -1549,6 +1549,8 @@ AddFunction("CircularSectionF<Sin<Int<3>>, Sin<Int<2>>>");
 AddFunction("LinearSectionF<Sin<Int<3>>, Sin<Int<2>>>");
 AddFunction("EffectRandomF<EFFECT_CLASH>");
 AddFunction("EffectPulseF<EFFECT_CLASH>");
+AddFunction("IncrementWithReset<EffectPulseF<EFFECT_CLASH>>");
+AddFunction("IncrementModulo<EffectPulseF<EFFECT_CLASH>>");
 
 AddColor("AliceBlue", 223, 239, 255);
 AddColor("Aqua", 0, 255, 255);
@@ -5623,6 +5625,52 @@ function EffectPulseF(EFFECT) {
   return new EffectPulseFClass(EFFECT);
 }
 
+class IncrementWithResetClass extends FUNCTION {
+  constructor(PULSE, RESET_PULSE, MAX, I) {
+    super("Increment by I each time PULSE occurs.", arguments);
+    this.add_arg("PULSE", "FUNCTION", "Pulse.");
+    this.add_arg("RESET_PULSE", "FUNCTION", "Reset pulse.", Int(0));
+    this.add_arg("MAX", "FUNCTION", "Max value", Int(32768));
+    this.add_arg("I", "FUNCTION", "Increment", Int(1));
+    this.value = 0;
+  }
+  run(blade) {
+    super.run(blade);
+    if (this.RESET_PULSE.getInteger(0)) {
+      this.value = 0;
+    }
+    if (this.PULSE.getInteger(0)) {
+      this.value = min(this.value + this.I.getInteger(0), this.MAX.getInteger(0));;
+    }
+  }
+  getInteger(led) { return this.value; }
+}
+
+function IncrementWithReset(PULSE, RESET_PULSE, MAX, I) {
+  return new IncrementWithResetClass(PULSE, RESET_PULSE, MAX, I);
+}
+
+class IncrementModuloClass extends FUNCTION {
+  constructor(PULSE, MAX, I) {
+    super("Increment by I each time PULSE occurs.", arguments);
+    this.add_arg("PULSE", "FUNCTION", "Pulse.");
+    this.add_arg("MAX", "FUNCTION", "Max value", Int(32768));
+    this.add_arg("I", "FUNCTION", "Increment", Int(1));
+    this.value = 0;
+  }
+  run(blade) {
+    super.run(blade);
+    if (this.PULSE.getInteger(0)) {
+      this.value = (this.value + this.I.getInteger(0)) % this.MAX.getInteger(0);
+    }
+  }
+  getInteger(led) { return this.value; }
+}
+
+function IncrementModulo(PULSE, MAX, I) {
+  return new IncrementModuloClass(PULSE, MAX, I);
+}
+
 class EffectRandomFClass extends FUNCTION {
   constructor() {
     super("Select a new random value every time an effect occurs", arguments);
@@ -6346,6 +6394,8 @@ function newCall(Cls) {
     CenterDistF : CenterDistF,
     CircularSectionF : CircularSectionF,
     LinearSectionF : LinearSectionF,
+    IncrementWithReset : IncrementWithReset,
+    IncrementModulo : IncrementModulo,
 
     ResponsiveLockupL : ResponsiveLockupL,
     ResponsiveDragL : ResponsiveDragL,
