@@ -1547,6 +1547,7 @@ AddFunction("WavNum<>");
 AddFunction("WavLen<>");
 AddFunction("CircularSectionF<Sin<Int<3>>, Sin<Int<2>>>");
 AddFunction("LinearSectionF<Sin<Int<3>>, Sin<Int<2>>>");
+AddFunction("EffectRandomF<EFFECT_CLASH>");
 
 AddColor("AliceBlue", 223, 239, 255);
 AddColor("Aqua", 0, 255, 255);
@@ -5604,6 +5605,7 @@ class EffectRandomFClass extends FUNCTION {
     super("Select a new random value every time an effect occurs", arguments);
     this.add_arg("EFFECT", "EFFECT", "Effect to trigger new random.");
     this.effect = new OneshotEffectDetector(this.EFFECT);
+    this.value = random(32768);
   }
   run(blade) {
     super.run(blade);
