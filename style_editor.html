@@ -1551,6 +1551,7 @@ AddFunction("EffectRandomF<EFFECT_CLASH>");
 AddFunction("EffectPulseF<EFFECT_CLASH>");
 AddFunction("IncrementWithReset<EffectPulseF<EFFECT_CLASH>>");
 AddFunction("IncrementModuloF<EffectPulseF<EFFECT_CLASH>>");
+AddFunction("ThresholdPulseF<Saw<Int<60>>, Int<16384>>");
 
 AddColor("AliceBlue", 223, 239, 255);
 AddColor("Aqua", 0, 255, 255);
@@ -5671,6 +5672,38 @@ function IncrementModuloF(PULSE, MAX, I) {
   return new IncrementModuloFClass(PULSE, MAX, I);
 }
 
+class ThresholdPulseFClass extends FUNCTION {
+  constructor(F, THRESHOLD, HYST_PERCENT) {
+    super("Generate a Pulse when F > THRESHOLD.", arguments);
+    this.add_arg("F", "FUNCTION", "Input");
+    this.add_arg("THRESHOLD", "FUNCTION", "Threshold", Int(32768));
+    this.add_arg("HYST_PERCENT", "FUNCTION", "Hysteresis percent", Int(66));
+    this.value = 0;
+    this.triggered = 0;
+  }
+  run(blade) {
+    super.run(blade);
+    var f = this.F.getInteger(0);
+    var threshold = this.THRESHOLD.getInteger(0);
+    this.value = 0;
+    if (this.triggered) {
+       if (f < threshold * this.HYST_PERCENT.getInteger(0) / 100) {
+           this.triggered = false;
+       }
+    } else {
+       if (f >= threshold) {
+           this.triggered = true;
+           this.value = 32768;
+       }
+    }
+  }
+  getInteger(led) { return this.value; }
+}
+
+function ThresholdPulseF(F, THRESHOLD, HYST_PERCENT) {
+  return new ThresholdPulseFClass(F, THRESHOLD, HYST_PERCENT);
+}
+
 class EffectRandomFClass extends FUNCTION {
   constructor() {
     super("Select a new random value every time an effect occurs", arguments);
@@ -6386,6 +6419,7 @@ function newCall(Cls) {
     TwistAngle : TwistAngle,
     Sum : Sum,
     HoldPeakF : HoldPeakF,
+    ThresholdPulseF : ThresholdPulseF,
     EffectRandomF : EffectRandomF,
     EffectPulseF : EffectPulseF,
     EffectPosition : EffectPosition,
@@ -6395,7 +6429,7 @@ function newCall(Cls) {
     CircularSectionF : CircularSectionF,
     LinearSectionF : LinearSectionF,
     IncrementWithReset : IncrementWithReset,
-    IncrementModulo : IncrementModulo,
+    IncrementModuloF : IncrementModuloF,
 
     ResponsiveLockupL : ResponsiveLockupL,
     ResponsiveDragL : ResponsiveDragL,
