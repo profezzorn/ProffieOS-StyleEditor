@@ -1521,6 +1521,7 @@ AddFunction("Trigger<EFFECT_FORCE, Int<500>, Int<1000>, Int<500>>");
 AddFunction("ChangeSlowly<NoisySoundLevel, Int<50000>>");
 AddFunction("SlowNoise<Int<1000>>");
 AddFunction("IsLessThan<SwingSpeed<250>, Int<100>>");
+AddFunction("IsGreaterThan<SwingSpeed<250>, Int<100>>");
 AddFunction("LayerFunctions<Bump<Int<0>>, Bump<Int<32768>>>");
 AddFunction("OnSparkF<Int<200>>");
 AddFunction("PulsingF<Int<800>>");
@@ -5546,6 +5547,19 @@ function IsLessThan(F, V) {
   return new IsLessThanClass(F, V);
 }
 
+class IsGreaterThanClass extends MACRO {
+  constructor(F, V) {
+    super("Returns 32768 if F > V, 0 otherwise.", arguments);
+    this.add_arg("F", "FUNCTION", "F");
+    this.add_arg("V", "FUNCTION", "V");
+    this.SetExpansion(IsLessThan(V, F));
+  }
+};
+
+function IsGreaterThan(F, V) {
+  return new IsGreaterThanClass(F, V);
+}
+
 class VariationClass extends FUNCTION {
   constructor() {
     super("Returns the current variation", arguments);
@@ -6265,6 +6279,7 @@ function newCall(Cls) {
     LayerFunctions : LayerFunctions,
     SlowNoise : SlowNoise,
     IsLessThan : IsLessThan,
+    IsGreaterThan : IsGreaterThan,
     Variation : Variation,
     BladeAngleX : BladeAngleX,
     BladeAngle : BladeAngle,
