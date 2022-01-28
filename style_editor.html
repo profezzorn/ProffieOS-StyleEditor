@@ -1548,6 +1548,7 @@ AddFunction("WavLen<>");
 AddFunction("CircularSectionF<Sin<Int<3>>, Sin<Int<2>>>");
 AddFunction("LinearSectionF<Sin<Int<3>>, Sin<Int<2>>>");
 AddFunction("EffectRandomF<EFFECT_CLASH>");
+AddFunction("EffectPulse<EFFECT_CLASH>");
 
 AddColor("AliceBlue", 223, 239, 255);
 AddColor("Aqua", 0, 255, 255);
@@ -5600,6 +5601,28 @@ function Variation() {
   return new VariationClass();
 }
 
+class EffectPulseClass extends FUNCTION {
+  constructor() {
+    super("Generate a pulse every time an effect occurs", arguments);
+    this.add_arg("EFFECT", "EFFECT", "Effect to trigger new random.");
+    this.effect = new OneshotEffectDetector(this.EFFECT);
+    this.value = 0;
+  }
+  run(blade) {
+    super.run(blade);
+    if (this.effect.Detect(blade)) {
+      this.value = 32768;
+    } else {
+      this.value = 0;
+    }
+  }
+  getInteger(led) { return this.value; }
+};
+
+function EffectPulse(EFFECT) {
+  return new EffectPulseClass(EFFECT);
+}
+
 class EffectRandomFClass extends FUNCTION {
   constructor() {
     super("Select a new random value every time an effect occurs", arguments);
@@ -6316,6 +6339,7 @@ function newCall(Cls) {
     Sum : Sum,
     HoldPeakF : HoldPeakF,
     EffectRandomF : EffectRandomF,
+    EffectPulse : EffectPulse,
     EffectPosition : EffectPosition,
     TimeSinceEffect : TimeSinceEffect,
     WavNum : WavNum,
