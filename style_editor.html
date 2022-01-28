@@ -1552,6 +1552,8 @@ AddFunction("EffectPulseF<EFFECT_CLASH>");
 AddFunction("IncrementWithReset<EffectPulseF<EFFECT_CLASH>>");
 AddFunction("IncrementModuloF<EffectPulseF<EFFECT_CLASH>>");
 AddFunction("ThresholdPulseF<Saw<Int<60>>, Int<16384>>");
+AddFunction("IncrementF<Saw<Int<60>>, Int<16384>, Int<32768>, Int<1024>>");
+AddFunction("EffectIncrementF<EFFECT_CLASH, Int<32768>, Int<8192>>");
 
 AddColor("AliceBlue", 223, 239, 255);
 AddColor("Aqua", 0, 255, 255);
@@ -5704,6 +5706,36 @@ function ThresholdPulseF(F, THRESHOLD, HYST_PERCENT) {
   return new ThresholdPulseFClass(F, THRESHOLD, HYST_PERCENT);
 }
 
+class IncrementFClass extends MACRO {
+  constructor(F, V, MAX, I, HYST_PERCENT) {
+    super("Increase by I every time F > V.", arguments);
+    this.add_arg("F", "FUNCTION", "Input");
+    this.add_arg("V", "FUNCTION", "Compare value.", Int(32768));
+    this.add_arg("MAX", "FUNCTION", "Max value.", Int(32768));
+    this.add_arg("I", "FUNCTION", "Increment", Int(1));
+    this.add_arg("HYST_PERCENT", "FUNCTION", "Hysteresis percent", Int(66));
+    this.SetExpansion(IncrementModuloF(ThresholdPulseF(this.F, this.V, this.HYST_PERCENT), this.MAX, this.I));
+  }
+};
+
+function IncrementF(F, V, MAX, I, HYST_PERCENT) {
+  return new IncrementFClass(F, V, MAX, I, HYST_PERCENT);
+}
+
+class EffectIncrementFClass extends MACRO {
+  constructor(EFFECT, MAX, I) {
+    super("Increase by I every time F > V.", arguments);
+    this.add_arg("EFFECT", "EFFECT", "Effect to trigger increment.");
+    this.add_arg("MAX", "FUNCTION", "Max value.", Int(32768));
+    this.add_arg("I", "FUNCTION", "Increment", Int(1));
+    this.SetExpansion(IncrementModuloF(EffectPulseF(this.EFFECT), this.MAX, this.I));
+  }
+};
+
+function EffectIncrementF(EFFECT, MAX, I) {
+  return new EffectIncrementFClass(EFFECT, MAX, I);
+}
+
 class EffectRandomFClass extends FUNCTION {
   constructor() {
     super("Select a new random value every time an effect occurs", arguments);
@@ -6430,6 +6462,8 @@ function newCall(Cls) {
     LinearSectionF : LinearSectionF,
     IncrementWithReset : IncrementWithReset,
     IncrementModuloF : IncrementModuloF,
+    IncrementF : IncrementF,
+    EffectIncrementF : EffectIncrementF,
 
     ResponsiveLockupL : ResponsiveLockupL,
     ResponsiveDragL : ResponsiveDragL,
