@@ -1516,6 +1516,7 @@ AddFunction("InOutHelperF<InOutFunc<300, 800>>");
 AddFunction("Int<32768>");
 AddFunction("Scale<Sin<Int<10>>,Int<0>,Int<4000>>");
 AddFunction("Sin<Int<10>>");
+AddFunction("Saw<Int<10>>");
 AddFunction("SmoothStep<Sin<Int<10>>, Sin<Int<7>>>");
 AddFunction("Trigger<EFFECT_FORCE, Int<500>, Int<1000>, Int<500>>");
 AddFunction("ChangeSlowly<NoisySoundLevel, Int<50000>>");
@@ -5208,6 +5209,30 @@ class SinClass extends FUNCTION {
 
 function Sin(RPM, LOW, HIGH) { return new SinClass(RPM, LOW, HIGH); }
 
+class SawClass extends FUNCTION {
+  constructor(RPM, LOW, HIGH) {
+     super("Pulses between LOW and HIGH RPM times per minute.", arguments);
+     this.add_arg("RPM", "FUNCTION", "Revolutions per minute");
+     this.add_arg("HIGH", "FUNCTION", "upper output limit", Int(32768));
+     this.add_arg("LOW", "FUNCTION", "lower output limit", Int(0));
+     this.pos = 0.0;
+     this.last_micros = 0;
+  }
+  run(blade) {
+    super.run(blade);
+    var now = micros();
+    var delta = now - this.last_micros;
+    this.last_micros = now;
+    this.pos = fract(this.pos + delta / 60000000.0 * this.RPM.getInteger(0));
+    var high = this.HIGH.getInteger(0);
+    var low = this.LOW.getInteger(0);
+    this.value = low + this.pos * (high - low);
+  }
+  getInteger(led) { return this.value; }
+};
+
+function Saw(RPM, LOW, HIGH) { return new SawClass(RPM, LOW, HIGH); }
+
 const  TRIGGER_ATTACK = 0;
 const  TRIGGER_SUSTAIN = 1;
 const  TRIGGER_RELEASE = 2;
@@ -6263,6 +6288,7 @@ function newCall(Cls) {
     RgbArg : RgbArg_,
     Scale : Scale,
     Sin : Sin,
+    Saw : Saw,
     Trigger : Trigger,
     SmoothStep : SmoothStep,
     RampF : RampF,
