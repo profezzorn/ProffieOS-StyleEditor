@@ -1550,7 +1550,7 @@ AddFunction("LinearSectionF<Sin<Int<3>>, Sin<Int<2>>>");
 AddFunction("EffectRandomF<EFFECT_CLASH>");
 AddFunction("EffectPulseF<EFFECT_CLASH>");
 AddFunction("IncrementWithReset<EffectPulseF<EFFECT_CLASH>>");
-AddFunction("IncrementModulo<EffectPulseF<EFFECT_CLASH>>");
+AddFunction("IncrementModuloF<EffectPulseF<EFFECT_CLASH>>");
 
 AddColor("AliceBlue", 223, 239, 255);
 AddColor("Aqua", 0, 255, 255);
@@ -5650,7 +5650,7 @@ function IncrementWithReset(PULSE, RESET_PULSE, MAX, I) {
   return new IncrementWithResetClass(PULSE, RESET_PULSE, MAX, I);
 }
 
-class IncrementModuloClass extends FUNCTION {
+class IncrementModuloFClass extends FUNCTION {
   constructor(PULSE, MAX, I) {
     super("Increment by I each time PULSE occurs.", arguments);
     this.add_arg("PULSE", "FUNCTION", "Pulse.");
@@ -5667,8 +5667,8 @@ class IncrementModuloClass extends FUNCTION {
   getInteger(led) { return this.value; }
 }
 
-function IncrementModulo(PULSE, MAX, I) {
-  return new IncrementModuloClass(PULSE, MAX, I);
+function IncrementModuloF(PULSE, MAX, I) {
+  return new IncrementModuloFClass(PULSE, MAX, I);
 }
 
 class EffectRandomFClass extends FUNCTION {
