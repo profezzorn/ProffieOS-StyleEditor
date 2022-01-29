@@ -2948,6 +2948,12 @@ function AddBoot() {
 function AddPreon() {
   blade.addEffect(EFFECT_PREON, 0.0);
 }
+function AddBattery() {
+  blade.addEffect(EFFECT_BATTERY_LEVEL, Math.random() * 0.7 + 0.2);
+}
+function AddPowersave() {
+  blade.addEffect(EFFECT_POWERSAVE, Math.random() * 0.7 + 0.2);
+}
 
 var blast_hump = [ 255,255,252,247,240,232,222,211,
 		   199,186,173,159,145,132,119,106,
@@ -7165,6 +7171,46 @@ function ClickPower() {
   power_button.style.backgroundColor = STATE_ON ? "lightblue" : "";
   console.log("POWER");
   blade.addEffect(STATE_ON ? EFFECT_IGNITION : EFFECT_RETRACTION, Math.random() * 0.7 + 0.2);
+  ToggleButtons();
+}
+
+function ToggleButtons() {
+  var preon_button = FIND("PREON_BUTTON");
+  var blast_button = FIND("BLAST_BUTTON");
+  var clash_button = FIND("CLASH_BUTTON");
+  var stab_button = FIND("STAB_BUTTON");
+  var force_button = FIND("FORCE_BUTTON");
+  var lockup = FIND("LOCKUP");
+  var drag_button = FIND("DRAG_BUTTON");
+  var melt_button = FIND("MELT_BUTTON");
+  var lb_button = FIND("LB_BUTTON");
+  var boot_button = FIND("BOOT_BUTTON");
+  var newfont_button = FIND("NEWFONT_BUTTON");
+  var battery_button = FIND("BATTERY_BUTTON");
+  var powersave_button = FIND("POWERSAVE_BUTTON");
+  if (STATE_ON) {
+	  preon_button.disabled = true;
+	  boot_button.disabled = true;
+	  newfont_button.disabled = true;
+	  battery_button.disabled = true;
+	  blast_button.disabled = false;
+	  clash_button.disabled = false;
+	  stab_button.disabled = false;
+	  force_button.disabled = false;
+	  lockup.disabled = false;
+	  powersave_button.disabled = false;
+  } else {
+	  preon_button.disabled = false;
+	  boot_button.disabled =  false;
+	  newfont_button.disabled = false;
+	  battery_button.disabled = false;
+	  blast_button.disabled = true;
+	  clash_button.disabled = true;
+	  stab_button.disabled = true;
+	  force_button.disabled = true;
+	  lockup.disabled = true;
+	  powersave_button.disabled = false;
+  }
 }
 
 function UpdateLockupButtons() {
@@ -7355,16 +7401,18 @@ function ActivateTab(tab) {
   <td valign=top width=50%>
     <canvas id="canvas_id" width=256px height=256px style="width:256px; height:256px;"> </canvas>
     <br>
-    <input id=POWER_BUTTON name=on type=button value="Power" onclick="ClickPower();" >
-    <input name=clash type=button value="Clash" onclick="AddClash();" >
-    <input name=stab type=button value="Stab" onclick="AddStab();" >
-    <input name=blast type=button value="Blast" onclick="AddBlast()"; >
-    <input name=force type=button value="Force" onclick="AddForce()"; >
-    <input name=boot type=button value="Boot" onclick="AddBoot()"; >
-    <input name=newfont type=button value="NewFont" onclick="AddNewfont()"; >
-    <input name=preon type=button value="Preon" onclick="AddPreon()"; >
+    <input id="PREON_BUTTON" name="preon" type="button" value="Preon" onclick="AddPreon()">
+    <input id="POWER_BUTTON" name="on" type="button" value="Power" onclick="ClickPower();">
+    <input id="NEWFONT_BUTTON" name="newfont" type="button" value="NewFont" onClick="AddNewfont()">
+    <input id="CLASH_BUTTON" disabled="true" name="clash" type="button" value="Clash" onclick="AddClash();">
+    <input id="STAB_BUTTON" disabled="true" name="stab" type="button" value="Stab" onclick="AddStab();">
+    <input id="BLAST_BUTTON" disabled="true" name="blast" type="button" value="Blast" onclick="AddBlast()">
+    <input id="FORCE_BUTTON"  disabled="true" name="force" type="button" value="Force" onclick="AddForce()">
+    <input id="BOOT_BUTTON" name=boot type=button value="Boot" onclick="AddBoot()"; >
+    <input id="BATTERY_BUTTON" name="battery" type="button" value="Battery Level" onClick="AddBattery()">
+    <input id="POWERSAVE_BUTTON" disabled="true" name="powersave" type="button" value="Powersave" onClick="AddPowersave()">	 
 
-    <select name=lockup id=LOCKUP onchange='OnLockupChange()'>
+    <select disabled="true" name=lockup id=LOCKUP onchange='OnLockupChange()'>
       <option value=LOCKUP_NONE>No lockup</option>
       <option value=LOCKUP_NORMAL>Lockup</option>
       <option value=LOCKUP_DRAG>Drag</option>
