@@ -768,6 +768,16 @@ class STYLE {
       }
     }
   }
+
+  argify(state) {
+    for (var i = 0; i < this.argdefs.length; i++) {
+      var arg = this[this.argdefs[i].name];
+      if (typeof(arg) == "object") {
+        this[this.argdefs[i].name] = arg.argify(state);
+      }
+    }
+    return this;
+  }
 }
 
 
@@ -1000,6 +1010,27 @@ ArgumentName_ENUM_BUILDER.addValue("OFF_COLOR_ARG", 31);
 ArgumentName_ENUM_BUILDER.addValue("OFF_OPTION_ARG", 32);
 ArgumentName_ENUM_BUILDER.build();
 
+function effect_to_argument(effect) {
+  switch (effect + 0) {
+    case EFFECT_CLASH: return CLASH_COLOR_ARG;
+    case EFFECT_BLAST: return BLAST_COLOR_ARG;
+    case EFFECT_STAB: return STAB_COLOR_ARG;
+    case EFFECT_PREON: return PREON_COLOR_ARG;
+    case EFFECT_POSTOFF: return POSTOFF_COLOR_ARG;
+  }
+  return undefined;
+}
+
+function lockup_to_argument(effect) {
+  switch (effect + 0) {
+    case LOCKUP_NORMAL: return LOCKUP_COLOR_ARG;
+    case LOCKUP_DRAG: return DRAG_COLOR_ARG;
+    case LOCKUP_MELT: return MELT_COLOR_ARG;
+    case LOCKUP_LIGHTNING_BLOCK: return LB_COLOR_ARG;
+  }
+  return undefined;
+}
+
 class FUNCTION  extends STYLE {
   getType() { return "FUNCTION"; }
 };
@@ -1146,6 +1177,16 @@ class RgbClass extends STYLE {
     }
     H += angle / 16384.0;
     return new RgbClass(f(5+H, C, MAX), f(3+H, C, MAX), f(1+H, C, MAX));
+  }
+
+  argify(state) {
+    if (state.color_argument) {
+      ret = RgbArg_(ArgumentName(state.color_argument), this);
+      state.color_argument = false;
+      return ret;
+    } else {
+      return this;
+    }
   }
 };
 
@@ -1300,6 +1341,13 @@ class LayersClass extends STYLE {
     for (var i = 0; i < this.LAYERS.length; i++) {
       ret = ret.paintOver(this.LAYERS[i].getColor(led));
     }
+    return ret;
+  }
+  argify(state) {
+    this.BASE = this.BASE.argify(state);
+    state.color_argument = false;
+    var ret = super.argify(state);
+    state.color_argument = false;
     return ret;
   }
 }
@@ -2951,6 +2999,12 @@ class BlastLClass extends MACRO {
     this.add_arg("EFFECT", "EFFECT", "effect type", EFFECT(EFFECT_BLAST));
     this.SetExpansion(AlphaL(BLAST, BlastF(FADEOUT_MS, WAVE_SIZE, WAVE_MS, EFFECT_ARG)));
   }
+  argify(state) {
+    state.color_argument = BLAST_COLOR_ARG;
+    var ret = super.argify(state);
+    state.color_argument = null;
+    return ret;
+  }
 };
 
 function BlastL(BLAST, FADEOUT_MS, WAVE_SIZE, WAVE_MS, EFFECT) {
@@ -3208,6 +3262,14 @@ class SimpleClashLClass extends STYLE {
   IS_RUNNING() {
     return this.clash_;
   }
+  argify(state) {
+    state.color_argument = effect_to_argument(this.EFFECT);
+    console.log("STATE IN SIMPLECLASHL:");
+    console.log(state);
+    var ret = super.argify(state);
+    state.color_argument = null;
+    return ret;
+  }
 };
 
 function SimpleClashL(T, CLASH, MILLIS, EF, SS) {
@@ -3269,6 +3331,12 @@ class LocalizedClashLClass extends STYLE {
   } 
   IS_RUNNING() {
     return this.clash;
+  }
+  argify(state) {
+    state.color_argument = effect_to_argument(this.EFFECT);
+    var ret = super.argify(state);
+    state.color_argument = null;
+    return ret;
   }
 }
 
@@ -3334,6 +3402,14 @@ class LockupLClass extends STYLE {
     if (STATE_LOCKUP == LOCKUP_DRAG) return true;
     if (STATE_LOCKUP == LOCKUP_NORMAL) return true;
     return false;
+  }
+  argify(state) {
+    state.color_argument = LOCKUP_COLOR_ARG;
+    this.LOCKUP = this.LOCKUP.argify(state);
+    state.color_argument = DRAG_COLOR_ARG;
+    this.DRAG_COLOR = this.DRAG_COLOR.argify(state);
+    state.color_argument = null;
+    return this;
   }
 };
 
@@ -3426,6 +3502,12 @@ class LockupTrLClass extends STYLE {
   IS_RUNNING() {
     return this.active;
   }
+  argify(state) {
+    state.color_argument = lockup_to_argument(this.LOCKUP_TYPE);
+    var ret = super.argify(state);
+    state.color_argument = null;
+    return ret;
+  }
 };
 
 function LockupTrL(COLOR, BeginTr, EndTr, LOCKUP_TYPE) {
@@ -3441,6 +3523,12 @@ class LockupTrClass extends MACRO {
     this.add_arg("END_TR", "TRANSITION", "End lockup transition.");
     this.add_arg("LOCKUP_TYPE", "LOCKUP_TYPE", "Lockup type");
     this.SetExpansion(Layers(BASE, LockupTrL(COLOR, BeginTr, EndTr, LOCKUP_TYPE)));
+  }
+  argify(state) {
+    state.color_argument = lockup_to_argument(this.LOCKUP_TYPE);
+    var ret = super.argify(state);
+    state.color_argument = null;
+    return ret;
   }
 }
 
@@ -4005,6 +4093,13 @@ class MultiTransitionEffectLClass extends STYLE {
     }
     return false;
   }
+
+  argify(state) {
+    state.color_argument = effect_to_argument(this.EFFECT);
+    var ret = super.argify(state);
+    state.color_argument = null;
+    return ret;
+  }
 };
 
 function MultiTransitionEffectL(T, E, N) {
@@ -4055,6 +4150,13 @@ class TransitionEffectLClass extends STYLE {
     return ret;
   }
   IS_RUNNING() { return this.run_; }
+
+  argify(state) {
+    state.color_argument = effect_to_argument(this.EFFECT);
+    var ret = super.argify(state);
+    state.color_argument = null;
+    return ret;
+  }
 };
 
 function TransitionEffectL(T, E) {
@@ -7199,7 +7301,10 @@ function DoLayerize() {
 }
 
 function DoArgify() {
-  var tmp = RecursiveArgify(current_style);
+  state = {}
+  // Only do this if at top level...
+  state.color_argument = BASE_COLOR_ARG;
+  var tmp = current_style.argify(state);
   pp_is_url++;
   tmp = tmp.pp();
   pp_is_url--;
@@ -7277,7 +7382,7 @@ function ActivateTab(tab) {
     <!-- <input id=style type=text size=100 onkeydown="if (event.keyCode == 13) Run();"> --> <input name='run' type=button value="Submit" onclick="Run()"><input name='copy' type=button value="Copy" onclick="Copy()">
     <input type=button name='expand' value="Expand" id='expand_button' onclick="DoExpand()">
     <input type=button name='layerize' value="Layerize" id='layerize_button' onclick="DoLayerize()">
-    <!-- <input type=button name='argify' value="Argify" id='argify_button' onclick="DoArgify()"> -->
+    <input type=button name='argify' value="Argify" id='argify_button' onclick="DoArgify()">
     <input id=ROTATE_BUTTON name=rotate type=button value="Rotate"  onclick="ClickRotate()" >
     <input id=INHILT_BUTTON name=inhilt type=button value="Inhilt"  onclick="ClickInhilt()" >
     <input id=SLOW_BUTTON name=inhilt type=button value="Slow"  onclick="ClickSlow()" ><br>
