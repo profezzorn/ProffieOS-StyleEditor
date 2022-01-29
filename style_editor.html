@@ -5069,7 +5069,7 @@ class TrExtendXClass extends TRANSITION {
        this.millis.update(0);
     }
   }
-  done() { return this.extending_ && this.millis.done(); }
+  done() { return this.extending && this.millis.done(); }
   getColor(A, B, led) {
     return this.TRANSITION.getColor(A, B, led);
   }
