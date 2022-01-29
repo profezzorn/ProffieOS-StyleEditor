@@ -5948,14 +5948,14 @@ function WavNum(EFFECT) {
 class CenterDistFClass extends FUNCTION {
   constructor(CENTER) {
     super("Distance from center.", arguments);
-    this.add_arg("CENTER", "FUNCTION", "Center point", Int(32768));
+    this.add_arg("CENTER", "FUNCTION", "Center point", Int(16384));
   }
   run(blade) {
     super.run(blade);
     this.num_leds = blade.num_leds();
   }
   getInteger(led) {
-    return abs(led * 32768 / this.num_leds - this.CENTER.getInteger(led));
+    return Math.abs(led * 32768 / this.num_leds - this.CENTER.getInteger(led));
   }
 };
 
