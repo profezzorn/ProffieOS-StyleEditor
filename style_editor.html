@@ -1587,6 +1587,7 @@ AddFunction("TwistAngle<>");
 AddFunction("BladeAngle<>");
 AddFunction("Sum<RandomPerLEDF, Bump<Int<16384>>>");
 AddFunction("Mult<RandomPerLEDF, Bump<Int<16384>>>");
+AddFunction("Percentage<RandomPerLEDF, 20>");
 AddFunction("HoldPeakF<RandomF, Int<300>, Int<32768>>");
 AddFunction("CenterDistF<>");
 AddFunction("EffectPosition<>");
@@ -6577,7 +6578,7 @@ function newCall(Cls) {
     SmoothStep : SmoothStep,
     RampF : RampF,
     Mult : Mult,
-    Percerage : Percentage,
+    Percentage : Percentage,
     NoisySoundLevel : NoisySoundLevel,
     NoisySoundLevelCompat : NoisySoundLevelCompat,
     SmoothSoundLevel : SmoothSoundLevel,
