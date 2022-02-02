@@ -4348,7 +4348,7 @@ class TRANSITION_BASE extends TRANSITION {
   begin() { this.restart_ = true; }
   done() { return this.len_ == 0; }
   run(blade) {
-    this.MILLIS.run(blade);
+    super.run(blade);
     if (this.restart_) {
       this.start_millis_ = millis();
       this.len_ = this.MILLIS.getInteger(0);
@@ -5992,6 +5992,7 @@ class TwistAngleClass extends FUNCTION {
     this.add_arg("OFFSET", "INT", "Angular offset", 0);
   }
   run(blade) {
+    super.run(blade);
     var v = Math.sin(millis() * Math.PI / 3000.0)/2.0 + 0.5;
     this.var_ = clamp(v * 32768, 0, 32768);
   }
