@@ -1025,7 +1025,6 @@ function lockup_to_argument(effect) {
   switch (effect + 0) {
     case LOCKUP_NORMAL: return LOCKUP_COLOR_ARG;
     case LOCKUP_DRAG: return DRAG_COLOR_ARG;
-    case LOCKUP_MELT: return MELT_COLOR_ARG;
     case LOCKUP_LIGHTNING_BLOCK: return LB_COLOR_ARG;
   }
   return undefined;
@@ -4288,6 +4287,12 @@ class RotateColorsXClass extends STYLE {
     var ret = this.COLOR.getColor(led);
     return ret.rotate((this.ROTATION.getInteger(led) & 0x7fff) * 3);
   }
+  argify(state) {
+    if (this.ROTATION.constructor == VariationClass) {
+      return this.COLOR.argify(state);
+    }
+    return super.argify(state);
+  }
 };
 
 function RotateColorsX(R, C) { return new RotateColorsXClass(R, C); }
@@ -5221,6 +5226,15 @@ class InOutFuncXClass extends FUNCTION {
     this.ret = this.extension * 32768;
   }
   getInteger(led) { return this.ret; }
+  argify(status) {
+    state.int_argument = IGNITION_TIME_ARG;
+    this.OUT_MILLIS = this.OUT_MILLIS.argify(status);
+
+    state.int_argument = RETRACTION_TIME_ARG;
+    this.IN_MILLIS = this.IN_MILLIS.argify(status);
+
+    return this;
+  }
 };
 
 function InOutFuncX(O, I) {
@@ -5245,6 +5259,15 @@ class IntClass extends FUNCTION {
     }
     return this.PPshort("Int<" + this.N +">", "VALUE");
   }
+  argify(state) {
+    if (state.int_argument) {
+      ret = IntArg_(ArgumentName(state.int_argument), this.N);
+      state.int_argument = false;
+      return ret;
+    } else {
+      return this;
+    }
+  }
 };
 
 function Int(n) { return new IntClass(n); }
@@ -5256,6 +5279,12 @@ class IntArgClass extends FUNCTION {
     this.add_arg("DEFAULT","INT","default.");
   }
   getInteger(led) { return this.DEFAULT; }
+  argify(state) {
+    if (state.int_argument == this.ARG) {
+        state.int_argument = false;
+    }
+    return this;
+  }
 };
 
 function IntArg_(ARG, N) {
@@ -5269,6 +5298,12 @@ class RgbArgClass extends STYLE {
     this.add_arg("DEFAULT","COLOR","default.");
   }
   getColor(led) { return this.DEFAULT; }
+  argify(state) {
+    if (state.color_argument == this.ARG) {
+        state.color_argument = false;
+    }
+    return this;
+  }
 };
 
 function RgbArg_(ARG, COLOR) {
@@ -6030,6 +6065,12 @@ class ResponsiveLockupLClass extends MACRO {
     				       this.TR2,
 				       LOCKUP_TYPE(LOCKUP_NORMAL)));;
   }
+  argify(state) {
+    state.color_argument = LOCKUP_COLOR_ARG;
+    var ret = super.argify(state);
+    state.color_argument = null;
+    return ret;
+  }
 };
 
 function ResponsiveLockupL(COLOR, TR1, TR2, TOP, BOTTOM, SIZE) {
@@ -6048,6 +6089,12 @@ class ResponsiveDragLClass extends MACRO {
     				       this.TR1,
     				       this.TR2,
 				       LOCKUP_TYPE(LOCKUP_DRAG)));
+  }
+  argify(state) {
+    state.color_argument = DRAG_COLOR_ARG;
+    var ret = super.argify(state);
+    state.color_argument = null;
+    return ret;
   }
 };
 
@@ -6094,6 +6141,12 @@ class ResponsiveLightningBlockLClass extends MACRO {
      this.TR2,
      LOCKUP_TYPE(LOCKUP_LIGHTNING_BLOCK)));
   }
+  argify(state) {
+    state.color_argument = LB_COLOR_ARG;
+    var ret = super.argify(state);
+    state.color_argument = null;
+    return ret;
+  }
 };
 
 function ResponsiveLightningBlockL(COLOR, TR1, TR2) {
@@ -6113,6 +6166,12 @@ class ResponsiveClashLClass extends MACRO {
                                                  AlphaL(COLOR, Bump(Scale(BladeAngle(), this.TOP, this.BOTTOM), this.SIZE)),
 						 this.TR2),
 				        EFFECT(EFFECT_CLASH)));
+  }
+  argify(state) {
+    state.color_argument = CLASH_COLOR_ARG;
+    var ret = super.argify(state);
+    state.color_argument = null;
+    return ret;
   }
 };
 
@@ -6136,6 +6195,12 @@ class ResponsiveBlastLClass extends MACRO {
                    this.EFFECT),
              Bump(Scale(BladeAngle(), this.TOP, this.BOTTOM), Int(24000))));
   }
+  argify(state) {
+    state.color_argument = BLAST_COLOR_ARG;
+    var ret = super.argify(state);
+    state.color_argument = null;
+    return ret;
+  }
 };
 
 function ResponsiveBlastL(COLOR, FADE, SIZE, SPEED, TOP, BOTTOM, EFFECT) {
@@ -6157,6 +6222,12 @@ class ResponsiveBlastWaveLClass extends MACRO {
                    TrWaveX(this.COLOR, this.FADE, this.SIZE, this.SPEED, Scale(BladeAngle(), this.TOP, this.BOTTOM)),
                    this.EFFECT));
 
+  }
+  argify(state) {
+    state.color_argument = BLAST_COLOR_ARG;
+    var ret = super.argify(state);
+    state.color_argument = null;
+    return ret;
   }
 };
 
@@ -6181,6 +6252,12 @@ class ResponsiveBlastFadeLClass extends MACRO {
             this.EFFECT));
 
   }
+  argify(state) {
+    state.color_argument = BLAST_COLOR_ARG;
+    var ret = super.argify(state);
+    state.color_argument = null;
+    return ret;
+  }
 };
 
 function ResponsiveBlastFadeL(COLOR, FADE, SIZE, TOP, BOTTOM, EFFECT) {
@@ -6201,6 +6278,12 @@ class ResponsiveStabLClass extends MACRO {
 				  this.TR2),
 		         EFFECT(EFFECT_STAB)));
 
+  }
+  argify(state) {
+    state.color_argument = STAB_COLOR_ARG;
+    var ret = super.argify(state);
+    state.color_argument = null;
+    return ret;
   }
 };
 
