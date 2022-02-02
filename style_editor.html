@@ -5583,6 +5583,7 @@ class SwingSpeedXClass extends FUNCTION {
     this.var_ = 0.0;
   }
   run(blade) {
+    super.run(blade);
     var v = (Math.sin(millis() * Math.PI / 1000.0) * 250 + 250) / this.MAX.getInteger(0);
     this.var_ = clamp(v * 32768, 0, 32768);
   }
@@ -5643,6 +5644,7 @@ class SwingAccelerationXClass extends FUNCTION {
     this.var_ = 0.0;
   }
   run(blade) {
+    super.run(blade);
     var v = (Math.cos(millis() * Math.PI / 500.0) * 100 + 100) / this.MAX.getInteger(0);
     this.var_ = clamp(v * 32768, 0, 32768);
   }
@@ -6010,6 +6012,7 @@ class BladeAngleXClass extends FUNCTION {
     this.add_arg("MAX", "FUNCTION", "What angle returns 0.", Int(32768));
   }
   run(blade) {
+    super.run(blade);
     var v = Math.sin(millis() * Math.PI / 10000.0)/2.0 + 0.5;
     this.var_ = clamp(v * 32768, 0, 32768);
   }
@@ -6022,7 +6025,7 @@ function BladeAngleX(MIN, MAX) {
 
 class TwistAngleClass extends FUNCTION {
   constructor() {
-    super("Blade Angle", arguments);
+    super("Twist Angle", arguments);
     this.add_arg("N", "INT", "Number of up/downs per rotation.", 2);
     this.add_arg("OFFSET", "INT", "Angular offset", 0);
   }
