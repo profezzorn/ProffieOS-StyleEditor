@@ -4906,6 +4906,9 @@ class TrConcatClass extends TRANSITION {
       this.add_arg("COLOR" + i, "COLOR", "Color " + i);
       this.add_arg("TRANSITION" + i, "TRANSITION", "Transiton " + i);
     }
+    if (!(this.ARGS.length & 1)) {
+      throw "TrConcat must have odd number of arguments";
+    }
     this.pos_ = this.ARGS.length - 1;
   }
   begin() {
