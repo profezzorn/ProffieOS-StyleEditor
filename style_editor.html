@@ -1562,6 +1562,7 @@ AddFunction("InOutFunc<300, 800>");
 AddFunction("InOutHelperF<InOutFunc<300, 800>>");
 AddFunction("Int<32768>");
 AddFunction("Scale<Sin<Int<10>>,Int<0>,Int<4000>>");
+AddFunction("InvertF<Ifon<Int<0>, Int<32768>>>");
 AddFunction("Sin<Int<10>>");
 AddFunction("Saw<Int<10>>");
 AddFunction("SmoothStep<Sin<Int<10>>, Sin<Int<7>>>");
@@ -5334,6 +5335,16 @@ class ScaleClass extends FUNCTION {
 
 function Scale(F, A, B) { return new ScaleClass(F, A, B); }
 
+class InvertFClass extends MACRO {
+  constructor(F) {
+    super("Invert input function", arguments);
+    this.add_arg("F", "FUNCTION", "Function to invert.");
+    this.SetExpansion(Scale(this.F, Int(32768), Int(0)));
+  }
+};
+
+function InvertF(F) { return new InvertFClass(F); }
+
 
 class SinClass extends FUNCTION {
   constructor(RPM, LOW, HIGH) {
@@ -6662,6 +6673,7 @@ function newCall(Cls) {
     IntArg : IntArg_,
     RgbArg : RgbArg_,
     Scale : Scale,
+    InvertF : InvertF,
     Sin : Sin,
     Saw : Saw,
     Trigger : Trigger,
