@@ -140,12 +140,13 @@ void main() {
 
 <script id="fragment-shader" type="x-shader/x-fragment">
 precision highp float;
-uniform float u_value;
 uniform float u_time;
 varying vec2 v_position;
 uniform float u_width;
 uniform float u_height;
 uniform sampler2D sampler;
+uniform mat4 u_move_matrix;
+uniform mat4 u_old_move_matrix;
 
 $VARIABLES$
 
@@ -247,24 +248,50 @@ vec3 getNormal(vec3 p) {
                         map(p + Z, false) - D));
 }
 
-	      
+float line_dist(vec3 pt1, vec3 dir1, vec3 pt2, vec3 dir2) {
+  vec3 n = normalize(cross(dir1, dir2));
+  return abs(dot(n, pt1 - pt2));
+}
+
 void main() {
-    vec3 light = vec3(-5.0, 5.0, -5.0);
-    vec3 eye = vec3(0.0, 0.0, -5.0);
+    vec3 light = vec3(-10.0, 5.0, -10.0);
+    vec3 eye = vec3(0.0, 0.0, -12.0);
+    float zoom = 1.5;
     vec3 dir = normalize(
-            vec3((v_position.x) / u_width,
-                 (v_position.y) / u_width, 1.0));
-    mat3 rot = mat3(sin(u_value), 0.0, -cos(u_value),
-                    0.0, 1.0, 0.0,
-                    cos(u_value), 0.0, sin(u_value));
-    float angle = u_value / 7.777;
-    mat3 rot2 = mat3(1.0, 0.0,0.0,
-                    0.0, sin(angle), -cos(angle),
-                    0.0, cos(angle), sin(angle));
-    rot = rot2 * rot;
-    eye = rot * eye;
-    dir = rot * dir;
-//    light = rot * light;
+            vec3((v_position.x) / u_width / zoom,
+                 (v_position.y) / u_width / zoom, 2.0));
+    mat4 rot3 = mat4(0.0, -1.0, 0.0, 0.0,
+                     0.0, 0.0, -1.0, 0.0,
+		     1.0, 0.0, 0.0, 0.0,
+		     0.0, 0.0, 0.0, 1.0);
+
+    mat4 rot = rot3 * u_move_matrix;
+    vec3 new_eye = (rot * vec4(eye.xyz, 1.0)).xyz;
+    vec3 new_dir = (rot * vec4(dir.xyz, 1.0)).xyz;
+
+    mat4 old_rot = rot3 * u_old_move_matrix;
+    vec3 old_eye = (old_rot * vec4(eye.xyz, 1.0)).xyz;
+    vec3 old_dir = (old_rot * vec4(dir.xyz, 1.0)).xyz;
+
+    float minpoint = 1.0;
+
+    if (true) {
+      // gauss
+      for (int i = 0; i < 2; i++) {
+        vec3 e1 = mix(old_eye, new_eye, minpoint);
+        vec3 d1 = normalize(mix(old_dir, new_dir, minpoint));
+        float delta = 0.001;
+        vec3 e2 = mix(old_eye, new_eye, minpoint - delta);
+        vec3 d2 = normalize(mix(old_dir, new_dir, minpoint - delta));
+        float dist1 = line_dist(e1, d1, A, B-A);
+        float dist2 = line_dist(e2, d2, A, B-A);
+        minpoint = minpoint - dist1 / ((dist1-dist2)/delta);
+      }
+      minpoint = clamp(minpoint, 0.0, 1.0);
+    }
+
+    eye = mix(old_eye, new_eye, minpoint);
+    dir = normalize(mix(old_dir, new_dir, minpoint));
 
     vec3 haze_color;
     float x = march(eye, dir, haze_color);
@@ -278,7 +305,7 @@ void main() {
    
     vec3 normal = getNormal(hp);
     vec3 light_dir = light - hp;
-    float light_dist2 = dot(light_dir, light_dir);
+    float light_dist2 = dot(light_dir, light_dir) / 10.0;
     light_dir = normalize(light_dir);
     float l = dot(light_dir, normal) * 5.0;
 
@@ -290,7 +317,7 @@ void main() {
 
     vec3 reflection = reflect(dir, normal);
     float l2 = max(dot(reflection, light_dir), 0.0);
-    color += vec3(200.0) * pow(l2, 128.0);
+    color += vec3(200.0) * pow(l2, 60.0);
     vec3 haze = vec3(0.01, 0.01, 0.01);
     float haze_mix = x < 0.0 ? 0.0 : pow(0.95, x);
     color = haze_mix * color + (1.0 - haze_mix) * haze;
@@ -344,7 +371,7 @@ function initGL() {
   }
 
   width = width * 2 / 3;
-  height /= 4;
+  height /= 3;
   canvas.width = width * dpr;
   canvas.height = height * dpr;
   canvas.style.width = width + 'px';
@@ -386,6 +413,148 @@ function initGL() {
     
   // Start the event loop.
   tick();
+}
+
+class Matrix {
+  constructor(w, h) {
+    this.w = w;
+    this.h = h;
+    this.values = new Float32Array(w * h);
+    if (w == h) {
+      for (var z = 0; z < w; z++) {
+        this.set(z, z, 1.0);
+      }
+    }
+  }
+  get(x, y) { return this.values[y * this.w + x]; }
+  set(x, y, v) { this.values[y * this.w + x] = v; }
+  mult(o) {
+    var ret = new Matrix(o.w, this.h);
+    for (var x = 0; x < o.w; x++) {
+      for (var y = 0; y < this.h; y++) {
+        var sum = 0.0;
+        for (var z = 0; z < this.w; z++) {
+	  sum += this.get(z, y) * o.get(x, z);
+        }
+	ret.set(x, y, sum);
+      }
+    }
+    return ret;
+  }
+  static mkzrot(a) {
+    var ret = new Matrix(4, 4);
+    var s = Math.sin(a);
+    var c = Math.cos(a);
+    ret.set(0, 0, c);
+    ret.set(1, 1, c);
+    ret.set(0, 1, s);
+    ret.set(1, 0, -s);
+    return ret;
+  }
+  static mkxrot(a) {
+    var ret = new Matrix(4, 4);
+    var s = Math.sin(a);
+    var c = Math.cos(a);
+    ret.set(1, 1, c);
+    ret.set(2, 2, c);
+    ret.set(1, 2, s);
+    ret.set(2, 1, -s);
+    return ret;
+  }
+  static mkyrot(a) {
+    var ret = new Matrix(4, 4);
+    var s = Math.sin(a);
+    var c = Math.cos(a);
+    ret.set(0, 0, c);
+    ret.set(2, 2, c);
+    ret.set(0, 2, s);
+    ret.set(2, 0, -s);
+    return ret;
+  }
+  static mktranslate(x, y, z) {
+    var ret = new Matrix(4, 4);
+    ret.set(0,3,x);
+    ret.set(1,3,y);
+    ret.set(2,3,z);
+    return ret;
+  }
+
+  tostr() {
+    var ret = "{";
+    for (var x = 0; x < this.w; x++) {
+      for (var y = 0; y < this.h; y++) {
+        ret += this.get(x, y);
+        ret += ", ";
+      }
+      ret += ";";
+    }
+    ret += "}";
+    return ret;
+  }
+};
+
+function default_move_matrix() {
+  return Matrix.mktranslate(0.00, 0.0, -0.08);
+}
+
+var MOVE_MATRIX = default_move_matrix();
+var OLD_MOVE_MATRIX = default_move_matrix();
+var SWING_SPEED = undefined;
+var SWING_ACCELERATION = undefined;
+var MOUSE_POSITIONS = [];
+
+function mouse_speed(t1, t2) {
+  var dx = MOUSE_POSITIONS[t1+0]-MOUSE_POSITIONS[t2+0];
+  var dy = MOUSE_POSITIONS[t1+1]-MOUSE_POSITIONS[t2+1];
+  var dt = MOUSE_POSITIONS[t1+2]-MOUSE_POSITIONS[t2+2];
+  if (dt == 0) return 0.0;
+  return Math.sqrt(dx * dx + dy * dy) / Math.abs(dt);
+}
+
+function mouse_move(e) {
+  var canvas = FIND("canvas_id");
+  var rect = canvas.getBoundingClientRect();
+  var w = rect.right - rect.left;
+  var h = rect.bottom - rect.top;
+  var d = min(h, w);
+  var x = (e.clientX - (rect.left + rect.right)/2.0) / d;
+  var y = (e.clientY - (rect.top + rect.bottom)/2.0) / d;
+  var now = actual_millis();
+  MOUSE_POSITIONS = MOUSE_POSITIONS.concat([x* 10000, y * 10000, now])
+  while (MOUSE_POSITIONS.length > 3 && now - MOUSE_POSITIONS[2] > 100) {
+    MOUSE_POSITIONS = MOUSE_POSITIONS.slice(3);
+  }
+
+  var len = MOUSE_POSITIONS.length;
+  if (len >= 6) {
+    var speed = mouse_speed(0, len - 6);
+    SWING_SPEED = speed;
+    if (MOUSE_POSITIONS.length >= 9) {
+      SWING_ACCELERATION = (speed - mouse_speed(0, Math.floor(len/6)*3)) * 2.0;
+    }
+  }
+//  console.log("x = "+x+" y = "+y);
+  if (e.shiftKey) {
+    MOVE_MATRIX = default_move_matrix();
+  } else {
+    MOVE_MATRIX = Matrix.mkzrot(Math.PI/2.0).mult(Matrix.mkxrot(-y)).mult(Matrix.mkzrot(y));
+
+    MOVE_MATRIX = Matrix.mkyrot(Math.PI/2.0)
+    MOVE_MATRIX = MOVE_MATRIX.mult(Matrix.mktranslate(1.0, 0.04, 0.0));
+    MOVE_MATRIX = MOVE_MATRIX.mult(Matrix.mkyrot(-x/3));
+    MOVE_MATRIX = MOVE_MATRIX.mult(Matrix.mktranslate(-1.0, 0.0, 0.0));
+    MOVE_MATRIX = MOVE_MATRIX.mult(Matrix.mkzrot(-y));
+    MOVE_MATRIX = MOVE_MATRIX.mult(Matrix.mktranslate(-0.17, 0.0, 0.0));
+  }
+//  console.log(MOVE_MATRIX.values);
+}
+
+function mouse_leave(e) {
+  console.log("Mouse leave!");
+  MOVE_MATRIX = default_move_matrix();
+  SWING_SPEED = undefined;
+  SWING_ACCELERATION = undefined;
+  MOUSE_POSITIONS = [];
 }
 
 
@@ -5598,7 +5767,11 @@ class SwingSpeedXClass extends FUNCTION {
   }
   run(blade) {
     super.run(blade);
-    var v = (Math.sin(millis() * Math.PI / 1000.0) * 250 + 250) / this.MAX.getInteger(0);
+    var speed = SWING_SPEED;
+    if (speed == undefined) {
+      speed = Math.sin(millis() * Math.PI / 1000.0) * 250 + 250;
+    }
+    var v =  speed / this.MAX.getInteger(0);
     this.var_ = clamp(v * 32768, 0, 32768);
   }
   getInteger(led) { return this.var_; }
@@ -5659,7 +5832,11 @@ class SwingAccelerationXClass extends FUNCTION {
   }
   run(blade) {
     super.run(blade);
-    var v = (Math.cos(millis() * Math.PI / 500.0) * 100 + 100) / this.MAX.getInteger(0);
+    var accel = SWING_ACCELERATION;
+    if (accel == undefined) {
+      accel = Math.cos(millis() * Math.PI / 500.0) * 100 + 100;
+    }
+    var v = accel / this.MAX.getInteger(0);
     this.var_ = clamp(v * 32768, 0, 32768);
   }
   getInteger(led) { return this.var_; }
@@ -7039,17 +7216,29 @@ function drawScene() {
   gl.clear(gl.COLOR_BUFFER_BIT);
 
   gl.viewport(0, 0, width * dpr, height * dpr);
+  var rotation = MOVE_MATRIX;
   if (STATE_ROTATE) {
-    gl.uniform1f(gl.getUniformLocation(shaderProgram, "u_value"), 
-		 (new Date().getTime() - rotate_start) / 3000.0);
+    var u_value = (new Date().getTime() - rotate_start) / 3000.0;
+    var rotation = default_move_matrix();
+    rotation = rotation.mult(Matrix.mkyrot(u_value));
+    rotation = rotation.mult(Matrix.mkzrot(u_value / 7.777));
+    
   } else {
+    if (0) {
+      OLD_MOVE_MATRIX = default_move_matrix();
+      rotation = default_move_matrix();
+      rotation = rotation.mult(Matrix.mkzrot(0.2));
+    }
     rotate_start = new Date().getTime();
-    gl.uniform1f(gl.getUniformLocation(shaderProgram, "u_value"), 0.0);
   }
   gl.uniform1f(gl.getUniformLocation(shaderProgram, "u_time"), 
                (new Date().getTime() - start) / 1000.0);
   gl.uniform1f(gl.getUniformLocation(shaderProgram, "u_width"), width);
   gl.uniform1f(gl.getUniformLocation(shaderProgram, "u_height"), height);
+
+  gl.uniformMatrix4fv(gl.getUniformLocation(shaderProgram, "u_move_matrix"), false, rotation.values);
+  gl.uniformMatrix4fv(gl.getUniformLocation(shaderProgram, "u_old_move_matrix"), false, OLD_MOVE_MATRIX.values);
+  OLD_MOVE_MATRIX = rotation;
   gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 
   t += 1;
@@ -7460,7 +7649,7 @@ function ActivateTab(tab) {
 <table>
 <tr>
   <td valign=top width=50%>
-    <canvas id="canvas_id" width=256px height=256px style="width:256px; height:256px;"> </canvas>
+    <canvas id="canvas_id" width=256px height=256px style="width:256px; height:256px;" onmousemove='mouse_move(event)' onmouseleave='mouse_leave(event)'  onclick='AddClash()'> </canvas>
     <br>
     <input id=POWER_BUTTON name=on type=button value="Power" onclick="ClickPower();" >
     <input name=clash type=button value="Clash" onclick="AddClash();" >
