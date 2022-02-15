@@ -499,9 +499,9 @@ function default_move_matrix() {
 
 var MOVE_MATRIX = default_move_matrix();
 var OLD_MOVE_MATRIX = default_move_matrix();
-var SWING_SPEED = undefined;
-var SWING_ACCELERATION = undefined;
 var MOUSE_POSITIONS = [];
+var IN_FRAME = false;
+var BLADE_ANGLE = 0.0;
 
 function mouse_speed(t1, t2) {
   var dx = MOUSE_POSITIONS[t1+0]-MOUSE_POSITIONS[t2+0];
@@ -512,6 +512,7 @@ function mouse_speed(t1, t2) {
 }
 
 function mouse_move(e) {
+  IN_FRAME = true;
   var canvas = FIND("canvas_id");
   var rect = canvas.getBoundingClientRect();
   var w = rect.right - rect.left;
@@ -521,22 +522,15 @@ function mouse_move(e) {
   var y = (e.clientY - (rect.top + rect.bottom)/2.0) / d;
   var now = actual_millis();
   MOUSE_POSITIONS = MOUSE_POSITIONS.concat([x* 10000, y * 10000, now])
-  while (MOUSE_POSITIONS.length > 3 && now - MOUSE_POSITIONS[2] > 100) {
+  while (MOUSE_POSITIONS.length > 0 && now - MOUSE_POSITIONS[2] > 100) {
     MOUSE_POSITIONS = MOUSE_POSITIONS.slice(3);
   }
 
-  var len = MOUSE_POSITIONS.length;
-  if (len >= 6) {
-    var speed = mouse_speed(0, len - 6);
-    SWING_SPEED = speed;
-    if (MOUSE_POSITIONS.length >= 9) {
-      SWING_ACCELERATION = (speed - mouse_speed(0, Math.floor(len/6)*3)) * 2.0;
-    }
-  }
 //  console.log("x = "+x+" y = "+y);
   if (e.shiftKey) {
     MOVE_MATRIX = default_move_matrix();
   } else {
+    BLADE_ANGLE=-y;
     MOVE_MATRIX = Matrix.mkzrot(Math.PI/2.0).mult(Matrix.mkxrot(-y)).mult(Matrix.mkzrot(y));
 
     MOVE_MATRIX = Matrix.mkyrot(Math.PI/2.0)
@@ -549,12 +543,40 @@ function mouse_move(e) {
 //  console.log(MOVE_MATRIX.values);
 }
 
+function get_swing_speed() {
+  var now = actual_millis();
+  while (MOUSE_POSITIONS.length > 0 && now - MOUSE_POSITIONS[2] > 100) {
+    MOUSE_POSITIONS = MOUSE_POSITIONS.slice(3);
+  }
+  var len = MOUSE_POSITIONS.length;
+  if (len >= 6) {
+    return mouse_speed(0, len - 6);
+  }
+  if (IN_FRAME) return 0.0;
+  return Math.sin(millis() * Math.PI / 1000.0) * 250 + 250
+}
+
+function get_swing_accel() {
+  var now = actual_millis();
+  while (MOUSE_POSITIONS.length > 0 && now - MOUSE_POSITIONS[2] > 100) {
+    MOUSE_POSITIONS = MOUSE_POSITIONS.slice(3);
+  }
+  var len = MOUSE_POSITIONS.length;
+  if (len >= 6) {
+    var speed = mouse_speed(0, len - 6);
+    if (MOUSE_POSITIONS.length >= 9) {
+      return (speed - mouse_speed(0, Math.floor(len/6)*3)) * 2.0;
+    }
+  }
+  if (IN_FRAME) return 0.0;
+  return Math.cos(millis() * Math.PI / 500.0) * 100 + 100
+}
+
 function mouse_leave(e) {
   console.log("Mouse leave!");
   MOVE_MATRIX = default_move_matrix();
-  SWING_SPEED = undefined;
-  SWING_ACCELERATION = undefined;
   MOUSE_POSITIONS = [];
+  IN_FRAME = false;
 }
 
 
@@ -5767,10 +5789,7 @@ class SwingSpeedXClass extends FUNCTION {
   }
   run(blade) {
     super.run(blade);
-    var speed = SWING_SPEED;
-    if (speed == undefined) {
-      speed = Math.sin(millis() * Math.PI / 1000.0) * 250 + 250;
-    }
+    var speed = get_swing_speed();
     var v =  speed / this.MAX.getInteger(0);
     this.var_ = clamp(v * 32768, 0, 32768);
   }
@@ -5832,10 +5851,7 @@ class SwingAccelerationXClass extends FUNCTION {
   }
   run(blade) {
     super.run(blade);
-    var accel = SWING_ACCELERATION;
-    if (accel == undefined) {
-      accel = Math.cos(millis() * Math.PI / 500.0) * 100 + 100;
-    }
+    var accel = get_swing_accel();
     var v = accel / this.MAX.getInteger(0);
     this.var_ = clamp(v * 32768, 0, 32768);
   }
@@ -6205,8 +6221,17 @@ class BladeAngleXClass extends FUNCTION {
   }
   run(blade) {
     super.run(blade);
-    var v = Math.sin(millis() * Math.PI / 10000.0)/2.0 + 0.5;
-    this.var_ = clamp(v * 32768, 0, 32768);
+    if (IN_FRAME) {
+      var min = this.MIN.getInteger(0);
+      var max = this.MAX.getInteger(0);
+      var v = fract( (BLADE_ANGLE + Math.PI / 2) / Math.PI);
+      if (v > 1) v = 2 - v;
+      v *= 32768.0;
+      this.var_ = clamp((v - min) * 32768 / (max - min), 0, 32768);
+    } else {
+      var v = Math.sin(millis() * Math.PI / 10000.0)/2.0 + 0.5;
+      this.var_ = clamp(v * 32768, 0, 32768);
+    }
   }
   getInteger(led) { return this.var_; }
 };
