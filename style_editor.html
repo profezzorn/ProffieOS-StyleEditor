@@ -4839,7 +4839,7 @@ class TrCenterWipeInXClass extends TRANSITION_BASE {
   }
   getColor(A, B, led) {
     var mix = this.range.Intersect(new Range(led, (led + 1))).Size();
-    return A.mix(B, mix);
+    return B.mix(A, mix);
   }
 }
 
