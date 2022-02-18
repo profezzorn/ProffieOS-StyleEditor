@@ -5015,8 +5015,8 @@ class TrSparkXClass extends TRANSITION {
     return this.millis.done();
   }
   getColor(A, B, led) {
-    var dist = abs(this.center - led * 32768 / this.num_leds);
-    var N = abs(dist - this.offset) * this.size >> 15;
+    var dist = Math.abs(this.center - led * 32768 / this.num_leds);
+    var N = Math.abs(dist - this.offset) * this.size >> 15;
     var mix;
     if (N <= 32) {
       mix = blast_hump[N] << 7;
@@ -5228,9 +5228,6 @@ class TrSelectClass extends TRANSITION {
       var f = this.F.getInteger(0) + 0;
       while (f < 0) f += this.TRANSITIONS.length * 255;
       f %= this.TRANSITIONS.length;
-      console.log("TRANSITIONS");
-      console.log(this.TRANSITIONS);
-      console.log(f);
       this.selected = this.TRANSITIONS[f % this.TRANSITIONS.length];
       this.selected.begin();
       this.begin_ = false;
