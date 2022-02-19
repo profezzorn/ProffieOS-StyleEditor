@@ -355,9 +355,31 @@ function initGL() {
   AddTab("arguments", "Arguments");
   AddTab("example", "Examples", template_links.join(""));
   AddTab("history", "History");
+  AddTab("arg_string", "ArgString");
   EFFECT_ENUM_BUILDER.addToTab("effect", "EFFECT_");
   LOCKUP_ENUM_BUILDER.addToTab("lockup_type", "LOCKUP_");
   ArgumentName_ENUM_BUILDER.addToTab("arguments", "");
+
+  // Add arg string.
+  var A = "";
+  A += "Arg string: <input id=ARGSTR name=arg type=input size=80 value='builtin 0 1' onchange='ArgStringChanged()' /><br><table>";
+  var v = Object.keys(ArgumentName_ENUM_BUILDER.value_to_name);
+  for (var i = 0; i < v.length; i++) {
+    var V = parseInt(v[i]);
+    var N = ArgumentName_ENUM_BUILDER.value_to_name[V];
+    A += "<tr><td>" + N + "</td><td>";
+    if (N.search("COLOR") >= 0) {
+       A += "<input type=color id=ARGSTR_"+N+" onclick='ClickArgColor("+N+")' onchange='ClickArgColor("+N+")' >";
+    } else {
+       A += "<input type=button value='<'  onclick='IncreaseArg("+N+",-1)' >";
+       A += "<input id=ARGSTR_"+N+" type=input size=6 value=0 onchange='ArgChanged("+N+")' >";
+       A += "<input type=button value='>'  onclick='IncreaseArg("+N+",1)' >";
+    }
+    A += "</td></tr>\n";
+  }
+  A += "</table\n";
+  AddTabContent("arg_string", A);
+
 
   var canvas = FIND("canvas_id");
 
@@ -1265,8 +1287,17 @@ class CONFIG extends STYLE {
 };
 
 function FixColor(c) {
-  console.log(c)
   return min(65535, Math.floor(Math.pow(parseInt(c, 16) / 255.0, 2.2) * 65536));
+}
+
+function hex2(N) {
+  var ret = N.toString(16);
+  if (ret.length < 2) ret = "0" + ret;
+  return ret;
+}
+
+function UnFixColor(c) {
+  return hex2(min(255, Math.floor(Math.pow(parseInt(c) / 65535.0, 1.0/2.2) * 255)));
 }
 
 function ClickColor() {
@@ -5470,7 +5501,11 @@ class IntArgClass extends FUNCTION {
     this.add_arg("ARG","ArgumentName","argument number.");
     this.add_arg("DEFAULT","INT","default.");
   }
-  getInteger(led) { return this.DEFAULT; }
+  run(blade) {
+    super.run(blade);
+    this.value = parseInt(getARG(this.ARG, "" + this.DEFAULT));
+  }
+  getInteger(led) { return this.value; }
   argify(state) {
     if (state.int_argument == this.ARG) {
         state.int_argument = false;
@@ -5489,7 +5524,13 @@ class RgbArgClass extends STYLE {
     this.add_arg("ARG","ArgumentName","number to return.");
     this.add_arg("DEFAULT","COLOR","default.");
   }
-  getColor(led) { return this.DEFAULT; }
+  run(blade) {
+    super.run(blade);
+    var d = Math.round(this.DEFAULT.r * 65535) + "," + Math.round(this.DEFAULT.g * 65535)+ "," +Math.round(this.DEFAULT.b * 65535);
+    var v = getARG(this.ARG, d).split(",");
+    this.value = Rgb16(parseInt(v[0]), parseInt(v[1]), parseInt(v[2]));
+  }
+  getColor(led) { return this.value; }
   argify(state) {
     if (state.color_argument == this.ARG) {
         state.color_argument = false;
@@ -7415,6 +7456,74 @@ function Run() {
   }
   ReplaceCurrentFocus(str);
   compile();
+}
+
+var ARGUMENTS = ["builtin", "0", "1"];
+var default_arguments = [];
+
+function updateArgTag(ARG, VALUE) {
+  var N = ArgumentName_ENUM_BUILDER.value_to_name[ARG];
+  var tag = FIND("ARGSTR_"+N);
+  if (VALUE.search(",") >= 0) {
+    console.log("FIXING COLOR VALUE: "+VALUE);
+    values = VALUE.split(",")
+    VALUE = '#' + UnFixColor(values[0])+UnFixColor(values[1])+UnFixColor(values[2]);
+  }
+  console.log("Setting tag from: " + tag.value + " to " + VALUE);
+  tag.value = VALUE;
+}
+
+function getARG(ARG, DEFAULT) {
+  ARG = ARG + 2;
+  if (!default_arguments[ARG]) {
+    updateArgTag(ARG - 2, DEFAULT);
+  }
+  default_arguments[ARG] = DEFAULT;
+  return ARGUMENTS[ARG] || DEFAULT;
+}
+
+function ArgStringChanged() {
+  var tag = FIND("ARGSTR");
+  ARGUMENTS = tag.value.split(" ");
+  for (var i = 3; i < ARGUMENTS.length; i++) {
+     if (ARGUMENTS[i] == "~") continue;
+     if (!ARGUMENTS[i]) continue;
+     var ARG = i - 2;
+     updateArgTag(ARG, ARGUMENTS[i]);
+  }
+}
+
+function setARG(ARG, TO) {
+  ARG += 2;
+  ARGUMENTS[ARG] = TO;
+  for (var i = 0; i < ARGUMENTS.length; i++) {
+    if (!ARGUMENTS[i]) {
+      ARGUMENTS[i] = '~';
+    }
+  }
+  FIND("ARGSTR").value = ARGUMENTS.join(" ");
+}
+
+function ArgChanged(ARG) {
+  var N = ArgumentName_ENUM_BUILDER.value_to_name[ARG];
+  var tag = FIND("ARGSTR_"+N);
+  setARG(ARG, tag.value);
+}
+
+function IncreaseArg(ARG, I) {
+  var N = ArgumentName_ENUM_BUILDER.value_to_name[ARG];
+  var tag = FIND("ARGSTR_"+N);
+  tag.value = parseInt(tag.value) + I;
+  setARG(ARG, tag.value);
+}
+
+function ClickArgColor(ARG) {
+  var N = ArgumentName_ENUM_BUILDER.value_to_name[ARG];
+  var tag = FIND("ARGSTR_"+N);
+  var R = FixColor(tag.value.substr(1,2));
+  var G = FixColor(tag.value.substr(3,2));
+  var B = FixColor(tag.value.substr(5,2));
+  setARG(ARG, R+","+G+","+B);
 }
 
 function PopState(event) {
