@@ -4920,7 +4920,7 @@ class TrWipeSparkTipXClass extends MACRO {
     this.add_arg("SPARK_COLOR", "COLOR", "Spark color");
     this.add_arg("MILLIS", "FUNCTION", "wipe milliseconds");
     this.add_arg("SIZE", "FUNCTION", "Size of spark.", Int(400));
-    this.SetExpansion(TrJoin(TrWipeX(MILLIS),TrWaveX(SPARK_COLOR,Int(400),this.SIZE,MILLIS,Int(0))));
+    this.SetExpansion(TrJoin(TrWipeX(MILLIS),TrSparkX(SPARK_COLOR,this.SIZE,MILLIS,Int(0))));
   }
 };
 
@@ -4932,7 +4932,7 @@ class TrWipeSparkTipClass extends MACRO {
     this.add_arg("SPARK_COLOR", "COLOR", "Spark color");
     this.add_arg("MILLIS", "INT", "wipe milliseconds");
     this.add_arg("SIZE", "INT", "Size of spark.", 400);
-    this.SetExpansion(TrJoin(TrWipe(MILLIS),TrWaveX(SPARK_COLOR,Int(400),Int(this.SIZE),Int(MILLIS),Int(0))));
+    this.SetExpansion(TrJoin(TrWipe(MILLIS),TrSparkX(SPARK_COLOR,Int(this.SIZE),Int(MILLIS),Int(0))));
   }
 };
 
@@ -4944,7 +4944,7 @@ class TrWipeInSparkTipXClass extends MACRO {
     this.add_arg("SPARK_COLOR", "COLOR", "Spark color");
     this.add_arg("MILLIS", "FUNCTION", "wipe milliseconds");
     this.add_arg("SIZE", "FUNCTION", "Size of spark.", Int(400));
-    this.SetExpansion(TrJoin(TrWipeInX(MILLIS),TrWaveX(SPARK_COLOR,Int(400),this.SIZE,MILLIS,Int(32768))));
+    this.SetExpansion(TrJoin(TrWipeInX(MILLIS),TrSparkX(SPARK_COLOR,this.SIZE,MILLIS,Int(32768))));
   }
 };
 
@@ -4956,7 +4956,7 @@ class TrWipeInSparkTipClass extends MACRO {
     this.add_arg("SPARK_COLOR", "COLOR", "Spark color");
     this.add_arg("MILLIS", "INT", "wipe milliseconds");
     this.add_arg("SIZE", "INT", "Size of spark.", 400);
-    this.SetExpansion(TrJoin(TrWipeIn(MILLIS),TrWaveX(SPARK_COLOR,Int(400),Int(this.SIZE),Int(MILLIS),Int(32768))));
+    this.SetExpansion(TrJoin(TrWipeIn(MILLIS),TrSparkX(SPARK_COLOR,Int(this.SIZE),Int(MILLIS),Int(32768))));
   }
 };
 
