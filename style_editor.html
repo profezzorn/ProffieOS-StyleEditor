@@ -4433,14 +4433,14 @@ class InOutTrLClass extends STYLE {
     if (this.out_active_) {
       this.OUT_TR.run(blade);
       if (this.OUT_TR.done()) {
-        this.out_active_ = true;
+        this.out_active_ = false;
       }
     }
 
     if (this.in_active_) {
       this.IN_TR.run(blade);
       if (this.IN_TR.done()) {
-        this.in_active_ = true;
+        this.in_active_ = false;
       }
     }
   }
