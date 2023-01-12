@@ -1157,6 +1157,7 @@ EFFECT_ENUM_BUILDER.addValue("EFFECT_NEWFONT");
 EFFECT_ENUM_BUILDER.addValue("EFFECT_LOW_BATTERY");
 EFFECT_ENUM_BUILDER.addValue("EFFECT_POWERSAVE");
 EFFECT_ENUM_BUILDER.addValue("EFFECT_BATTERY_LEVEL");
+EFFECT_ENUM_BUILDER.addValue("EFFECT_VOLUME_LEVEL");
 EFFECT_ENUM_BUILDER.addValue("EFFECT_FAST_ON");
 EFFECT_ENUM_BUILDER.addValue("EFFECT_STUN");
 EFFECT_ENUM_BUILDER.addValue("EFFECT_FIRE");
@@ -1769,6 +1770,7 @@ AddTransition("TrWipeSparkTipX<White, Int<300>>");
 AddTransition("TrWipeInSparkTipX<White, Int<300>>");
 
 AddFunction("BatteryLevel");
+AddFunction("VolumeLevel");
 AddFunction("BlinkingF<Int<1000>, Int<500>>");
 AddFunction("BrownNoiseF<Int<50>>");
 AddFunction("HumpFlickerF<50>");
@@ -3172,6 +3174,12 @@ function AddBoot() {
 }
 function AddPreon() {
   blade.addEffect(EFFECT_PREON, 0.0);
+}
+function AddBattery() {
+  blade.addEffect(EFFECT_BATTERY_LEVEL, 0);
+}
+function AddVolume() {
+  blade.addEffect(EFFECT_VOLUME_LEVEL, 0);
 }
 
 var blast_hump = [ 255,255,252,247,240,232,222,211,
@@ -5329,7 +5337,7 @@ var BATTERY_LEVEL=24000
 
 class BatteryLevelClass extends FUNCTION {
   constructor() {
-    super("Returns 0-32768 based on battery leve.", []);
+    super("Returns 0-32768 based on battery level.", []);
   }
   run(blade) {}
   getInteger(led) { return 32768 - ((millis() * 3) & 0x7fff); }
@@ -5339,6 +5347,18 @@ function BatteryLevel() {
   return new BatteryLevelClass();
 }
 
+class VolumeLevelClass extends FUNCTION {
+  constructor() {
+    super("Returns 0-32768 based on volume level.", []);
+  }
+  run(blade) {}
+  getInteger(led) { return 0 + ((millis() * 7) & 0x7fff); }
+};
+
+function VolumeLevel() {
+  return new VolumeLevelClass();
+}
+	
 class BumpClass extends FUNCTION {
   constructor() {
     super("Function returning a bump shape", arguments);
@@ -6905,6 +6925,7 @@ function newCall(Cls) {
     TrExtend : TrExtend,
 
     BatteryLevel : BatteryLevel,
+    VolumeLevel : VolumeLevel,
     Bump : Bump,
     Ifon : Ifon,
     ChangeSlowly : ChangeSlowly,
@@ -7791,7 +7812,9 @@ function ActivateTab(tab) {
     <input name=boot type=button value="Boot" onclick="AddBoot()"; >
     <input name=newfont type=button value="NewFont" onclick="AddNewfont()"; >
     <input name=preon type=button value="Preon" onclick="AddPreon()"; >
-
+    <input name=battery type=button value="Batt Level" onclick="AddBattery()"; >
+    <input name=volume type=button value="Vol Level" onclick="AddVolume()"; >
+	  
     <select name=lockup id=LOCKUP onchange='OnLockupChange()'>
       <option value=LOCKUP_NONE>No lockup</option>
       <option value=LOCKUP_NORMAL>Lockup</option>
