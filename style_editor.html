@@ -6255,7 +6255,7 @@ class BladeAngleXClass extends FUNCTION {
   constructor() {
     super("Blade Angle", arguments);
     this.add_arg("MIN", "FUNCTION", "What angle returns 0.", Int(0));
-    this.add_arg("MAX", "FUNCTION", "What angle returns 0.", Int(32768));
+    this.add_arg("MAX", "FUNCTION", "What angle returns 32768.", Int(32768));
   }
   run(blade) {
     super.run(blade);
