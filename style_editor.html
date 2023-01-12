@@ -1157,6 +1157,7 @@ EFFECT_ENUM_BUILDER.addValue("EFFECT_NEWFONT");
 EFFECT_ENUM_BUILDER.addValue("EFFECT_LOW_BATTERY");
 EFFECT_ENUM_BUILDER.addValue("EFFECT_POWERSAVE");
 EFFECT_ENUM_BUILDER.addValue("EFFECT_BATTERY_LEVEL");
+EFFECT_ENUM_BUILDER.addValue("EFFECT_QUOTE");
 EFFECT_ENUM_BUILDER.addValue("EFFECT_FAST_ON");
 EFFECT_ENUM_BUILDER.addValue("EFFECT_STUN");
 EFFECT_ENUM_BUILDER.addValue("EFFECT_FIRE");
@@ -3172,6 +3173,9 @@ function AddBoot() {
 }
 function AddPreon() {
   blade.addEffect(EFFECT_PREON, 0.0);
+}
+function AddQuote() {
+  blade.addEffect(EFFECT_QUOTE, 0.0);
 }
 
 var blast_hump = [ 255,255,252,247,240,232,222,211,
@@ -7791,6 +7795,7 @@ function ActivateTab(tab) {
     <input name=boot type=button value="Boot" onclick="AddBoot()"; >
     <input name=newfont type=button value="NewFont" onclick="AddNewfont()"; >
     <input name=preon type=button value="Preon" onclick="AddPreon()"; >
+    <input name=quote type=button value="Quote" onclick="AddQuote()"; >
 
     <select name=lockup id=LOCKUP onchange='OnLockupChange()'>
       <option value=LOCKUP_NONE>No lockup</option>
