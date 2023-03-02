@@ -5528,6 +5528,9 @@ class RgbArgClass extends STYLE {
     super.run(blade);
     var d = Math.round(this.DEFAULT.r * 65535) + "," + Math.round(this.DEFAULT.g * 65535)+ "," +Math.round(this.DEFAULT.b * 65535);
     var v = getARG(this.ARG, d).split(",");
+    if (v.length < 3) {
+      v = d.split(",");
+    }
     this.value = Rgb16(parseInt(v[0]), parseInt(v[1]), parseInt(v[2]));
   }
   getColor(led) { return this.value; }
