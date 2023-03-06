@@ -7094,7 +7094,19 @@ class Parser {
     if (this.pos + 1 >= this.str.length) return ""
     return this.str[this.pos + 1]
   }
+  gobble(c) {
+    this.skipspace();
+    if (this.peek() == c) {
+      this.pos++;
+      return true;
+    }
+    return false;
+  }
+  expect(c) {
+    if (!this.gobble(c)) throw "Missing " + c;
+  }
   skipspace() {
+    var start_pos = this.pos;
     while (true) {
       if (this.peek() == ' ' || this.peek() == '\t' || this.peek() == '\n' || this.peek() == '\r') { this.pos++; continue; }
       if (this.peek() == '/')  {
@@ -7111,7 +7123,7 @@ class Parser {
 	  continue;
 	}
       }
-      return;
+      return this.str.substr(this.star_pos, this.pos); // trim?
     }
   }
 
@@ -7130,6 +7142,22 @@ class Parser {
     }
   }
 
+  parse_optional_string() {
+    this.skipspace();
+    if (this.peek() != '"') return null;
+    var ret = "";
+    while (this.gobble('"')) {
+      this.gobble('"');
+      while (this.peek() != '"') {
+         ret += this.peek();
+         this.pos++;
+      }
+      this.expect('"')
+      this.skipspace();
+    }
+    return ret;
+  }
+
   // recursive descent parser
   parse_atom() {
     this.skipspace();
@@ -7146,6 +7174,7 @@ class Parser {
     }
     this.skipspace();
     var args = 0;
+    var argstring = 0;
     if (this.peek() == "<") {
       this.pos++;
       this.skipspace();
@@ -7162,8 +7191,11 @@ class Parser {
         throw "Missing > or ,";
       }
       this.pos++;
-      if (this.peek() == '(' && this.peek2() == ')') {
-        this.pos += 2;
+      if (this.peek() == '(') {
+        this.pos++;
+        argstring = this.parse_optional_string();
+	if (this.peek() != ')') throw "Missing )";
+	this.pos++;
       }
     }
     if (this.identifiers[id]) {
@@ -7193,22 +7225,30 @@ class Parser {
 	throw e;
       }
       // console.log(ret);
+      if (argstring) {
+        console.log("ARGSTRING : " + argstring);
+        ret.argstring = argstring;
+      }
       return ret;
     }
     throw  "Unknown identifier:" + id;
   }
 
   parse_unary() {
-    this.skipspace();
+    var pre_comment = this.skipspace();
+    var ret = 0;
     if (this.peek() == '-') {
       this.pos++;
-      var ret = this.parse_atom();
+      ret = this.parse_atom();
       if (ret.getType() != "INT")
         throw "Expected integer, got " + ret.getType();
       ret.value = - ret.value;
       return ret;
+    } else {
+      ret = this.parse_atom();
     }
-    return this.parse_atom();
+    if (pre_comment) ret.pre_comment = pre_comment;
+    return ret;
   }
 
   parse_internal() {
@@ -7498,6 +7538,10 @@ function Run() {
   }
   ReplaceCurrentFocus(str);
   compile();
+  if (current_style.argstring) {
+    FIND("ARGSTR").value = "builtin 0 1 " + current_style.argstring
+    ArgStringChanged();
+  }
 }
 
 var ARGUMENTS = ["builtin", "0", "1"];
@@ -7521,7 +7565,9 @@ function getARG(ARG, DEFAULT) {
     updateArgTag(ARG - 2, DEFAULT);
   }
   default_arguments[ARG] = DEFAULT;
-  return ARGUMENTS[ARG] || DEFAULT;
+  if (ARGUMENTS[ARG] && ARGUMENTS[ARG] != "~")
+    return ARGUMENTS[ARG];
+  return DEFAULT;
 }
 
 function ArgStringChanged() {
@@ -7706,18 +7752,20 @@ function IncreaseVariant(n) {
   FIND("VARIANT").value = Variant() + n;
 }
 
+
+
 function Copy() {
   var copyText = FIND("style");
+  var argStr = '"' + ARGUMENTS.slice(3).join(" ") + '"';
   if(copyText.value.includes("StylePtr") ||
      copyText.value.includes("StyleNormalPtr") ||
      copyText.value.includes("StyleFirePtr") ||
      copyText.value.includes("StyleRainbowPtr"))
-    {
-      if(!copyText.value.endsWith("()"))
-	copyText.value = copyText.value + "()";
-    }
-  else{
-    copyText.value = "StylePtr<" + copyText.value + ">" + "()";
+  {
+    if(!copyText.value.endsWith(")"))
+      copyText.value = copyText.value + "("+ argStr +")";
+  } else {
+    copyText.value = "StylePtr<" + copyText.value + ">" + "("+ argStr  +")";
   }
   copyText.select();
   document.execCommand("copy");
