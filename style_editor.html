@@ -1851,6 +1851,7 @@ AddFunction("Variation");
 AddFunction("TwistAngle<>");
 AddFunction("BladeAngle<>");
 AddFunction("Sum<RandomPerLEDF, Bump<Int<16384>>>");
+AddFunction("Subtract<RandomPerLEDF, Bump<Int<16384>>>");
 AddFunction("Mult<RandomPerLEDF, Bump<Int<16384>>>");
 AddFunction("Percentage<RandomPerLEDF, 20>");
 AddFunction("Divide<RandomPerLEDF, Int<10>>");
@@ -6675,6 +6676,21 @@ class DivideClass extends FUNCTION {
 function Divide(F, V) {
   return new DivideClass(F, V);
 }
+
+class SubtractClass extends FUNCTION {
+  constructor(F, V) {
+    super("Returns F - V", arguments);
+    this.add_arg("F", "FUNCTION", "F");
+    this.add_arg("V", "FUNCTION", "V");
+  }
+  getInteger(led) {
+    return this.F.getInteger(led) - this.V.getInteger(led);
+  }
+};
+
+function Subtract(F, V) {
+  return new SubtractClass(F, V);
+}
 ///////
 
 class HoldPeakFClass extends FUNCTION {
@@ -7019,6 +7035,7 @@ function newCall(Cls) {
     TwistAngle : TwistAngle,
     Sum : Sum,
     Divide : Divide,
+    Subtract : Subtract,
     HoldPeakF : HoldPeakF,
     ThresholdPulseF : ThresholdPulseF,
     EffectRandomF : EffectRandomF,
