@@ -1835,6 +1835,7 @@ AddFunction("ChangeSlowly<NoisySoundLevel, Int<50000>>");
 AddFunction("SlowNoise<Int<1000>>");
 AddFunction("IsLessThan<SwingSpeed<250>, Int<100>>");
 AddFunction("IsGreaterThan<SwingSpeed<250>, Int<100>>");
+AddFunction("IsBetween<SwingSpeed<250>, Int<100>, Int<120>>");
 AddFunction("LayerFunctions<Bump<Int<0>>, Bump<Int<32768>>>");
 AddFunction("OnSparkF<Int<200>>");
 AddFunction("PulsingF<Int<800>>");
@@ -6025,6 +6026,23 @@ function IsGreaterThan(F, V) {
   return new IsGreaterThanClass(F, V);
 }
 
+class IsBetweenClass extends FUNCTION {
+  constructor(F, BOTTOM, TOP) {
+    super("Returns 32768 if BOTTOM < F < TOP, 0 otherwise.", arguments);
+    this.add_arg("F", "FUNCTION", "F");
+    this.add_arg("BOTTOM", "FUNCTION", "BOTTOM");
+    this.add_arg("TOP", "FUNCTION", "TOP");
+  }
+  getInteger(led) {
+    var f = this.F.getInteger(led);
+    return this.BOTTOM.getInteger(led) < f && f < this.TOP.getInteger(led) ? 32768 : 0;
+  }
+};
+
+function IsBetween(F, BOTTOM, TOP) {
+  return new IsBetweenClass(F, BOTTOM, TOP);
+}
+
 class VariationClass extends FUNCTION {
   constructor() {
     super("Returns the current variation", arguments);
@@ -6977,6 +6995,7 @@ function newCall(Cls) {
     SlowNoise : SlowNoise,
     IsLessThan : IsLessThan,
     IsGreaterThan : IsGreaterThan,
+    IsBetween : IsBetween,
     Variation : Variation,
     BladeAngleX : BladeAngleX,
     BladeAngle : BladeAngle,
