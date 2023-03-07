@@ -1836,6 +1836,7 @@ AddFunction("SlowNoise<Int<1000>>");
 AddFunction("IsLessThan<SwingSpeed<250>, Int<100>>");
 AddFunction("IsGreaterThan<SwingSpeed<250>, Int<100>>");
 AddFunction("IsBetween<SwingSpeed<250>, Int<100>, Int<120>>");
+AddFunction("ClampF<RandomPerLEDF, 8000, 12000>");
 AddFunction("LayerFunctions<Bump<Int<0>>, Bump<Int<32768>>>");
 AddFunction("OnSparkF<Int<200>>");
 AddFunction("PulsingF<Int<800>>");
@@ -6020,7 +6021,7 @@ class IsGreaterThanClass extends MACRO {
     super("Returns 32768 if F > V, 0 otherwise.", arguments);
     this.add_arg("F", "FUNCTION", "F");
     this.add_arg("V", "FUNCTION", "V");
-    this.SetExpansion(IsLessThan(V, F));
+    this.SetExpansion(IsLessThan(V.DOCOPY(), F.DOCOPY()));
   }
 };
 
@@ -6043,6 +6044,36 @@ class IsBetweenClass extends FUNCTION {
 
 function IsBetween(F, BOTTOM, TOP) {
   return new IsBetweenClass(F, BOTTOM, TOP);
+}
+
+class ClampFXClass extends FUNCTION {
+  constructor(F, MIN, MAX) {
+    super("Returns F, clamped to MIN...MAX", arguments);
+    this.add_arg("F", "FUNCTION", "F");
+    this.add_arg("MIN", "FUNCTION", "MIN");
+    this.add_arg("MAX", "FUNCTION", "MAX");
+  }
+  getInteger(led) {
+    return clamp(this.F.getInteger(led), this.MIN.getInteger(led), this.MAX.getInteger(led));
+  }
+};
+
+function ClampFX(F, MIN, MAX) {
+  return new ClampFXClass(F, MIN, MAX);
+}
+
+class ClampFClass extends MACRO {
+  constructor(F, MIN, MAX) {
+    super("Returns F, clamped to MIN...MAX", arguments);
+    this.add_arg("F", "FUNCTION", "F");
+    this.add_arg("MIN", "INT", "MIN");
+    this.add_arg("MAX", "INT", "MAX");
+    this.SetExpansion(ClampFX(F.DOCOPY(), Int(MIN), Int(MAX)));
+  }
+};
+
+function ClampF(F, MIN, MAX) {
+  return new ClampFClass(F, MIN, MAX);
 }
 
 class VariationClass extends FUNCTION {
@@ -7029,6 +7060,8 @@ function newCall(Cls) {
     IsLessThan : IsLessThan,
     IsGreaterThan : IsGreaterThan,
     IsBetween : IsBetween,
+    ClampFX : ClampFX,
+    ClampF : ClampF,
     Variation : Variation,
     BladeAngleX : BladeAngleX,
     BladeAngle : BladeAngle,
