@@ -1849,6 +1849,7 @@ AddFunction("StrobeF<Int<15>, Int<1>>");
 AddFunction("BlastFadeoutF");
 AddFunction("OriginalBlastF");
 AddFunction("Variation");
+AddFunction("AltF");
 AddFunction("TwistAngle<>");
 AddFunction("BladeAngle<>");
 AddFunction("Sum<RandomPerLEDF, Bump<Int<16384>>>");
@@ -6089,6 +6090,19 @@ function Variation() {
   return new VariationClass();
 }
 
+class AltFClass extends FUNCTION {
+  constructor() {
+    super("Returns the current alt", arguments);
+  }
+  getInteger(led) {
+    return Alt() & 0x7fff;
+  }
+};
+
+function AltF() {
+  return new AltFClass();
+}
+
 class EffectPulseFClass extends FUNCTION {
   constructor() {
     super("Generate a pulse every time an effect occurs", arguments);
@@ -7063,6 +7077,7 @@ function newCall(Cls) {
     ClampFX : ClampFX,
     ClampF : ClampF,
     Variation : Variation,
+    AltF : AltF,
     BladeAngleX : BladeAngleX,
     BladeAngle : BladeAngle,
     TwistAngle : TwistAngle,
@@ -7831,6 +7846,17 @@ function ClickSlow() {
   button.style.backgroundColor = framesPerUpdate == 60 ? "lightblue" : "";
 }
 
+function Alt() {
+  return parseInt(FIND("ALT").value);
+}
+
+function IncreaseAlt(n) {
+  var v = Alt() + n;
+  if (v < 0) v += 999;
+  if (v > 999) v -= 999;
+  FIND("ALT").value = v;
+}
+
 function Variant() {
  return parseInt(FIND("VARIANT").value);
 }
@@ -7838,8 +7864,6 @@ function Variant() {
 function IncreaseVariant(n) {
   FIND("VARIANT").value = Variant() + n;
 }
-
-
 
 function Copy() {
   var copyText = FIND("style");
@@ -7981,6 +8005,12 @@ function ActivateTab(tab) {
     <input id=VARIANT_MINUS name=varminus type=button value="<"  onclick="IncreaseVariant(-1)" >
     <input id=VARIANT name=variant type=input size=6 value="0" >
     <input id=VARIANT_PLUS name=varplus type=button value=">"  onclick="IncreaseVariant(1)" >
+
+    Alt:
+    <input id=ALT_MINUS name=altminus type=button value="<"  onclick="IncreaseAlt(-1)" >
+    <input id=ALT name=alt type=input size=3 value="0" >
+    <input id=ALT_PLUS name=altplus type=button value=">"  onclick="IncreaseAlt(1)" >
+
     <span id=error_message></span>
     <br>
     <pre><textarea rows=10 cols=80 id=style wrap=off></textarea></pre>
