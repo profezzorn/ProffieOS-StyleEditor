@@ -1830,7 +1830,7 @@ AddFunction("InvertF<Ifon<Int<0>, Int<32768>>>");
 AddFunction("Sin<Int<10>>");
 AddFunction("Saw<Int<10>>");
 AddFunction("SmoothStep<Sin<Int<10>>, Sin<Int<7>>>");
-AddFunction("Trigger<EFFECT_FORCE, Int<500>, Int<1000>, Int<500>>");
+AddFunction("Trigger<EFFECT_FORCE, Int<500>, Int<1000>, Int<500>, Int<0>>");
 AddFunction("ChangeSlowly<NoisySoundLevel, Int<50000>>");
 AddFunction("SlowNoise<Int<1000>>");
 AddFunction("IsLessThan<SwingSpeed<250>, Int<100>>");
@@ -5678,7 +5678,7 @@ const  TRIGGER_RELEASE = 3;
 const  TRIGGER_OFF = 4;
 
 class TriggerClass extends FUNCTION {
-  constructor(EFFECT, FADE_IN_MILLIS, SUSTAIN_MILLIS, FADE_OUT_MILLIS, DELAY) {
+  constructor(EFFECT, FADE_IN_MILLIS, SUSTAIN_MILLIS, FADE_OUT_MILLIS, DELAY_MILLIS) {
     super("When EFFECT occurs, DELAY controls a pause, then we ramp up to 32768, stay there for SUSTAIN_MILLIS, then ramp down again.", arguments);
     this.add_arg("EFFECT", "EFFECT", "Trigger event");
     this.add_arg("FADE_IN_MILLIS", "FUNCTION", "How long it takes to ramp to 32768");
@@ -5745,8 +5745,8 @@ class TriggerClass extends FUNCTION {
   }
 };
 
-function Trigger(EFFECT, FADE_IN_MILLIS, SUSTAIN_MILLIS, FADE_OUT_MILLIS) {
-  return new TriggerClass(EFFECT, FADE_IN_MILLIS, SUSTAIN_MILLIS, FADE_OUT_MILLIS);
+function Trigger(EFFECT, FADE_IN_MILLIS, SUSTAIN_MILLIS, FADE_OUT_MILLIS, DELAY_MILLIS) {
+  return new TriggerClass(EFFECT, FADE_IN_MILLIS, SUSTAIN_MILLIS, FADE_OUT_MILLIS, DELAY_MILLIS);
 }
 
 class SmoothStepClass extends FUNCTION {
