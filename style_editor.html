@@ -1159,6 +1159,23 @@ EFFECT_ENUM_BUILDER.addValue("EFFECT_POWERSAVE");
 EFFECT_ENUM_BUILDER.addValue("EFFECT_BATTERY_LEVEL");
 EFFECT_ENUM_BUILDER.addValue("EFFECT_VOLUME_LEVEL");
 EFFECT_ENUM_BUILDER.addValue("EFFECT_FAST_ON");
+EFFECT_ENUM_BUILDER.addValue("EFFECT_QUOTE");
+EFFECT_ENUM_BUILDER.addValue("EFFECT_SECONDARY_IGNITION");
+EFFECT_ENUM_BUILDER.addValue("EFFECT_SECONDARY_RETRACTION");
+EFFECT_ENUM_BUILDER.addValue("EFFECT_OFF");
+EFFECT_ENUM_BUILDER.addValue("EFFECT_FAST_OFF");
+EFFECT_ENUM_BUILDER.addValue("EFFECT_OFF_CLASH");
+EFFECT_ENUM_BUILDER.addValue("EFFECT_NEXT_QUOTE");
+EFFECT_ENUM_BUILDER.addValue("EFFECT_INTERACTIVE_PREON");
+EFFECT_ENUM_BUILDER.addValue("EFFECT_INTERACTIVE_BLAST");
+EFFECT_ENUM_BUILDER.addValue("EFFECT_TRACK");
+EFFECT_ENUM_BUILDER.addValue("EFFECT_BEGIN_BATTLE_MODE");
+EFFECT_ENUM_BUILDER.addValue("EFFECT_END_BATTLE_MODE");
+EFFECT_ENUM_BUILDER.addValue("EFFECT_BEGIN_AUTO_BLAST");
+EFFECT_ENUM_BUILDER.addValue("EFFECT_END_AUTO_BLAST");
+EFFECT_ENUM_BUILDER.addValue("EFFECT_ALT_SOUND");
+EFFECT_ENUM_BUILDER.addValue("EFFECT_TRANSITION_SOUND");
+EFFECT_ENUM_BUILDER.addValue("EFFECT_SOUND_LOOP");
 EFFECT_ENUM_BUILDER.addValue("EFFECT_STUN");
 EFFECT_ENUM_BUILDER.addValue("EFFECT_FIRE");
 EFFECT_ENUM_BUILDER.addValue("EFFECT_CLIP_IN");
@@ -1172,11 +1189,28 @@ EFFECT_ENUM_BUILDER.addValue("EFFECT_JAM");
 EFFECT_ENUM_BUILDER.addValue("EFFECT_UNJAM");
 EFFECT_ENUM_BUILDER.addValue("EFFECT_PLI_ON");
 EFFECT_ENUM_BUILDER.addValue("EFFECT_PLI_OFF");
+EFFECT_ENUM_BUILDER.addValue("EFFECT_GAME_START");
+EFFECT_ENUM_BUILDER.addValue("EFFECT_GAME_ACTION1");
+EFFECT_ENUM_BUILDER.addValue("EFFECT_GAME_ACTION2");
+EFFECT_ENUM_BUILDER.addValue("EFFECT_GAME_CHOICE");
+EFFECT_ENUM_BUILDER.addValue("EFFECT_GAME_RESPONSE1");
+EFFECT_ENUM_BUILDER.addValue("EFFECT_GAME_RESPONSE2");
+EFFECT_ENUM_BUILDER.addValue("EFFECT_GAME_RESULT1");
+EFFECT_ENUM_BUILDER.addValue("EFFECT_GAME_RESULT2");
+EFFECT_ENUM_BUILDER.addValue("EFFECT_GAME_WIN");
+EFFECT_ENUM_BUILDER.addValue("EFFECT_GAME_LOSE");
 EFFECT_ENUM_BUILDER.addValue("EFFECT_USER1");
 EFFECT_ENUM_BUILDER.addValue("EFFECT_USER2");
 EFFECT_ENUM_BUILDER.addValue("EFFECT_USER3");
 EFFECT_ENUM_BUILDER.addValue("EFFECT_USER4");
 EFFECT_ENUM_BUILDER.addValue("EFFECT_USER5");
+EFFECT_ENUM_BUILDER.addValue("EFFECT_USER6");
+EFFECT_ENUM_BUILDER.addValue("EFFECT_USER7");
+EFFECT_ENUM_BUILDER.addValue("EFFECT_USER8");
+EFFECT_ENUM_BUILDER.addValue("EFFECT_SD_CARD_NOT_FOUND");
+EFFECT_ENUM_BUILDER.addValue("EFFECT_ERROR_IN_FONT_DIRECTORY");
+EFFECT_ENUM_BUILDER.addValue("EFFECT_ERROR_IN_BLADE_ARRAY");
+EFFECT_ENUM_BUILDER.addValue("EFFECT_FONT_DIRECTORY_NOT_FOUND");
 EFFECT_ENUM_BUILDER.build();
 
 LOCKUP_ENUM_BUILDER = new EnumBuilder("LOCKUP_TYPE", "SaberBase::");
@@ -1222,6 +1256,12 @@ ArgumentName_ENUM_BUILDER.addValue("RETRACTION_COOL_DOWN_ARG", 29);
 ArgumentName_ENUM_BUILDER.addValue("POSTOFF_COLOR_ARG", 30);
 ArgumentName_ENUM_BUILDER.addValue("OFF_COLOR_ARG", 31);
 ArgumentName_ENUM_BUILDER.addValue("OFF_OPTION_ARG", 32);
+ArgumentName_ENUM_BUILDER.addValue("ALT_COLOR2_ARG", 33);
+ArgumentName_ENUM_BUILDER.addValue("ALT_COLOR3_ARG", 34);
+ArgumentName_ENUM_BUILDER.addValue("STYLE_OPTION2_ARG", 35);
+ArgumentName_ENUM_BUILDER.addValue("STYLE_OPTION3_ARG", 36);
+ArgumentName_ENUM_BUILDER.addValue("IGNITION_OPTION2_ARG", 37);
+ArgumentName_ENUM_BUILDER.addValue("RETRACTION_OPTION2_ARG", 38);
 ArgumentName_ENUM_BUILDER.build();
 
 function effect_to_argument(effect) {
@@ -1795,6 +1835,8 @@ AddFunction("ChangeSlowly<NoisySoundLevel, Int<50000>>");
 AddFunction("SlowNoise<Int<1000>>");
 AddFunction("IsLessThan<SwingSpeed<250>, Int<100>>");
 AddFunction("IsGreaterThan<SwingSpeed<250>, Int<100>>");
+AddFunction("IsBetween<SwingSpeed<250>, Int<100>, Int<120>>");
+AddFunction("ClampF<RandomPerLEDF, 8000, 12000>");
 AddFunction("LayerFunctions<Bump<Int<0>>, Bump<Int<32768>>>");
 AddFunction("OnSparkF<Int<200>>");
 AddFunction("PulsingF<Int<800>>");
@@ -1807,11 +1849,14 @@ AddFunction("StrobeF<Int<15>, Int<1>>");
 AddFunction("BlastFadeoutF");
 AddFunction("OriginalBlastF");
 AddFunction("Variation");
+AddFunction("AltF");
 AddFunction("TwistAngle<>");
 AddFunction("BladeAngle<>");
 AddFunction("Sum<RandomPerLEDF, Bump<Int<16384>>>");
+AddFunction("Subtract<RandomPerLEDF, Bump<Int<16384>>>");
 AddFunction("Mult<RandomPerLEDF, Bump<Int<16384>>>");
 AddFunction("Percentage<RandomPerLEDF, 20>");
+AddFunction("Divide<RandomPerLEDF, Int<10>>");
 AddFunction("HoldPeakF<RandomF, Int<300>, Int<32768>>");
 AddFunction("CenterDistF<>");
 AddFunction("EffectPosition<>");
@@ -5995,12 +6040,59 @@ class IsGreaterThanClass extends MACRO {
     super("Returns 32768 if F > V, 0 otherwise.", arguments);
     this.add_arg("F", "FUNCTION", "F");
     this.add_arg("V", "FUNCTION", "V");
-    this.SetExpansion(IsLessThan(V, F));
+    this.SetExpansion(IsLessThan(V.DOCOPY(), F.DOCOPY()));
   }
 };
 
 function IsGreaterThan(F, V) {
   return new IsGreaterThanClass(F, V);
+}
+
+class IsBetweenClass extends FUNCTION {
+  constructor(F, BOTTOM, TOP) {
+    super("Returns 32768 if BOTTOM < F < TOP, 0 otherwise.", arguments);
+    this.add_arg("F", "FUNCTION", "F");
+    this.add_arg("BOTTOM", "FUNCTION", "BOTTOM");
+    this.add_arg("TOP", "FUNCTION", "TOP");
+  }
+  getInteger(led) {
+    var f = this.F.getInteger(led);
+    return this.BOTTOM.getInteger(led) < f && f < this.TOP.getInteger(led) ? 32768 : 0;
+  }
+};
+
+function IsBetween(F, BOTTOM, TOP) {
+  return new IsBetweenClass(F, BOTTOM, TOP);
+}
+
+class ClampFXClass extends FUNCTION {
+  constructor(F, MIN, MAX) {
+    super("Returns F, clamped to MIN...MAX", arguments);
+    this.add_arg("F", "FUNCTION", "F");
+    this.add_arg("MIN", "FUNCTION", "MIN");
+    this.add_arg("MAX", "FUNCTION", "MAX");
+  }
+  getInteger(led) {
+    return clamp(this.F.getInteger(led), this.MIN.getInteger(led), this.MAX.getInteger(led));
+  }
+};
+
+function ClampFX(F, MIN, MAX) {
+  return new ClampFXClass(F, MIN, MAX);
+}
+
+class ClampFClass extends MACRO {
+  constructor(F, MIN, MAX) {
+    super("Returns F, clamped to MIN...MAX", arguments);
+    this.add_arg("F", "FUNCTION", "F");
+    this.add_arg("MIN", "INT", "MIN");
+    this.add_arg("MAX", "INT", "MAX");
+    this.SetExpansion(ClampFX(F.DOCOPY(), Int(MIN), Int(MAX)));
+  }
+};
+
+function ClampF(F, MIN, MAX) {
+  return new ClampFClass(F, MIN, MAX);
 }
 
 class VariationClass extends FUNCTION {
@@ -6014,6 +6106,19 @@ class VariationClass extends FUNCTION {
 
 function Variation() {
   return new VariationClass();
+}
+
+class AltFClass extends FUNCTION {
+  constructor() {
+    super("Returns the current alt", arguments);
+  }
+  getInteger(led) {
+    return Alt() & 0x7fff;
+  }
+};
+
+function AltF() {
+  return new AltFClass();
 }
 
 class EffectPulseFClass extends FUNCTION {
@@ -6618,6 +6723,37 @@ function Sum(ARGS) {
   return new SumClass(Array.from(arguments));
 }
 
+class DivideClass extends FUNCTION {
+  constructor(F, V) {
+    super("Returns F / V", arguments);
+    this.add_arg("F", "FUNCTION", "F");
+    this.add_arg("V", "FUNCTION", "V");
+  }
+  getInteger(led) {
+    var v = this.V.getInteger(led);
+    if (v == 0) return 0;
+    return this.F.getInteger(led) / v;
+  }
+};
+
+function Divide(F, V) {
+  return new DivideClass(F, V);
+}
+
+class SubtractClass extends FUNCTION {
+  constructor(F, V) {
+    super("Returns F - V", arguments);
+    this.add_arg("F", "FUNCTION", "F");
+    this.add_arg("V", "FUNCTION", "V");
+  }
+  getInteger(led) {
+    return this.F.getInteger(led) - this.V.getInteger(led);
+  }
+};
+
+function Subtract(F, V) {
+  return new SubtractClass(F, V);
+}
 ///////
 
 class HoldPeakFClass extends FUNCTION {
@@ -6956,11 +7092,17 @@ function newCall(Cls) {
     SlowNoise : SlowNoise,
     IsLessThan : IsLessThan,
     IsGreaterThan : IsGreaterThan,
+    IsBetween : IsBetween,
+    ClampFX : ClampFX,
+    ClampF : ClampF,
     Variation : Variation,
+    AltF : AltF,
     BladeAngleX : BladeAngleX,
     BladeAngle : BladeAngle,
     TwistAngle : TwistAngle,
     Sum : Sum,
+    Divide : Divide,
+    Subtract : Subtract,
     HoldPeakF : HoldPeakF,
     ThresholdPulseF : ThresholdPulseF,
     EffectRandomF : EffectRandomF,
@@ -7073,7 +7215,19 @@ class Parser {
     if (this.pos + 1 >= this.str.length) return ""
     return this.str[this.pos + 1]
   }
+  gobble(c) {
+    this.skipspace();
+    if (this.peek() == c) {
+      this.pos++;
+      return true;
+    }
+    return false;
+  }
+  expect(c) {
+    if (!this.gobble(c)) throw "Missing " + c;
+  }
   skipspace() {
+    var start_pos = this.pos;
     while (true) {
       if (this.peek() == ' ' || this.peek() == '\t' || this.peek() == '\n' || this.peek() == '\r') { this.pos++; continue; }
       if (this.peek() == '/')  {
@@ -7090,7 +7244,7 @@ class Parser {
 	  continue;
 	}
       }
-      return;
+      return this.str.substr(this.star_pos, this.pos); // trim?
     }
   }
 
@@ -7109,6 +7263,22 @@ class Parser {
     }
   }
 
+  parse_optional_string() {
+    this.skipspace();
+    if (this.peek() != '"') return null;
+    var ret = "";
+    while (this.gobble('"')) {
+      this.gobble('"');
+      while (this.peek() != '"') {
+         ret += this.peek();
+         this.pos++;
+      }
+      this.expect('"')
+      this.skipspace();
+    }
+    return ret;
+  }
+
   // recursive descent parser
   parse_atom() {
     this.skipspace();
@@ -7125,6 +7295,7 @@ class Parser {
     }
     this.skipspace();
     var args = 0;
+    var argstring = 0;
     if (this.peek() == "<") {
       this.pos++;
       this.skipspace();
@@ -7141,8 +7312,11 @@ class Parser {
         throw "Missing > or ,";
       }
       this.pos++;
-      if (this.peek() == '(' && this.peek2() == ')') {
-        this.pos += 2;
+      if (this.peek() == '(') {
+        this.pos++;
+        argstring = this.parse_optional_string();
+	if (this.peek() != ')') throw "Missing )";
+	this.pos++;
       }
     }
     if (this.identifiers[id]) {
@@ -7172,22 +7346,30 @@ class Parser {
 	throw e;
       }
       // console.log(ret);
+      if (argstring) {
+        console.log("ARGSTRING : " + argstring);
+        ret.argstring = argstring;
+      }
       return ret;
     }
     throw  "Unknown identifier:" + id;
   }
 
   parse_unary() {
-    this.skipspace();
+    var pre_comment = this.skipspace();
+    var ret = 0;
     if (this.peek() == '-') {
       this.pos++;
-      var ret = this.parse_atom();
+      ret = this.parse_atom();
       if (ret.getType() != "INT")
         throw "Expected integer, got " + ret.getType();
       ret.value = - ret.value;
       return ret;
+    } else {
+      ret = this.parse_atom();
     }
-    return this.parse_atom();
+    if (pre_comment) ret.pre_comment = pre_comment;
+    return ret;
   }
 
   parse_internal() {
@@ -7477,6 +7659,10 @@ function Run() {
   }
   ReplaceCurrentFocus(str);
   compile();
+  if (current_style.argstring) {
+    FIND("ARGSTR").value = "builtin 0 1 " + current_style.argstring
+    ArgStringChanged();
+  }
 }
 
 var ARGUMENTS = ["builtin", "0", "1"];
@@ -7500,7 +7686,9 @@ function getARG(ARG, DEFAULT) {
     updateArgTag(ARG - 2, DEFAULT);
   }
   default_arguments[ARG] = DEFAULT;
-  return ARGUMENTS[ARG] || DEFAULT;
+  if (ARGUMENTS[ARG] && ARGUMENTS[ARG] != "~")
+    return ARGUMENTS[ARG];
+  return DEFAULT;
 }
 
 function ArgStringChanged() {
@@ -7677,6 +7865,17 @@ function ClickSlow() {
   button.style.backgroundColor = framesPerUpdate == 60 ? "lightblue" : "";
 }
 
+function Alt() {
+  return parseInt(FIND("ALT").value);
+}
+
+function IncreaseAlt(n) {
+  var v = Alt() + n;
+  if (v < 0) v += 999;
+  if (v > 999) v -= 999;
+  FIND("ALT").value = v;
+}
+
 function Variant() {
  return parseInt(FIND("VARIANT").value);
 }
@@ -7687,16 +7886,16 @@ function IncreaseVariant(n) {
 
 function Copy() {
   var copyText = FIND("style");
+  var argStr = '"' + ARGUMENTS.slice(3).join(" ") + '"';
   if(copyText.value.includes("StylePtr") ||
      copyText.value.includes("StyleNormalPtr") ||
      copyText.value.includes("StyleFirePtr") ||
      copyText.value.includes("StyleRainbowPtr"))
-    {
-      if(!copyText.value.endsWith("()"))
-	copyText.value = copyText.value + "()";
-    }
-  else{
-    copyText.value = "StylePtr<" + copyText.value + ">" + "()";
+  {
+    if(!copyText.value.endsWith(")"))
+      copyText.value = copyText.value + "("+ argStr +")";
+  } else {
+    copyText.value = "StylePtr<" + copyText.value + ">" + "("+ argStr  +")";
   }
   copyText.select();
   document.execCommand("copy");
@@ -7827,6 +8026,12 @@ function ActivateTab(tab) {
     <input id=VARIANT_MINUS name=varminus type=button value="<"  onclick="IncreaseVariant(-1)" >
     <input id=VARIANT name=variant type=input size=6 value="0" >
     <input id=VARIANT_PLUS name=varplus type=button value=">"  onclick="IncreaseVariant(1)" >
+
+    Alt:
+    <input id=ALT_MINUS name=altminus type=button value="<"  onclick="IncreaseAlt(-1)" >
+    <input id=ALT name=alt type=input size=3 value="0" >
+    <input id=ALT_PLUS name=altplus type=button value=">"  onclick="IncreaseAlt(1)" >
+
     <span id=error_message></span>
     <br>
     <pre><textarea rows=10 cols=80 id=style wrap=off></textarea></pre>
