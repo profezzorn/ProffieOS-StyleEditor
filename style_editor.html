@@ -5679,7 +5679,7 @@ const  TRIGGER_OFF = 4;
 
 class TriggerClass extends FUNCTION {
   constructor(EFFECT, FADE_IN_MILLIS, SUSTAIN_MILLIS, FADE_OUT_MILLIS, DELAY_MILLIS) {
-    super("When EFFECT occurs, DELAY_MILLIS controls a pause, then we ramp up to 32768, stay there for SUSTAIN_MILLIS, then ramp down again.", arguments);
+    super("When EFFECT occurs, DELAY_MILLIS controls a pause, then we ramp up from 0 to 32768, stay there for SUSTAIN_MILLIS, then ramp down again.", arguments);
     this.add_arg("EFFECT", "EFFECT", "Trigger event");
     this.add_arg("FADE_IN_MILLIS", "FUNCTION", "How long it takes to ramp to 32768");
     this.add_arg("SUSTAIN_MILLIS", "FUNCTION", "Stay at 32768 for this long.");
