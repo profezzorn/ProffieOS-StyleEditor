@@ -407,7 +407,7 @@ function initGL() {
 
   var str = new URL(window.location.href).searchParams.get("S");
   if (!str) {
-    str = "InOutHelper<SimpleClash<Lockup<Blast<Blue,White>,AudioFlicker<Blue,White>>,White>, 300, 800>";
+    str = "Layers<Red,ResponsiveLockupL<White,TrInstant,TrInstant,Int<26000>>,ResponsiveLightningBlockL<White>,ResponsiveMeltL<Mix<TwistAngle<>,Red,Yellow>>,ResponsiveDragL<White>,ResponsiveClashL<White,TrInstant,TrFade<200>,Int<26000>>,ResponsiveBlastL<White>,ResponsiveBlastWaveL<White>,ResponsiveBlastFadeL<White>,ResponsiveStabL<White>,InOutTrL<TrWipe<300>,TrWipeIn<500>>,TransitionEffectL<TrConcat<TrExtendX<Int<1000>,TrSmoothFade<200>>,AlphaL<Gradient<Blue,Green>,SmoothStep<VolumeLevel,Int<-1>>>,TrSmoothFade<500>>,EFFECT_VOLUME_LEVEL>,AlphaL<TransitionEffectL<TrConcat<TrSmoothFade<500>,AlphaL<Mix<BatteryLevel,Red,Green>,SmoothStep<Scale<BatteryLevel,Int<0>,Int<35000>>,Int<-1>>>,TrDelay<1000>,AlphaL<Mix<BatteryLevel,Red,Green>,SmoothStep<BatteryLevel,Int<-1>>>,TrSmoothFade<1000>>,EFFECT_BATTERY_LEVEL>,Ifon<Int<0>,Int<32768>>>,TransitionEffectL<TrConcat<TrWipe<50>,White,TrWipe<50>,Blue,TrWipe<50>,White,TrWipe<50>,Blue,TrWipe<50>>,EFFECT_QUOTE>,TransitionEffectL<TrConcat<TrInstant,AlphaL<White,Bump<Int<0>,Int<8000>>>,TrFade<3000>>,EFFECT_POSTOFF>>";
   }
   FIND("style").value = str;
 
@@ -1811,6 +1811,7 @@ AddTransition("TrWipeSparkTipX<White, Int<300>>");
 AddTransition("TrWipeInSparkTipX<White, Int<300>>");
 
 AddFunction("BatteryLevel");
+AddFunction("VolumeLevel");
 AddFunction("BlinkingF<Int<1000>, Int<500>>");
 AddFunction("BrownNoiseF<Int<50>>");
 AddFunction("HumpFlickerF<50>");
@@ -1830,7 +1831,7 @@ AddFunction("InvertF<Ifon<Int<0>, Int<32768>>>");
 AddFunction("Sin<Int<10>>");
 AddFunction("Saw<Int<10>>");
 AddFunction("SmoothStep<Sin<Int<10>>, Sin<Int<7>>>");
-AddFunction("Trigger<EFFECT_FORCE, Int<500>, Int<1000>, Int<500>>");
+AddFunction("Trigger<EFFECT_FORCE, Int<500>, Int<1000>, Int<500>, Int<0>>");
 AddFunction("ChangeSlowly<NoisySoundLevel, Int<50000>>");
 AddFunction("SlowNoise<Int<1000>>");
 AddFunction("IsLessThan<SwingSpeed<250>, Int<100>>");
@@ -5376,7 +5377,7 @@ var BATTERY_LEVEL=24000
 
 class BatteryLevelClass extends FUNCTION {
   constructor() {
-    super("Returns 0-32768 based on battery leve.", []);
+    super("Returns 0-32768 based on battery level.", []);
   }
   run(blade) {}
   getInteger(led) { return 32768 - ((millis() * 3) & 0x7fff); }
@@ -5386,6 +5387,20 @@ function BatteryLevel() {
   return new BatteryLevelClass();
 }
 
+class VolumeLevelClass extends FUNCTION {
+  constructor() {
+    super("Returns 0-32768 based on volume level.", []);
+  }
+  run(blade) {}
+  // getInteger(led) { return 0 + ((millis() * 7) & 0x7fff); }
+  getInteger(led) { return 0 + ((millis() / 500) % 11) * 32767 / 10; }
+
+};
+
+function VolumeLevel() {
+  return new VolumeLevelClass();
+}
+	
 class BumpClass extends FUNCTION {
   constructor() {
     super("Function returning a bump shape", arguments);
@@ -5527,7 +5542,7 @@ class IntClass extends FUNCTION {
       if (this.super_short_desc) return "$";
       return "Int<" + this.N + ">";
     }
-    return this.PPshort("Int<" + this.N +">", "VALUE");
+    return this.PPshort("Int< " + this.N +">", "VALUE");
   }
   argify(state) {
     if (state.int_argument) {
@@ -5671,18 +5686,21 @@ class SawClass extends FUNCTION {
 
 function Saw(RPM, LOW, HIGH) { return new SawClass(RPM, LOW, HIGH); }
 
-const  TRIGGER_ATTACK = 0;
-const  TRIGGER_SUSTAIN = 1;
-const  TRIGGER_RELEASE = 2;
-const  TRIGGER_OFF = 3;
+const  TRIGGER_DELAY = 0;
+const  TRIGGER_ATTACK = 1;
+const  TRIGGER_SUSTAIN = 2;
+const  TRIGGER_RELEASE = 3;
+const  TRIGGER_OFF = 4;
 
 class TriggerClass extends FUNCTION {
-  constructor(EFFECT, FADE_IN_MILLIS, SUSTAIN_MILLIS, FADE_OUT_MILLIS) {
-    super("When EFFECT occors, ramps up to 32768, stays there for SUSTAIN_MILLIS, then ramps down again.", arguments);
+  constructor(EFFECT, FADE_IN_MILLIS, SUSTAIN_MILLIS, FADE_OUT_MILLIS, DELAY_MILLIS) {
+    super("When EFFECT occurs, DELAY_MILLIS controls a pause, then we ramp up from 0 to 32768, stay there for SUSTAIN_MILLIS, then ramp down again.", arguments);
     this.add_arg("EFFECT", "EFFECT", "Trigger event");
     this.add_arg("FADE_IN_MILLIS", "FUNCTION", "How long it takes to ramp to 32768");
     this.add_arg("SUSTAIN_MILLIS", "FUNCTION", "Stay at 32768 for this long.");
     this.add_arg("FADE_OUT_MILLIS", "FUNCTION", "How long it takes to ramp back down to zero.");
+    this.add_arg("DELAY_MILLIS", "FUNCTION", "How long to delay before trigger starts.");
+
     this.trigger_state = TRIGGER_OFF;
     console.log("EFFECT INIT");
     this.effect = new OneshotEffectDetector(this.EFFECT);
@@ -5692,7 +5710,7 @@ class TriggerClass extends FUNCTION {
     super.run(blade);
     if (this.effect.Detect(blade)) {
       this.start_time = micros();
-      this.trigger_state = TRIGGER_ATTACK;
+      this.trigger_state = TRIGGER_DELAY;
     }
     if (this.trigger_state == this.TRIGGER_OFF) {
       this.value = 0;
@@ -5703,21 +5721,24 @@ class TriggerClass extends FUNCTION {
       var micros_for_state = this.get_millis_for_state() * 1000;
       if (t < micros_for_state) {
         switch (this.trigger_state) {
-	  case TRIGGER_ATTACK:
-            this.value = t * 32768.0 / micros_for_state;
-	    return;
-          case TRIGGER_SUSTAIN:
-            this.value = 32768;
-	    return;
-          case TRIGGER_RELEASE:
-	    this.value = 32768 - t * 32768 / micros_for_state;
-	    return;
-          case TRIGGER_OFF:
-	    this.value = 0;
-	    return;
+        case TRIGGER_DELAY:
+          this.value = 0;
+          return;
+	      case TRIGGER_ATTACK:
+          this.value = t * 32768.0 / micros_for_state;
+	        return;
+        case TRIGGER_SUSTAIN:
+          this.value = 32768;
+	      return;
+        case TRIGGER_RELEASE:
+    	    this.value = 32768 - t * 32768 / micros_for_state;
+    	    return;
+        case TRIGGER_OFF:
+    	    this.value = 0;
+    	    return;
 	}
       }
-      if (this.TRIGGER_STATE >= 3) throw "Weird state?";
+      if (this.TRIGGER_STATE >= 4) throw "Weird state?";
       this.trigger_state++;
       t -= micros_for_state;
       this.start_time += micros_for_state;
@@ -5725,6 +5746,7 @@ class TriggerClass extends FUNCTION {
   }
   get_millis_for_state() {
     switch (this.trigger_state) {
+      case TRIGGER_DELAY: return this.DELAY_MILLIS.getInteger(0);
       case TRIGGER_ATTACK: return this.FADE_IN_MILLIS.getInteger(0);
       case TRIGGER_SUSTAIN: return this.SUSTAIN_MILLIS.getInteger(0);
       case TRIGGER_RELEASE: return this.FADE_OUT_MILLIS.getInteger(0);
@@ -5738,8 +5760,8 @@ class TriggerClass extends FUNCTION {
   }
 };
 
-function Trigger(EFFECT, FADE_IN_MILLIS, SUSTAIN_MILLIS, FADE_OUT_MILLIS) {
-  return new TriggerClass(EFFECT, FADE_IN_MILLIS, SUSTAIN_MILLIS, FADE_OUT_MILLIS);
+function Trigger(EFFECT, FADE_IN_MILLIS, SUSTAIN_MILLIS, FADE_OUT_MILLIS, DELAY_MILLIS) {
+  return new TriggerClass(EFFECT, FADE_IN_MILLIS, SUSTAIN_MILLIS, FADE_OUT_MILLIS, DELAY_MILLIS);
 }
 
 class SmoothStepClass extends FUNCTION {
@@ -7043,6 +7065,7 @@ function newCall(Cls) {
     TrExtend : TrExtend,
 
     BatteryLevel : BatteryLevel,
+    VolumeLevel : VolumeLevel,
     Bump : Bump,
     Ifon : Ifon,
     ChangeSlowly : ChangeSlowly,
@@ -7785,6 +7808,26 @@ function ClickPower() {
   blade.addEffect(STATE_ON ? EFFECT_IGNITION : EFFECT_RETRACTION, Math.random() * 0.7 + 0.2);
 }
 
+function OnMoreChange() {
+  var dropdown = document.getElementById("MORE");
+  var selectedValue = dropdown.value;
+  switch(selectedValue) {
+    case "BATTERY_LEVEL":
+      blade.addEffect(EFFECT_BATTERY_LEVEL, 0);
+      break;
+    case "VOLUME_LEVEL":
+      blade.addEffect(EFFECT_VOLUME_LEVEL, 0);
+      break;
+    case "QUOTE":
+      blade.addEffect(EFFECT_QUOTE, 0.0);
+      break;
+    case "POSTOFF":
+      blade.addEffect(EFFECT_POSTOFF, 0.0);
+      break;
+    default:
+  }
+}
+
 function UpdateLockupButtons() {
   var button = FIND("LOCKUP_BUTTON");
   button.style.backgroundColor = STATE_LOCKUP == LOCKUP_NORMAL ? "lightblue" : "";
@@ -7992,13 +8035,20 @@ function ActivateTab(tab) {
     <input name=boot type=button value="Boot" onclick="AddBoot()"; >
     <input name=newfont type=button value="NewFont" onclick="AddNewfont()"; >
     <input name=preon type=button value="Preon" onclick="AddPreon()"; >
-
+	  
     <select name=lockup id=LOCKUP onchange='OnLockupChange()'>
       <option value=LOCKUP_NONE>No lockup</option>
       <option value=LOCKUP_NORMAL>Lockup</option>
       <option value=LOCKUP_DRAG>Drag</option>
       <option value=LOCKUP_MELT>Melt</option>
       <option value=LOCKUP_LIGHTNING_BLOCK>LB</option>
+    </select>
+    <select name=more id=MORE onchange='OnMoreChange(value)'>
+      <option value=MORE_NONE>More</option>      
+      <option value=BATTERY_LEVEL>Batt Level</option>
+      <option value=VOLUME_LEVEL>Vol Level</option>
+      <option value=QUOTE>Quote</option>
+      <option value=POSTOFF>Postoff</option>
     </select>
 
     Variant:
