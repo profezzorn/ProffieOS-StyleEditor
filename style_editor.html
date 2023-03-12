@@ -1831,7 +1831,7 @@ AddFunction("InvertF<Ifon<Int<0>, Int<32768>>>");
 AddFunction("Sin<Int<10>>");
 AddFunction("Saw<Int<10>>");
 AddFunction("SmoothStep<Sin<Int<10>>, Sin<Int<7>>>");
-AddFunction("Trigger<EFFECT_FORCE, Int<500>, Int<1000>, Int<500>, Int<0>>");
+AddFunction("Trigger<EFFECT_FORCE, Int<500>, Int<1000>, Int<500>>");
 AddFunction("ChangeSlowly<NoisySoundLevel, Int<50000>>");
 AddFunction("SlowNoise<Int<1000>>");
 AddFunction("IsLessThan<SwingSpeed<250>, Int<100>>");
@@ -5686,20 +5686,18 @@ class SawClass extends FUNCTION {
 
 function Saw(RPM, LOW, HIGH) { return new SawClass(RPM, LOW, HIGH); }
 
-const  TRIGGER_DELAY = 0;
-const  TRIGGER_ATTACK = 1;
-const  TRIGGER_SUSTAIN = 2;
-const  TRIGGER_RELEASE = 3;
-const  TRIGGER_OFF = 4;
+const  TRIGGER_ATTACK = 0;
+const  TRIGGER_SUSTAIN = 1;
+const  TRIGGER_RELEASE = 2;
+const  TRIGGER_OFF = 3;
 
 class TriggerClass extends FUNCTION {
-  constructor(EFFECT, FADE_IN_MILLIS, SUSTAIN_MILLIS, FADE_OUT_MILLIS, DELAY_MILLIS) {
-    super("When EFFECT occurs, DELAY_MILLIS controls a pause, then we ramp up from 0 to 32768, stay there for SUSTAIN_MILLIS, then ramp down again.", arguments);
+  constructor(EFFECT, FADE_IN_MILLIS, SUSTAIN_MILLIS, FADE_OUT_MILLIS) {
+    super("When EFFECT occors, ramps up to 32768, stays there for SUSTAIN_MILLIS, then ramps down again.", arguments);
     this.add_arg("EFFECT", "EFFECT", "Trigger event");
     this.add_arg("FADE_IN_MILLIS", "FUNCTION", "How long it takes to ramp to 32768");
     this.add_arg("SUSTAIN_MILLIS", "FUNCTION", "Stay at 32768 for this long.");
     this.add_arg("FADE_OUT_MILLIS", "FUNCTION", "How long it takes to ramp back down to zero.");
-    this.add_arg("DELAY_MILLIS", "FUNCTION", "How long to delay before trigger starts.");
 
     this.trigger_state = TRIGGER_OFF;
     console.log("EFFECT INIT");
@@ -5710,7 +5708,7 @@ class TriggerClass extends FUNCTION {
     super.run(blade);
     if (this.effect.Detect(blade)) {
       this.start_time = micros();
-      this.trigger_state = TRIGGER_DELAY;
+      this.trigger_state = TRIGGER_ATTACK;
     }
     if (this.trigger_state == this.TRIGGER_OFF) {
       this.value = 0;
@@ -5721,21 +5719,18 @@ class TriggerClass extends FUNCTION {
       var micros_for_state = this.get_millis_for_state() * 1000;
       if (t < micros_for_state) {
         switch (this.trigger_state) {
-        case TRIGGER_DELAY:
-          this.value = 0;
-          return;
-	      case TRIGGER_ATTACK:
-          this.value = t * 32768.0 / micros_for_state;
-	        return;
-        case TRIGGER_SUSTAIN:
-          this.value = 32768;
-	      return;
-        case TRIGGER_RELEASE:
-    	    this.value = 32768 - t * 32768 / micros_for_state;
-    	    return;
-        case TRIGGER_OFF:
-    	    this.value = 0;
-    	    return;
+	  case TRIGGER_ATTACK:
+            this.value = t * 32768.0 / micros_for_state;
+	    return;
+          case TRIGGER_SUSTAIN:
+            this.value = 32768;
+	    return;
+          case TRIGGER_RELEASE:
+	    this.value = 32768 - t * 32768 / micros_for_state;
+	    return;
+          case TRIGGER_OFF:
+	    this.value = 0;
+	    return;
 	}
       }
       if (this.TRIGGER_STATE >= 4) throw "Weird state?";
@@ -5746,7 +5741,6 @@ class TriggerClass extends FUNCTION {
   }
   get_millis_for_state() {
     switch (this.trigger_state) {
-      case TRIGGER_DELAY: return this.DELAY_MILLIS.getInteger(0);
       case TRIGGER_ATTACK: return this.FADE_IN_MILLIS.getInteger(0);
       case TRIGGER_SUSTAIN: return this.SUSTAIN_MILLIS.getInteger(0);
       case TRIGGER_RELEASE: return this.FADE_OUT_MILLIS.getInteger(0);
@@ -5760,8 +5754,8 @@ class TriggerClass extends FUNCTION {
   }
 };
 
-function Trigger(EFFECT, FADE_IN_MILLIS, SUSTAIN_MILLIS, FADE_OUT_MILLIS, DELAY_MILLIS) {
-  return new TriggerClass(EFFECT, FADE_IN_MILLIS, SUSTAIN_MILLIS, FADE_OUT_MILLIS, DELAY_MILLIS);
+function Trigger(EFFECT, FADE_IN_MILLIS, SUSTAIN_MILLIS, FADE_OUT_MILLIS) {
+  return new TriggerClass(EFFECT, FADE_IN_MILLIS, SUSTAIN_MILLIS, FADE_OUT_MILLIS);
 }
 
 class SmoothStepClass extends FUNCTION {
