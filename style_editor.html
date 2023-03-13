@@ -5733,7 +5733,7 @@ class TriggerClass extends FUNCTION {
 	    return;
 	}
       }
-      if (this.TRIGGER_STATE >= 4) throw "Weird state?";
+      if (this.TRIGGER_STATE >= 3) throw "Weird state?";
       this.trigger_state++;
       t -= micros_for_state;
       this.start_time += micros_for_state;
