@@ -7802,26 +7802,6 @@ function ClickPower() {
   blade.addEffect(STATE_ON ? EFFECT_IGNITION : EFFECT_RETRACTION, Math.random() * 0.7 + 0.2);
 }
 
-function OnMoreChange() {
-  var dropdown = document.getElementById("MORE");
-  var selectedValue = dropdown.value;
-  switch(selectedValue) {
-    case "BATTERY_LEVEL":
-      blade.addEffect(EFFECT_BATTERY_LEVEL, 0);
-      break;
-    case "VOLUME_LEVEL":
-      blade.addEffect(EFFECT_VOLUME_LEVEL, 0);
-      break;
-    case "QUOTE":
-      blade.addEffect(EFFECT_QUOTE, 0.0);
-      break;
-    case "POSTOFF":
-      blade.addEffect(EFFECT_POSTOFF, 0.0);
-      break;
-    default:
-  }
-}
-
 function UpdateLockupButtons() {
   var button = FIND("LOCKUP_BUTTON");
   button.style.backgroundColor = STATE_LOCKUP == LOCKUP_NORMAL ? "lightblue" : "";
@@ -8037,14 +8017,46 @@ function ActivateTab(tab) {
       <option value=LOCKUP_MELT>Melt</option>
       <option value=LOCKUP_LIGHTNING_BLOCK>LB</option>
     </select>
-    <select name=more id=MORE onchange='OnMoreChange(value)'>
-      <option value=MORE_NONE>More</option>      
-      <option value=BATTERY_LEVEL>Batt Level</option>
-      <option value=VOLUME_LEVEL>Vol Level</option>
-      <option value=QUOTE>Quote</option>
-      <option value=POSTOFF>Postoff</option>
-    </select>
 
+  <select id="more_effects_menu">
+    <option>Select more effects</option>
+  </select>
+  <button id="do-action" disabled>Do Selected</button>
+
+  <script>
+    // Get the menu and button elements
+    const menu = document.getElementById('more_effects_menu');
+    const button = document.getElementById('do-action');
+
+    // Create a dictionary to store actions for each item
+    const actions = {};
+
+    // Add values from the enum builder to the menu and actions dictionary
+    const values = EFFECT_ENUM_BUILDER.value_to_name;
+    for (const [value, name] of Object.entries(values)) {
+      const option = document.createElement('option');
+      option.value = value;
+      option.text = name;
+      menu.appendChild(option);
+      actions[value] = function() { blade.addEffect(value, 0.0) };
+    }
+
+    // Set up the event listener for the menu
+    menu.addEventListener('change', function() {
+      // Get the selected option value
+      const value = menu.value;
+
+      // If the selected value is not the default, enable the button and set its action
+      if (value !== '') {
+        button.disabled = false;
+        button.onclick = actions[value];
+      } else {
+        // If the selected value is the default, disable the button
+        button.disabled = true;
+        button.onclick = null;
+      }
+    });
+  </script>
     Variant:
     <input id=VARIANT_MINUS name=varminus type=button value="<"  onclick="IncreaseVariant(-1)" >
     <input id=VARIANT name=variant type=input size=6 value="0" >
