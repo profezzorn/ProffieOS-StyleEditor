@@ -1811,7 +1811,6 @@ AddTransition("TrWipeSparkTipX<White, Int<300>>");
 AddTransition("TrWipeInSparkTipX<White, Int<300>>");
 
 AddFunction("BatteryLevel");
-AddFunction("VolumeLevel");
 AddFunction("BlinkingF<Int<1000>, Int<500>>");
 AddFunction("BrownNoiseF<Int<50>>");
 AddFunction("HumpFlickerF<50>");
@@ -5377,7 +5376,7 @@ var BATTERY_LEVEL=24000
 
 class BatteryLevelClass extends FUNCTION {
   constructor() {
-    super("Returns 0-32768 based on battery level.", []);
+    super("Returns 0-32768 based on battery leve.", []);
   }
   run(blade) {}
   getInteger(led) { return 32768 - ((millis() * 3) & 0x7fff); }
@@ -5385,20 +5384,6 @@ class BatteryLevelClass extends FUNCTION {
 
 function BatteryLevel() {
   return new BatteryLevelClass();
-}
-
-class VolumeLevelClass extends FUNCTION {
-  constructor() {
-    super("Returns 0-32768 based on volume level.", []);
-  }
-  run(blade) {}
-  // getInteger(led) { return 0 + ((millis() * 7) & 0x7fff); }
-  getInteger(led) { return 0 + ((millis() / 500) % 11) * 32767 / 10; }
-
-};
-
-function VolumeLevel() {
-  return new VolumeLevelClass();
 }
 	
 class BumpClass extends FUNCTION {
@@ -5698,7 +5683,6 @@ class TriggerClass extends FUNCTION {
     this.add_arg("FADE_IN_MILLIS", "FUNCTION", "How long it takes to ramp to 32768");
     this.add_arg("SUSTAIN_MILLIS", "FUNCTION", "Stay at 32768 for this long.");
     this.add_arg("FADE_OUT_MILLIS", "FUNCTION", "How long it takes to ramp back down to zero.");
-
     this.trigger_state = TRIGGER_OFF;
     console.log("EFFECT INIT");
     this.effect = new OneshotEffectDetector(this.EFFECT);
@@ -7059,7 +7043,6 @@ function newCall(Cls) {
     TrExtend : TrExtend,
 
     BatteryLevel : BatteryLevel,
-    VolumeLevel : VolumeLevel,
     Bump : Bump,
     Ifon : Ifon,
     ChangeSlowly : ChangeSlowly,
