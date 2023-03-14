@@ -8026,8 +8026,8 @@ function ActivateTab(tab) {
   const gameEffectsMenu = document.createElement('optgroup');
   gameEffectsMenu.label = 'Game Effects';
 
-
-  // Add sorted values to the menu and actions dictionary, excluding effects with dedicated buttons
+  // Add sorted values to the menu and actions dictionary, 
+  // excluding effects with dedicated buttons and error msgs.
   for (const [value, name] of values) {
     if (![
       EFFECT_CLASH,
@@ -8036,7 +8036,11 @@ function ActivateTab(tab) {
       EFFECT_FORCE,
       EFFECT_BOOT,
       EFFECT_NEWFONT,
-      EFFECT_PREON
+      EFFECT_PREON,
+      EFFECT_ERROR_IN_BLADE_ARRAY,
+      EFFECT_ERROR_IN_FONT_DIRECTORY,
+      EFFECT_FONT_DIRECTORY_NOT_FOUND,
+      EFFECT_SD_CARD_NOT_FOUND
     ].includes(Number(value))) {
       const option = document.createElement('option');
       option.value = value;
