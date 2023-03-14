@@ -1811,6 +1811,7 @@ AddTransition("TrWipeSparkTipX<White, Int<300>>");
 AddTransition("TrWipeInSparkTipX<White, Int<300>>");
 
 AddFunction("BatteryLevel");
+AddFunction("VolumeLevel");
 AddFunction("BlinkingF<Int<1000>, Int<500>>");
 AddFunction("BrownNoiseF<Int<50>>");
 AddFunction("HumpFlickerF<50>");
@@ -5376,7 +5377,7 @@ var BATTERY_LEVEL=24000
 
 class BatteryLevelClass extends FUNCTION {
   constructor() {
-    super("Returns 0-32768 based on battery leve.", []);
+    super("Returns 0-32768 based on battery level.", []);
   }
   run(blade) {}
   getInteger(led) { return 32768 - ((millis() * 3) & 0x7fff); }
@@ -5386,6 +5387,19 @@ function BatteryLevel() {
   return new BatteryLevelClass();
 }
 
+class VolumeLevelClass extends FUNCTION {
+  constructor() {
+    super("Returns 0-32768 based on volume level.", []);
+  }
+  run(blade) {}
+  // getInteger(led) { return 0 + ((millis() * 7) & 0x7fff); }
+  getInteger(led) { return 0 + ((millis() / 500) % 11) * 32767 / 10; }
+};
+
+function VolumeLevel() {
+  return new VolumeLevelClass();
+}
+	
 class BumpClass extends FUNCTION {
   constructor() {
     super("Function returning a bump shape", arguments);
