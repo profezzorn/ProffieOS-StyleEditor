@@ -8001,48 +8001,98 @@ function ActivateTab(tab) {
       <option value=LOCKUP_LIGHTNING_BLOCK>LB</option>
     </select>
 
-  <select id="more_effects_menu">
-    <option>Select more effects</option>
-  </select>
-  <button id="do-selected" disabled>Do Selected</button>
+<select id="more_effects_menu">
+  <option>Select more effects</option>
+</select>
+<button id="do-selected" disabled>Do Selected</button>
+<script>
+  // Get the menu and button elements
+  const menu = document.getElementById('more_effects_menu');
+  const button = document.getElementById('do-selected');
 
-  <script>
-    // Get the menu and button elements
-    const menu = document.getElementById('more_effects_menu');
-    const button = document.getElementById('do-selected');
+  // Create a dictionary to store actions for each item
+  const actions = {};
 
-    // Create a dictionary to store actions for each item
-    const actions = {};
+  // Add values from the enum builder to an array and sort alphabetically
+  const values = Object.entries(EFFECT_ENUM_BUILDER.value_to_name).sort((a, b) => a[1].localeCompare(b[1]));
 
-    // Add values from the enum builder to an array
-    const values = Object.entries(EFFECT_ENUM_BUILDER.value_to_name);
-    const sortedValues = values.sort((a, b) => a[1].localeCompare(b[1]));
+  // Add sub-groups for the different categories of effects
+  const generalEffectsMenu = document.createElement('optgroup');
+  generalEffectsMenu.label = 'General Effects';
+  const userEffectsMenu = document.createElement('optgroup');
+  userEffectsMenu.label = 'User Effects';
+  const blasterEffectsMenu = document.createElement('optgroup');
+  blasterEffectsMenu.label = 'Blaster Effects';
+  const gameEffectsMenu = document.createElement('optgroup');
+  gameEffectsMenu.label = 'Game Effects';
 
-    // Add sorted values to the menu and actions dictionary
-    for (const [value, name] of sortedValues) {
+
+  // Add sorted values to the menu and actions dictionary, excluding effects with dedicated buttons
+  for (const [value, name] of values) {
+    if (![
+      EFFECT_CLASH,
+      EFFECT_STAB,
+      EFFECT_BLAST,
+      EFFECT_FORCE,
+      EFFECT_BOOT,
+      EFFECT_NEWFONT,
+      EFFECT_PREON
+    ].includes(Number(value))) {
       const option = document.createElement('option');
       option.value = value;
       option.text = name;
-      menu.appendChild(option);
+
+      // Check if the effect belongs to a certain category and add it to the corresponding sub-group
+      if (name.startsWith('EFFECT_GAME')) {
+        gameEffectsMenu.appendChild(option);
+      } else if (name.startsWith('EFFECT_USER')) {
+        userEffectsMenu.appendChild(option);
+      } else if ([
+          EFFECT_STUN, 
+          EFFECT_FIRE, 
+          EFFECT_CLIP_IN, 
+          EFFECT_CLIP_OUT, 
+          EFFECT_RELOAD, 
+          EFFECT_MODE, 
+          EFFECT_RANGE, 
+          EFFECT_EMPTY, 
+          EFFECT_FULL, 
+          EFFECT_JAM, 
+          EFFECT_UNJAM, 
+          EFFECT_PLI_ON, 
+          EFFECT_PLI_OFF
+        ].includes(Number(value))) {
+        blasterEffectsMenu.appendChild(option);
+      } else {
+        generalEffectsMenu.appendChild(option);
+      }
       actions[value] = function() { blade.addEffect(value, 0.0) };
     }
+  }
 
-    // Set up the event listener for the menu
-    menu.addEventListener('change', function() {
-      // Get the selected option value
-      const value = menu.value;
+  // Add the sub-groups to the main menu
+  menu.appendChild(generalEffectsMenu);
+  menu.appendChild(userEffectsMenu);
+  menu.appendChild(blasterEffectsMenu);
+  menu.appendChild(gameEffectsMenu);
 
-      // If the selected value is not the default, enable the button and set its action
-      if (value !== '') {
-        button.disabled = false;
-        button.onclick = actions[value];
-      } else {
-        // If the selected value is the default, disable the button
-        button.disabled = true;
-        button.onclick = null;
-      }
-    });
-  </script>
+  // Set up the event listener for the menu
+  menu.addEventListener('change', function() {
+    // Get the selected option value
+    const value = menu.value;
+
+    // If the selected value is not the default, enable the button and set its action
+    if (value !== '') {
+      button.disabled = false;
+      button.onclick = actions[value];
+    } else {
+      // If the selected value is the default, disable the button
+      button.disabled = true;
+      button.onclick = null;
+    }
+  });
+</script>
+
     Variant:
     <input id=VARIANT_MINUS name=varminus type=button value="<"  onclick="IncreaseVariant(-1)" >
     <input id=VARIANT name=variant type=input size=6 value="0" >
