@@ -8014,9 +8014,12 @@ function ActivateTab(tab) {
     // Create a dictionary to store actions for each item
     const actions = {};
 
-    // Add values from the enum builder to the menu and actions dictionary
-    const values = EFFECT_ENUM_BUILDER.value_to_name;
-    for (const [value, name] of Object.entries(values)) {
+    // Add values from the enum builder to an array
+    const values = Object.entries(EFFECT_ENUM_BUILDER.value_to_name);
+    const sortedValues = values.sort((a, b) => a[1].localeCompare(b[1]));
+
+    // Add sorted values to the menu and actions dictionary
+    for (const [value, name] of sortedValues) {
       const option = document.createElement('option');
       option.value = value;
       option.text = name;
