@@ -708,6 +708,9 @@ function Arg(expected_type, arg, default_arg) {
   if (typeof(arg) != "number" && !arg.getType) {
      throw "What is this?? " + arg;
   }
+  if (expected_type == "TIME_FUNCTION" && arg.getType() == "FUNCTION") {
+    return arg;
+  }
   if (typeof(arg) != "number" && arg.getType() != expected_type) {
     throw "Expected " + expected_type + " but got " + arg;
   }
@@ -717,7 +720,8 @@ function Arg(expected_type, arg, default_arg) {
   if (expected_type == "COLOR" ||
      expected_type == "FireConfig" ||
      expected_type == "TRANSITION" ||
-     expected_type == "FUNCTION") {
+     expected_type == "FUNCTION" ||
+     expected_type == "TIME_FUNCTION") {
     if (typeof(arg) != "object") {
       throw "Expected a " + expected_type;
     }
@@ -1011,6 +1015,7 @@ class MACRO extends STYLE {
       return this.expansion.IS_RUNNING();
     return false;      
   }
+  bend(t, len, scale) { return this.expansion.bend(t, len, scale); }
 };
 
 class INTEGER  extends STYLE {
@@ -1287,6 +1292,10 @@ function lockup_to_argument(effect) {
 
 class FUNCTION  extends STYLE {
   getType() { return "FUNCTION"; }
+};
+
+class TIME_FUNCTION  extends FUNCTION {
+  getType() { return "TIME_FUNCTION"; }
 };
 
 class TRANSITION extends STYLE {
@@ -1778,6 +1787,9 @@ AddLayer("StrobeL<White, Int<15>, Int<1>>");
 AddEffect("StyleFire<Blue, Cyan>");
 AddEffect("MultiTransitionEffect<Blue, White, TrWipe<50>, TrWipe<50>, EFFECT_BLAST>");
 AddEffectWL("TransitionLoop<Blue, TrConcat<TrFade<200>, Red, TrFade<200>>>");
+AddFunction("BendTimePow<1000, 16384>");
+AddFunction("BendTimePowInv<1000, 16384>");
+AddFunction("ReverseTime<1000, 16384>");
 
 AddEffect("IgnitionDelay<500, InOutHelper<EasyBlade<OnSpark<Green>, White>, 300, 800>>>");
 AddEffect("RetractionDelay<500, InOutHelper<EasyBlade<OnSpark<Green>, White>, 300, 800>>>");
@@ -4600,6 +4612,99 @@ function Hue(H) { return new HueClass(H); }
 
 // TRANSITIONS
 
+function AddBend(O, t, len, scale) {
+  if (O.bend) {
+    return O.bend(t, len, scale);
+  } else {
+    return scale * t / len;
+  }
+}
+
+class BendTimePowXClass extends TIME_FUNCTION {
+  constructor(MILLIS, BEND_FUNCTION) {
+     super("Bends time like a gamma function.", arguments);
+     this.add_arg("MILLIS", "TIME_FUNCTION", "millis");
+     this.add_arg("BEND_FUNCTION", "FUNCTION", "bend, 32768 = 1.0");
+  }
+  getInteger(led) { return this.MILLIS.getInteger(led); }
+  bend(t, len, scale) {
+    var exponent = this.BEND_FUNCTION.getInteger(0) / 32768.0;
+    return scale * Math.pow(AddBend(this.MILLIS, t, len, 1.0), exponent);
+  }
+}
+
+function BendTimePowX(MILLIS, BEND_FUNCTION) {
+  return new BendTimePowXClass(MILLIS, BEND_FUNCTION);    
+}
+
+class ReverseTimeXClass extends TIME_FUNCTION {
+  constructor(MILLIS) {
+     super("Reverses time in a transition.", arguments);
+     this.add_arg("MILLIS", "TIME_FUNCTION", "millis");
+  }
+  getInteger(led) { return this.MILLIS.getInteger(led); }
+  bend(t, len, scale) {
+    return scale - AddBend(this.MILLIS, t, len, scale);
+  }
+}
+
+function ReverseTimeX(MILLIS) {
+  return new ReverseTimeXClass(MILLIS);
+}
+
+class BendTimePowInvXClass extends MACRO {
+  constructor(MILLIS, BEND_FUNCTION) {
+     super("Bends time like an inverted gamma function.", arguments);
+     this.add_arg("MILLIS", "TIME_FUNCTION", "millis");
+     this.add_arg("BEND_FUNCTION", "FUNCTION", "bend, 32768 = 1.0");
+     this.SetExpansion(ReverseTimeX(BendTimePowX(ReverseTimeX(MILLIS.DOCOPY()), BEND_FUNCTION.DOCOPY())));
+  }
+}
+
+function BendTimePowInvX(MILLIS, BEND_FUNCTION) {
+  return new BendTimePowInvXClass(MILLIS, BEND_FUNCTION);
+}
+
+
+class BendTimePowClass extends MACRO {
+  constructor(MILLIS, BEND_FUNCTION) {
+     super("Bends time like an gamma function.", arguments);
+     this.add_arg("MILLIS", "INT", "millis");
+     this.add_arg("BEND_FUNCTION", "INT", "bend, 32768 = 1.0");
+     this.SetExpansion(BendTimePowX(Int(MILLIS), Int(BEND_FUNCTION)));
+  }
+}
+
+function BendTimePow(MILLIS, BEND_FUNCTION) {
+  return new BendTimePowClass(MILLIS, BEND_FUNCTION);
+}
+
+class BendTimePowInvClass extends MACRO {
+  constructor(MILLIS, BEND_FUNCTION) {
+     super("Bends time like an inverted gamma function.", arguments);
+     this.add_arg("MILLIS", "INT", "millis");
+     this.add_arg("BEND_FUNCTION", "INT", "bend, 32768 = 1.0");
+     this.SetExpansion(BendTimePowInvX(Int(MILLIS), Int(BEND_FUNCTION)));
+  }
+}
+
+function BendTimePowInv(MILLIS, BEND_FUNCTION) {
+  return new BendTimePowInvClass(MILLIS, BEND_FUNCTION);
+}
+
+class ReverseTimeClass extends MACRO {
+  constructor(MILLIS) {
+     super("Reverse time in transitions.", arguments);
+     this.add_arg("MILLIS", "INT", "millis");
+     this.SetExpansion(ReverseTimeX(Int(MILLIS)));
+  }
+}
+
+function ReverseTime(MILLIS) {
+  return new ReverseTimeClass(MILLIS);
+}
+
+
 class TrInstantClass extends TRANSITION {
   constructor() {
     super("Instant transition");
@@ -4615,7 +4720,7 @@ function TrInstant() { return new TrInstantClass(); }
 class TRANSITION_BASE extends TRANSITION {
   constructor(comment, args) {
     super(comment, args);
-    this.add_arg("MILLIS", "FUNCTION", "transition time in milliseconds");
+    this.add_arg("MILLIS", "TIME_FUNCTION", "transition time in milliseconds");
     this.restart_ = false;
     this.start_millis = 0;
     this.len_ = 0;
@@ -4638,7 +4743,8 @@ class TRANSITION_BASE extends TRANSITION {
       this.len_ = 0;
       return scale;
     }
-    return ms * scale / this.len_;
+    var ret = AddBend(this.MILLIS, ms, this.len_, scale);
+    return ret;
   }
   restart() { return this.restart_; }
 };
@@ -7041,6 +7147,13 @@ function newCall(Cls) {
     TrWipeInSparkTipX : TrWipeInSparkTipX,
     TrExtendX : TrExtendX,
     TrExtend : TrExtend,
+
+    ReverseTime : ReverseTime,
+    ReverseTimeX : ReverseTimeX,
+    BendTimePow : BendTimePow,
+    BendTimePowX : BendTimePowX,
+    BendTimePowInv : BendTimePowInv,
+    BendTimePowInvX : BendTimePowInvX,
 
     BatteryLevel : BatteryLevel,
     Bump : Bump,
