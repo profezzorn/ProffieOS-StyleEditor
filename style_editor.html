@@ -7908,7 +7908,7 @@ function updateArgTag(ARG, VALUE) {
   var tag = FIND("ARGSTR_"+N);
   if (VALUE.search(",") >= 0) {
     console.log("FIXING COLOR VALUE: "+VALUE);
-    values = VALUE.split(",")
+    var values = VALUE.split(",")
     VALUE = '#' + UnFixColor(values[0])+UnFixColor(values[1])+UnFixColor(values[2]);
   }
   console.log("Setting tag from: " + tag.value + " to " + VALUE);
