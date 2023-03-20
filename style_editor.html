@@ -1888,6 +1888,7 @@ AddFunction("ThresholdPulseF<Saw<Int<60>>, Int<16384>>");
 AddFunction("IncrementF<Saw<Int<60>>, Int<16384>, Int<32768>, Int<1024>>");
 AddFunction("EffectIncrementF<EFFECT_CLASH, Int<32768>, Int<8192>>");
 AddFunction("MarbleF<Int<-2000>, Int<40000>, Ifon<Int<827680>, Int<0>>, Int<1276800>>");
+AddFunction("LockupPulseF<SaberBase::LOCKUP_NORMAL>");
 
 AddColor("AliceBlue", 223, 239, 255);
 AddColor("Aqua", 0, 255, 255);
@@ -6603,6 +6604,27 @@ function BladeAngle(MIN, MAX) {
   return new BladeAngleClass(MIN, MAX);
 }
 
+class LockupPulseFClass extends FUNCTION {
+  constructor() {
+    super("32768 if specified lockup type, 0 otherwise.", arguments);
+    this.add_arg("LOCKUP_TYPE", "LOCKUP_TYPE", "Lockup type");
+    this.value_ = 0;
+  }
+  run(blade) {
+    super.run(blade)
+    if (STATE_LOCKUP == this.LOCKUP_TYPE) {
+      this.value_ = 32768;
+    } else {
+      this.value_ = 0;
+    }
+  }
+  getInteger(led) { return this.value_; }
+}
+
+function LockupPulseF(LOCKUP_TYPE) {
+  return new LockupPulseFClass(LOCKUP_TYPE);
+}
+
 class ResponsiveLockupLClass extends MACRO {
   constructor(COLOR, TR1, TR2, TOP, BOTTOM, SIZE) {
     super("Responsive localized lockup layer.", arguments);
@@ -7311,6 +7333,7 @@ function newCall(Cls) {
     IgnitionTime : IgnitionTime,
     RetractionTime : RetractionTime,
     WavLen : WavLen,
+    LockupPulseF : LockupPulseF,
 };
 
 
