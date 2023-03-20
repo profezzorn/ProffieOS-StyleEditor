@@ -1863,6 +1863,7 @@ AddFunction("BlastFadeoutF");
 AddFunction("OriginalBlastF");
 AddFunction("Variation");
 AddFunction("AltF");
+AddFunction("SyncAltToVarianceF");
 AddFunction("TwistAngle<>");
 AddFunction("TwistAcceleration<>");
 AddFunction("BladeAngle<>");
@@ -1948,6 +1949,7 @@ AddLayer("ResponsiveBlastL<White, Int<400>, Int<100>, Int<400>, Int<28000>, Int<
 AddLayer("ResponsiveBlastWaveL<White, Int<400>, Int<100>, Int<400>, Int<28000>, Int<8000>>");
 AddLayer("ResponsiveBlastFadeL<White, Int<8000>, Int<400>, Int<28000>, Int<8000>>");
 AddLayer("ResponsiveStabL<White, TrWipeIn<600>, TrWipe<600>, Int<14000>, Int<8000>>");
+AddLayer("SyncAltToVarianceL");
 
 var WHITE = Rgb(255,255,255);
 var RED = Rgb(255,0,0);
@@ -6224,6 +6226,53 @@ function AltF() {
   return new AltFClass();
 }
 
+function MOD(x, m) {
+  if (x >= 0) return x % m;
+  return m + ~((~x) % m)
+}
+
+class SyncAltToVarianceFClass extends FUNCTION {
+  constructor() {
+    super("Synchronizes Alt and Variance.", arguments);
+    this.last_ = 0x7fffffff;
+  }
+  run(blade) {
+    super.run(blade)
+    if (num_alternatives == 0) return;
+    var VAR = MOD(Variant(), num_alternatives);
+    if (VAR == this.last_ && Alt() == this.last_) return;
+    if (this.last_ == 0x7fffffff) {
+      console.log("SYNC FIRST");
+      FIND("ALT").value = VAR;
+    } else if (VAR != this.last_) {
+      console.log("SYNC ALT");
+      FIND("ALT").value = VAR;
+      blade.addEffect(EFFECT_ALT_SOUND, 0.0);
+    } else {
+      console.log("SYNC VAR");
+      VAR = Alt();
+      FIND("VARIANT").value = VAR;
+    }
+    this.last_ = VAR;
+  }
+  getInteger(led) { return 0; }
+}
+
+function SyncAltToVarianceF() {
+  return new SyncAltToVarianceFClass();
+}
+
+class SyncAltToVarianceLClass extends MACRO {
+  constructor() {
+    super("Invisble layer for synchronizing Alt and Variance.", arguments);
+    this.SetExpansion(AlphaL(BLACK, SyncAltToVarianceF()));
+  }
+}
+
+function SyncAltToVarianceL() {
+  return new SyncAltToVarianceLClass();
+}
+
 class EffectPulseFClass extends FUNCTION {
   constructor() {
     super("Generate a pulse every time an effect occurs", arguments);
@@ -7224,6 +7273,8 @@ function newCall(Cls) {
     ClampF : ClampF,
     Variation : Variation,
     AltF : AltF,
+    SyncAltToVarianceF : SyncAltToVarianceF,
+    SyncAltToVarianceL : SyncAltToVarianceL,
     BladeAngleX : BladeAngleX,
     BladeAngle : BladeAngle,
     TwistAngle : TwistAngle,
@@ -7993,14 +8044,16 @@ function ClickSlow() {
   button.style.backgroundColor = framesPerUpdate == 60 ? "lightblue" : "";
 }
 
+var num_alternatives = 1000;
+
 function Alt() {
   return parseInt(FIND("ALT").value);
 }
 
 function IncreaseAlt(n) {
   var v = Alt() + n;
-  if (v < 0) v += 999;
-  if (v > 999) v -= 999;
+  if (v < 0) v += num_alternatives;
+  if (v > num_alternatives) v -= num_alternatives;
   FIND("ALT").value = v;
 }
 
