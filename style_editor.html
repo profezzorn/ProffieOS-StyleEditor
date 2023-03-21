@@ -7503,7 +7503,6 @@ class Parser {
     if (this.peek() != '"') return null;
     var ret = "";
     while (this.gobble('"')) {
-      this.gobble('"');
       while (this.peek() != '"') {
          ret += this.peek();
          this.pos++;
@@ -8124,6 +8123,7 @@ function IncreaseVariant(n) {
 function Copy() {
   var copyText = FIND("style");
   var argStr = '"' + ARGUMENTS.slice(3).join(" ") + '"';
+  if (argStr == '""') argStr = "";
   if(copyText.value.includes("StylePtr") ||
      copyText.value.includes("StyleNormalPtr") ||
      copyText.value.includes("StyleFirePtr") ||
