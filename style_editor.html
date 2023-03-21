@@ -7997,10 +7997,13 @@ function ClickSlow() {
 
 function ClickStill() {
   STATE_STILL = !STATE_STILL;
+  IN_FRAME = STATE_STILL ? true : IN_FRAME;
   var button = FIND("STILL_BUTTON");
   button.style.backgroundColor = STATE_STILL ? "lightblue" : "";
 }
-	
+
+var num_alternatives = 1000;
+
 function Alt() {
   return parseInt(FIND("ALT").value);
 }
