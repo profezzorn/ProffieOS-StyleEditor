@@ -598,7 +598,7 @@ function mouse_leave(e) {
   console.log("Mouse leave!");
   MOVE_MATRIX = default_move_matrix();
   MOUSE_POSITIONS = [];
-  IN_FRAME = false;
+  if (!STATE_STILL) IN_FRAME = false;
 }
 
 
@@ -7997,7 +7997,7 @@ function ClickSlow() {
 
 function ClickStill() {
   STATE_STILL = !STATE_STILL;
-  IN_FRAME = STATE_STILL ? true : IN_FRAME;
+  IN_FRAME = !IN_FRAME;
   var button = FIND("STILL_BUTTON");
   button.style.backgroundColor = STATE_STILL ? "lightblue" : "";
 }
