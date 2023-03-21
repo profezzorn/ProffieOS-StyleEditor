@@ -598,7 +598,7 @@ function mouse_leave(e) {
   console.log("Mouse leave!");
   MOVE_MATRIX = default_move_matrix();
   MOUSE_POSITIONS = [];
-  IN_FRAME = false;
+  if (!STATE_STILL) IN_FRAME = false;
 }
 
 
@@ -1994,6 +1994,7 @@ var STATE_ON = 0;
 // 4 = melt
 var STATE_LOCKUP = 0;
 var STATE_ROTATE = 0;
+var STATE_STILL = 0;
 var STATE_NUM_LEDS = 144;
 
 var handled_lockups = {};
@@ -7723,7 +7724,8 @@ function drawScene() {
     var rotation = default_move_matrix();
     rotation = rotation.mult(Matrix.mkyrot(u_value));
     rotation = rotation.mult(Matrix.mkzrot(u_value / 7.777));
-    
+  } else if (STATE_STILL) {
+    var rotation = default_move_matrix();  
   } else {
     if (0) {
       OLD_MOVE_MATRIX = default_move_matrix();
@@ -8099,6 +8101,13 @@ function ClickSlow() {
   button.style.backgroundColor = framesPerUpdate == 60 ? "lightblue" : "";
 }
 
+function ClickStill() {
+  STATE_STILL = !STATE_STILL;
+  IN_FRAME = !IN_FRAME;
+  var button = FIND("STILL_BUTTON");
+  button.style.backgroundColor = STATE_STILL ? "lightblue" : "";
+}
+
 var num_alternatives = 1000;
 
 function Alt() {
@@ -8372,7 +8381,8 @@ function ActivateTab(tab) {
     <input type=button name='argify' value="Argify" id='argify_button' onclick="DoArgify()">
     <input id=ROTATE_BUTTON name=rotate type=button value="Rotate"  onclick="ClickRotate()" >
     <input id=INHILT_BUTTON name=inhilt type=button value="Inhilt"  onclick="ClickInhilt()" >
-    <input id=SLOW_BUTTON name=inhilt type=button value="Slow"  onclick="ClickSlow()" ><br>
+    <input id=SLOW_BUTTON name=inhilt type=button value="Slow"  onclick="ClickSlow()" >
+    <input id=STILL_BUTTON name=still type=button value="Still"  onclick="ClickStill()" ><br>
 
     <div id=TABS>
       <div id=TABLINKS class=tab></div>
