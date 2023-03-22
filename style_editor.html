@@ -799,7 +799,22 @@ class STYLE {
     var url = this.pp();
     pp_is_url--;
     var parser = new Parser(url, classes, identifiers);
-    return parser.parse();
+    ret = parser.parse();
+    ret.COMMENT = this.COMMENT;
+    return ret;
+  }
+
+  call_pp_no_comment(arg) {
+     var C = arg.COMMENT;
+     arg.COMMENT = null;
+     var ret;
+     try {
+       ret = arg.pp();
+     }
+     finally {
+       arg.COMMENT = C;
+     }
+     return ret; 
   }
 
   DescribeValue(arg) {
@@ -807,7 +822,7 @@ class STYLE {
     if (typeof(arg) == "number") {
       return "" + arg;
     } else {
-       return arg.pp();
+      return this.call_pp_no_comment(arg);
     }
   }
 
@@ -819,13 +834,42 @@ class STYLE {
     if (this.super_short_desc) return "$";
     pp_is_url++;
     var ret = name;
+    if (this.COMMENT) {
+      if (this.COMMENT.split("\n").length > 1) {
+        ret = "/*"+this.COMMENT+"*/\n" + ret;
+      } else {
+        ret = "/*"+this.COMMENT+"*/ " + ret;
+      }
+    }
     var comma = false;
+    var neednl = false;
     if (arguments.length > 2 || this.argdefs.length > 0) {
       ret += "<";
       for (var i = 2; i < arguments.length; i += 2) {
 	if (comma) ret += ",";
 	comma = true;
-	ret += this.Indent(this.DescribeValue(arguments[i]));
+	var V = "";
+	var COMMENT = arguments[i].COMMENT;
+	if (COMMENT) {
+  	  console.log("COMMENT = " + COMMENT);
+	  var COMMENT_lines = COMMENT.split('\n');
+	  if (COMMENT_lines.length > 1) {
+	    V = "//" + COMMENT_lines.join('\n//') + "\n";
+            COMMENT = null;
+	  }
+	}
+	V += this.DescribeValue(arguments[i]);
+	var arg = this.Indent(V);
+	if (neednl && arg[0] != '\n') {
+	  ret += '\n';
+	  neednl = false;
+	}
+	ret += arg;
+	if (COMMENT) {
+	  ret += ",  //" + COMMENT.trimEnd();
+	  neednl = true;
+	  comma = false;
+	}
       }
       ret += ">";
     }
@@ -844,6 +888,10 @@ class STYLE {
     }
     var id = this.get_id();
     var ret = "";
+    if (this.COMMENT) {
+      ret += "/* "+this.COMMENT.split("\n").join("<br>")+" */<br>";
+      console.log("RET = " + ret);
+    }
     ret += "<div id=X"+id+" style='border-style:solid;border-width:1px;border-color:gray;' onclick='FocusOn("+id+",event)'>\n";
     ret += "<span title='"+ note +"'>" + name + "</span>&lt;\n";
     ret += "<div style='margin-left:1em'>\n";
@@ -853,15 +901,21 @@ class STYLE {
       comma = true;
       var arg = arguments[i];
       var note = arguments[i+1];
+      var comment = null;
       if (typeof(arg) == "number") {
 	arg = "" + arg;
       } else {
-	arg = arg.pp();
+        comment = arg.COMMENT;
+	arg = this.call_pp_no_comment(arg);
       }
-      if (arg.indexOf("<br>") == -1 && arg.indexOf("<div") == -1) {
+      if (arg.indexOf("<br>") == -1 && arg.indexOf("<div") == -1 && !comment) {
 	ret += arg+" /* "+note+" */\n";
       } else {
-	ret += "/* "+note+" */"+ this.extraButtons(i/2) +"<br>\n" + arg;
+	ret += "/* "+note+" */"+ this.extraButtons(i/2) +"<br>\n";
+	if (comment) {
+	  ret += "/* "+comment+" */<br>\n";
+        }
+	ret += arg;
       }
     }
     ret += "</div>&gt;</div>\n";
@@ -1324,10 +1378,15 @@ class CONFIG extends STYLE {
       } else {
 	arg = arg.pp();
       }
-      if (arg.indexOf("<br>") == -1 && arg.indexOf("<div") == -1) {
+      var comment = arg.COMMENT;
+      if (arg.indexOf("<br>") == -1 && arg.indexOf("<div") == -1 && !comment) {
 	ret += arg+" /* "+note+" */\n";
       } else {
-	ret += "/* "+note+" */<br>\n" + arg;
+	ret += "/* "+note+" */<br>\n";
+	if (comment) {
+	  ret += "/* "+comment+" */<br>\n";
+        }
+	ret += arg;
       }
     }
     ret += "</div>&gt;\n";
@@ -7479,7 +7538,38 @@ class Parser {
 	  continue;
 	}
       }
-      return this.str.substr(this.star_pos, this.pos); // trim?
+      return this.str.substr(start_pos, this.pos - start_pos); // trim?
+    }
+  }
+
+  startswithnewline(str) {
+    var tmp = str.trimStart();
+    var start = str.substr(0, str.length - tmp.length);
+    return start.split('\n').length > 1;
+  }
+
+  stripcomment(str) {
+    var ret = "";
+    while (true) {
+      str = str.trim();
+      if (str) console.log("STRIPCOMMENT: "+str);
+      if (str == "") {
+        if (ret) console.log("STRIPCOMMENT -> "+ret);
+        return ret;
+      }
+      if (ret != "") ret += "\n";
+      if (str[0] == '/' && str[1] == '/') {
+        var tmp = str.split('\n');
+        ret += tmp[0].substr(2);
+        str = tmp.slice(1).join('\n');
+      } else if (str[0] == '/' && str[1] == '*') {
+        var tmp = str.split('*/');
+        ret += tmp[0].substr(2);
+        str = tmp.slice(1).join('*/');
+      } else {
+        if (ret) console.log("STRIPCOMMENT -> "+ret);
+        return ret;
+      }
     }
   }
 
@@ -7532,14 +7622,27 @@ class Parser {
     var argstring = 0;
     if (this.peek() == "<") {
       this.pos++;
+      var POS = this.pos;
       this.skipspace();
       args = [null];
       if (this.peek() != '>') {
         while (true) {
-          args.push(this.parse_internal());
+	  this.pos = POS; // backtrack for comments
+	  var v = this.parse_internal();
+          args.push(v);
           this.skipspace();
           if (this.peek() != ',') break;
           this.pos++;
+	  POS = this.pos
+	  var comment = this.skipspace();
+	  if (this.startswithnewline(comment)) {
+	    // Comment belongs to next value.
+	    // rewind and let parse_unary do it.
+	    this.pos = POS;
+	  } else {
+	    v.COMMENT = this.stripcomment(comment);
+	    if (v.COMMENT) console.log("SETCOMMENT:" + v.COMMENT);
+	  }
         }
       }
       if (this.peek() != '>') {
@@ -7602,7 +7705,9 @@ class Parser {
     } else {
       ret = this.parse_atom();
     }
-    if (pre_comment) ret.pre_comment = pre_comment;
+    if (pre_comment) {
+      ret.COMMENT = this.stripcomment(pre_comment);
+    }
     return ret;
   }
 
@@ -7775,7 +7880,9 @@ function ReplaceCurrentFocus(str) {
   console.log(str);
   var parser = new Parser(str, classes, identifiers);
   style_tree = parser.parse();
-  FIND("pp").innerHTML = style_tree.pp();
+  var tmp = "";
+  tmp += style_tree.pp();
+  FIND("pp").innerHTML = tmp;
   if (focus_catcher) {
     current_focus = focus_catcher;
     var id = current_focus.get_id();
