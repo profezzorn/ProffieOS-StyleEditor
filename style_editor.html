@@ -822,7 +822,8 @@ class STYLE {
     if (typeof(arg) == "number") {
       return "" + arg;
     } else {
-      return this.call_pp_no_comment(arg);
+      return arg.pp();
+//      return this.call_pp_no_comment(arg);
     }
   }
 
@@ -830,46 +831,51 @@ class STYLE {
     return text;
   }
 
+  gencomment() {
+    if (!this.COMMENT) return "";
+    var ret = this.COMMENT;
+    if (ret[ret.length-1] != " ") ret += " ";
+    ret = "/*"+ret+"*/";
+    if (this.COMMENT.split("\n").length > 1) {
+      ret += "\n";
+    } else {
+      ret += " ";
+    }
+    return ret;
+  }
+
+  addcomment(COMMENT) {
+    if (!COMMENT) return;
+    if (!this.COMMENT) {
+      this.COMMENT = COMMENT;
+    } else {
+      this.COMMENT += "\n" + COMMENT;
+    }
+  }
+
+  prependcomment(COMMENT) {
+    if (!COMMENT) return;
+    if (!this.COMMENT) {
+      this.COMMENT = COMMENT;
+    } else {
+      this.COMMENT = COMMENT + "\n" + this.COMMENT;
+    }
+  }
+
   PPURL(name, note) {
     if (this.super_short_desc) return "$";
     pp_is_url++;
     var ret = name;
-    if (this.COMMENT) {
-      if (this.COMMENT.split("\n").length > 1) {
-        ret = "/*"+this.COMMENT+"*/\n" + ret;
-      } else {
-        ret = "/*"+this.COMMENT+"*/ " + ret;
-      }
-    }
+    ret = this.gencomment() + ret;
     var comma = false;
-    var neednl = false;
     if (arguments.length > 2 || this.argdefs.length > 0) {
       ret += "<";
       for (var i = 2; i < arguments.length; i += 2) {
 	if (comma) ret += ",";
 	comma = true;
-	var V = "";
-	var COMMENT = arguments[i].COMMENT;
-	if (COMMENT) {
-  	  console.log("COMMENT = " + COMMENT);
-	  var COMMENT_lines = COMMENT.split('\n');
-	  if (COMMENT_lines.length > 1) {
-	    V = "//" + COMMENT_lines.join('\n//') + "\n";
-            COMMENT = null;
-	  }
-	}
-	V += this.DescribeValue(arguments[i]);
+	var V = this.DescribeValue(arguments[i]);
 	var arg = this.Indent(V);
-	if (neednl && arg[0] != '\n') {
-	  ret += '\n';
-	  neednl = false;
-	}
 	ret += arg;
-	if (COMMENT) {
-	  ret += ",  //" + COMMENT.trimEnd();
-	  neednl = true;
-	  comma = false;
-	}
       }
       ret += ">";
     }
@@ -924,10 +930,11 @@ class STYLE {
   }
 
   PPshort(name, note) {
-    var url = this.PPURL.apply(this, arguments);
-    if (pp_is_url) return url;
+    if (pp_is_url) {
+      return this.PPURL.apply(this, arguments);
+    }
     var id = this.get_id();
-    var ret = "";
+    var ret = this.gencomment();
     ret += "<div id=X"+id+" style='border-style:solid;border-width:1px;border-color:gray;' onclick='FocusOn("+id+",event)'>\n";
     ret += "<span title='"+ note +"'>" + name + "</span>\n";
 
@@ -1083,7 +1090,7 @@ class INTEGER  extends STYLE {
   pp() {
     if (pp_is_url) {
       if (this.super_short_desc) return "$";
-      return "" + this.value;
+      return this.gencomment() + this.value;
     }
     return this.PPshort(this.value, "VALUE");
   }
@@ -1105,7 +1112,7 @@ class BINARY extends STYLE {
   pp() {
     if (pp_is_url) {
       if (this.super_short_desc) return "$";
-      return "0b" +this.value.toString(2);
+      return this.gencomment() + "0b" +this.value.toString(2);
     }
     return this.PPshort("0b" +this.value.toString(2), "VALUE");
   }
@@ -1172,7 +1179,7 @@ class EnumBuilder {
 	}
 
 
-        var ret = "" + this.value;
+        var ret = this.gencomment() + this.value;
         if (this.constructor.value_to_name[this.value]) {
 	  ret = this.constructor.prefix + this.constructor.value_to_name[this.value];
         }
@@ -1649,6 +1656,11 @@ function UpLayer(id, arg, event) {
 
 class LayersClass extends STYLE {
   Indent(text) {
+    if (text.substr(0, 2) == '/*') {
+      var tmp = text.split('*/');
+      if (tmp[1][0] != '\n') tmp[1] = '\n' + tmp[1].trimStart();
+      text = tmp.join('*/');
+    }
     return "\n  "  + text.split("\n").join("\n  ");
   }
   extraButtons(arg) {
@@ -5722,7 +5734,7 @@ class IntClass extends FUNCTION {
   pp() {
     if (pp_is_url) {
       if (this.super_short_desc) return "$";
-      return "Int<" + this.N + ">";
+      return this.gencomment() + "Int<" + this.N + ">";
     }
     return this.PPshort("Int<" + this.N +">", "VALUE");
   }
@@ -7520,7 +7532,7 @@ class Parser {
   expect(c) {
     if (!this.gobble(c)) throw "Missing " + c;
   }
-  skipspace() {
+  skipspace2() {
     var start_pos = this.pos;
     while (true) {
       if (this.peek() == ' ' || this.peek() == '\t' || this.peek() == '\n' || this.peek() == '\r') { this.pos++; continue; }
@@ -7542,6 +7554,14 @@ class Parser {
     }
   }
 
+  skipspace() {
+    var ret = this.skipspace2();
+    if (ret.trim()) {
+       console.log("COMMENT DROPPED ON GROUND: "+ret);
+       console.trace();
+    }
+  }
+  
   startswithnewline(str) {
     var tmp = str.trimStart();
     var start = str.substr(0, str.length - tmp.length);
@@ -7617,30 +7637,30 @@ class Parser {
       }
       return new INTEGER(parseInt(id));
     }
-    this.skipspace();
+    var midcomment = this.skipspace2();
     var args = 0;
     var argstring = 0;
     if (this.peek() == "<") {
       this.pos++;
       var POS = this.pos;
-      this.skipspace();
+      this.skipspace2();
       args = [null];
       if (this.peek() != '>') {
+        this.pos = POS; // backtrack for comments
         while (true) {
-	  this.pos = POS; // backtrack for comments
 	  var v = this.parse_internal();
           args.push(v);
-          this.skipspace();
+          this.skipspace2();
           if (this.peek() != ',') break;
           this.pos++;
 	  POS = this.pos
-	  var comment = this.skipspace();
+	  var comment = this.skipspace2();
 	  if (this.startswithnewline(comment)) {
 	    // Comment belongs to next value.
 	    // rewind and let parse_unary do it.
 	    this.pos = POS;
 	  } else {
-	    v.COMMENT = this.stripcomment(comment);
+	    v.addcomment(this.stripcomment(comment));
 	    if (v.COMMENT) console.log("SETCOMMENT:" + v.COMMENT);
 	  }
         }
@@ -7656,19 +7676,18 @@ class Parser {
 	this.pos++;
       }
     }
+    var ret;
     if (this.identifiers[id]) {
       if (args != 0) {
 	throw "Unexpected arguments";
       }
-      return this.identifiers[id]();
-    }
-    if (this.classes[id]) {
+      ret = this.identifiers[id]();
+    } else if (this.classes[id]) {
       //console.log(id);
       //console.log(this.classes[id]);
       //console.log(args);
       if (args == 0) args = [null];
       // var ret = new (Function.prototype.bind.apply(this.classes[id], args));
-      var ret;
       try {
 	ret = classes[id].apply(args[0], args.slice(1));
       } catch(e) {
@@ -7687,13 +7706,16 @@ class Parser {
         console.log("ARGSTRING : " + argstring);
         ret.argstring = argstring;
       }
-      return ret;
     }
-    throw  "Unknown identifier:" + id;
+    if (!ret) {
+      throw  "Unknown identifier:" + id;
+    }
+    ret.addcomment(this.stripcomment(midcomment));
+    return ret;
   }
 
   parse_unary() {
-    var pre_comment = this.skipspace();
+    var pre_comment = this.skipspace2();
     var ret = 0;
     if (this.peek() == '-') {
       this.pos++;
@@ -7705,8 +7727,8 @@ class Parser {
     } else {
       ret = this.parse_atom();
     }
-    if (pre_comment) {
-      ret.COMMENT = this.stripcomment(pre_comment);
+    if (pre_comment.trim()) {
+      ret.prependcomment(this.stripcomment(pre_comment));
     }
     return ret;
   }
