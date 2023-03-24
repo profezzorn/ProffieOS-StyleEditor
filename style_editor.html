@@ -2871,7 +2871,7 @@ class StripesXClass extends STYLE {
     var now_micros = micros();
     var delta_micros = now_micros - this.last_micros;
     this.last_micros = now_micros;
-    this.m = (this.m + delta_micros * this.SPEED.getInteger(0) / 333) % (this.COLORS.length * 341 * 1024);
+    this.m = MOD( (this.m + delta_micros * this.SPEED.getInteger(0) / 333), (this.COLORS.length * 341 * 1024))
     this.mult = (50000 * 1024 / this.WIDTH.getInteger(0));
   }
   GET_COLOR(N, led, p, ret) {
