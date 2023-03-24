@@ -4960,7 +4960,7 @@ class TrBoingXClass extends TRANSITION_BASE {
     super.run(blade);
     this.fade_ = this.update(2 * this.N.getInteger(0) + 1) % 2.0;
     if (this.fade_ > 1.0) {
-      this.fade_ = 1.0 - this.fade_;
+      this.fade_ = 2.0 - this.fade_;
     }
   }
   getColor(A, B, led) {
