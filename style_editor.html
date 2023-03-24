@@ -5684,7 +5684,7 @@ class TriggerClass extends FUNCTION {
     this.add_arg("FADE_IN_MILLIS", "FUNCTION", "How long it takes to ramp to 32768");
     this.add_arg("SUSTAIN_MILLIS", "FUNCTION", "Stay at 32768 for this long.");
     this.add_arg("FADE_OUT_MILLIS", "FUNCTION", "How long it takes to ramp back down to zero.");
-    this.add_arg("DELAY_MILLIS", "FUNCTION", "How long to delay before trigger starts.");
+    this.add_arg("DELAY_MILLIS", "FUNCTION", "How long to delay before trigger starts.", Int(0));
 
     this.trigger_state = TRIGGER_OFF;
     console.log("EFFECT INIT");
