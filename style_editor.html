@@ -1451,6 +1451,12 @@ class RgbClass extends STYLE {
     this.r = IntArg(r)/255.0;
     this.g = IntArg(g)/255.0;
     this.b = IntArg(b)/255.0;
+    if (this.r < 0) throw "Red is negative";
+    if (this.g < 0) throw "Blue is negative";
+    if (this.b < 0) throw "Green is negative";
+    if (this.r > 1.0) throw "Red too big.";
+    if (this.g > 1.0) throw "Green too big.";
+    if (this.b > 1.0) throw "Blue too big.";
     if (a == undefined) {
       this.a = 1.0;
       this.name = colorNames[r+","+g+","+b]
