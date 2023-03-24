@@ -8364,6 +8364,17 @@ function ActivateTab(tab) {
       <option value=LOCKUP_LIGHTNING_BLOCK>LB</option>
     </select>
 
+    Variant:
+    <input id=VARIANT_MINUS name=varminus type=button value="<"  onclick="IncreaseVariant(-1)" >
+    <input id=VARIANT name=variant type=input size=6 value="0" >
+    <input id=VARIANT_PLUS name=varplus type=button value=">"  onclick="IncreaseVariant(1)" >
+
+    Alt:
+    <input id=ALT_MINUS name=altminus type=button value="<"  onclick="IncreaseAlt(-1)" >
+    <input id=ALT name=alt type=input size=3 value="0" >
+    <input id=ALT_PLUS name=altplus type=button value=">"  onclick="IncreaseAlt(1)" >
+    <br>
+    
 <select id="more_effects_menu">
   <option>Select more effects</option>
 </select>
@@ -8459,16 +8470,6 @@ function ActivateTab(tab) {
     }
   });
 </script>
-
-    Variant:
-    <input id=VARIANT_MINUS name=varminus type=button value="<"  onclick="IncreaseVariant(-1)" >
-    <input id=VARIANT name=variant type=input size=6 value="0" >
-    <input id=VARIANT_PLUS name=varplus type=button value=">"  onclick="IncreaseVariant(1)" >
-
-    Alt:
-    <input id=ALT_MINUS name=altminus type=button value="<"  onclick="IncreaseAlt(-1)" >
-    <input id=ALT name=alt type=input size=3 value="0" >
-    <input id=ALT_PLUS name=altplus type=button value=">"  onclick="IncreaseAlt(1)" >
 
     <span id=error_message></span>
     <br>
