@@ -7897,11 +7897,30 @@ function ReplaceCurrentFocus(str) {
     str = url.replace("$", "FOCUS<" + str + ">");
   }
 
+  var old_focus = current_focus;
   current_focus = 0;
   focus_catcher = 0;
-  console.log(str);
+    
   var parser = new Parser(str, classes, identifiers);
-  style_tree = parser.parse();
+  try {  
+      style_tree = parser.parse();
+  }
+  catch(e) {
+    var err = FIND("error_message");
+    current_focus = old_focus;
+    console.log(e);
+    console.log(e.stack);
+    console.log(typeof(e));
+    if (typeof(e) == "string") {
+      err.innerHTML = e;
+      return;
+    } else if (typeof(e) == "object" && e.constructor == MyError) {
+      err.innerHTML = e.desc;
+      return;
+    } else {
+      throw e;
+    }
+  }
   var tmp = "";
   tmp += style_tree.pp();
   FIND("pp").innerHTML = tmp;
