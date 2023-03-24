@@ -3547,7 +3547,7 @@ class BlinkingFClass extends FUNCTION {
       pulse_progress_micros = now - this.pulse_start_micros_;
     }
     var pulse_progress_promille = pulse_progress_micros / pulse_millis;
-    this.value_ = pulse_progress_promille <= this.BLINK_PROMILLE.getInteger(0) ? 32768 : 0;
+      this.value_ = pulse_progress_promille <= this.BLINK_PROMILLE.getInteger(0) ? 0 : 32768;
   }
   getInteger(led) {
     return this.value_;
