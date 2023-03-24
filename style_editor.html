@@ -8386,21 +8386,27 @@ function ActivateTab(tab) {
       <option value=LOCKUP_LIGHTNING_BLOCK>LB</option>
     </select>
 
+    <span style="white-space:nowrap">
     Variant:
     <input id=VARIANT_MINUS name=varminus type=button value="<"  onclick="IncreaseVariant(-1)" >
     <input id=VARIANT name=variant type=input size=6 value="0" >
     <input id=VARIANT_PLUS name=varplus type=button value=">"  onclick="IncreaseVariant(1)" >
+    </span>
 
+    <span style="white-space:nowrap">
     Alt:
     <input id=ALT_MINUS name=altminus type=button value="<"  onclick="IncreaseAlt(-1)" >
     <input id=ALT name=alt type=input size=3 value="0" >
     <input id=ALT_PLUS name=altplus type=button value=">"  onclick="IncreaseAlt(1)" >
-    <br>
+    </span>
+
+    <span style="white-space:nowrap">
+    <select id="more_effects_menu">
+      <option>Select more effects</option>
+    </select>
+    <button id="do-selected" disabled>Do Selected</button>
+    </span>
     
-<select id="more_effects_menu">
-  <option>Select more effects</option>
-</select>
-<button id="do-selected" disabled>Do Selected</button>
 <script>
   // Get the menu and button elements
   const menu = document.getElementById('more_effects_menu');
