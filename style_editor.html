@@ -534,6 +534,7 @@ function mouse_speed(t1, t2) {
 }
 
 function mouse_move(e) {
+  if (STATE_STILL) return;
   IN_FRAME = true;
   var canvas = FIND("canvas_id");
   var rect = canvas.getBoundingClientRect();
@@ -574,7 +575,7 @@ function get_swing_speed() {
   if (len >= 6) {
     return mouse_speed(0, len - 6);
   }
-  if (IN_FRAME) return 0.0;
+  if (IN_FRAME || STATE_STILL) return 0.0;
   return Math.sin(millis() * Math.PI / 1000.0) * 250 + 250
 }
 
@@ -598,7 +599,7 @@ function mouse_leave(e) {
   console.log("Mouse leave!");
   MOVE_MATRIX = default_move_matrix();
   MOUSE_POSITIONS = [];
-  if (!STATE_STILL) IN_FRAME = false;
+  IN_FRAME = false;
 }
 
 
@@ -7724,8 +7725,7 @@ function drawScene() {
     var rotation = default_move_matrix();
     rotation = rotation.mult(Matrix.mkyrot(u_value));
     rotation = rotation.mult(Matrix.mkzrot(u_value / 7.777));
-  } else if (STATE_STILL) {
-    var rotation = default_move_matrix();  
+  
   } else {
     if (0) {
       OLD_MOVE_MATRIX = default_move_matrix();
@@ -8103,7 +8103,6 @@ function ClickSlow() {
 
 function ClickStill() {
   STATE_STILL = !STATE_STILL;
-  IN_FRAME = !IN_FRAME;
   var button = FIND("STILL_BUTTON");
   button.style.backgroundColor = STATE_STILL ? "lightblue" : "";
 }
