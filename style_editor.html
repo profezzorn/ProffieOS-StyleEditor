@@ -1878,6 +1878,7 @@ AddLayer("TransitionEffectL<TrConcat<TrWipe<50>, White, TrWipe<50>>, EFFECT_BLAS
 AddLayer("MultiTransitionEffectL<TrConcat<TrWipe<50>, White, TrWipe<50>>, EFFECT_BLAST>");
 
 AddTransition("TrBoing<300, 2>");
+AddTransition("TrBlink<1000, 3>");
 AddTransition("TrColorCycle<3000>");
 AddTransition("TrConcat<TrFade<100>, White, TrFade<100>>");
 AddTransition("TrDelay<500>");
@@ -5576,6 +5577,41 @@ function TrExtend(MILLIS, TRANSACTION) {
   return new TrExtendClass(MILLIS, TRANSACTION);
 }
 
+class TrBlinkXClass extends TRANSITION_BASE {
+  constructor(MILLIS, N, WIDTH) {
+    super("Blink N times", arguments);
+    this.add_arg("N", "INT", "How many times to blink.");
+    this.add_arg("WIDTH", "FUNCTION", "Blink pulse width, 16384 = 50%", Int(16384));
+    this.blink = false
+  }
+  run(blade) {
+    super.run(blade);
+    this.blink = (this.update(32768 * this.N) & 0x7fff) < this.WIDTH.getInteger(0);
+  }
+  getColor(a, b, led) {
+    if (this.blink) return a;
+    return b;
+  }
+}
+
+function TrBlinkX(MILLIS, N, WIDTH) {
+  return new TrBlinkXClass(MILLIS, N, WIDTH);
+}
+
+class TrBlinkClass extends MACRO {
+  constructor(MILLIS, N, WIDTH) {
+    super("Blink N times", arguments);
+    this.add_arg("MILLIS", "INT", "Transition length in milliseconds.")
+    this.add_arg("N", "INT", "How many times to blink.");
+    this.add_arg("WIDTH", "INT", "Blink pulse width, 16384 = 50%", 16384);
+    this.SetExpansion(TrBlinkX(Int(MILLIS), N, Int(this.WIDTH)));
+  }
+}
+
+function TrBlink(MILLIS, N, WIDTH) {
+  return new TrBlinkClass(MILLIS, N, WIDTH);
+}
+  
 // FUNCTIONS
 
 var BATTERY_LEVEL=24000
@@ -7336,6 +7372,8 @@ function newCall(Cls) {
     TrDelayX : TrDelayX,
     TrBoing : TrBoing,
     TrBoingX : TrBoingX,
+    TrBlink : TrBlink,
+    TrBlinkX : TrBlinkX,
     TrWipe : TrWipe,
     TrWipeX : TrWipeX,
     TrWipeIn : TrWipeIn,
