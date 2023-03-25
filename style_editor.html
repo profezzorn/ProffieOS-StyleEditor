@@ -1061,7 +1061,7 @@ class STYLE {
 
 class MACRO extends STYLE {
   SetExpansion(expansion) {
-    this.expansion = expansion;
+    this.expansion = expansion.DOCOPY();
   }
   run(blade) { this.expansion.run(blade); }
   getInteger(led) { return this.expansion.getInteger(led); }
@@ -5050,7 +5050,7 @@ function TrWipeIn(MILLIS) { return new TrWipeInClass(MILLIS); }
 class TrCenterWipeXClass extends TRANSITION_BASE {
   constructor(MILLIS, POS) {
     super("Center Wipe transition", arguments);
-    this.add_arg("POS", "FUNCTION", "Position", Int(16384));
+    this.add_arg("POS", "TIME_FUNCTION", "Position", Int(16384));
   }
   run(blade) {
     super.run(blade);
@@ -5143,9 +5143,9 @@ class TrCenterWipeInSparkXClass extends MACRO {
   constructor(COLOR, MILLIS, POS) {
     super("WipeIn transition", arguments);
     this.add_arg("COLOR", "COLOR", "Color");
-    this.add_arg("MILLIS", "FUNCTION", "Center Wipe time in milliseconds.");
+    this.add_arg("MILLIS", "TIME_FUNCTION", "Center Wipe time in milliseconds.");
     this.add_arg("POS", "INT", "Position", Int(16384));
-    this.SetExpansion(TrJoin(TrCenterWipeInX(MILLIS, this.POS),TrJoin(TrWaveX(COLOR, MILLIS, Int(200), Sum(MILLIS, MILLIS), Int(0)),TrWaveX(COLOR, MILLIS, Int(200), Sum(MILLIS, MILLIS), Int(32768)))));
+    this.SetExpansion(TrJoin(TrCenterWipeInX(MILLIS, this.POS),TrJoin(TrWaveX(COLOR, MILLIS.DOCOPY(), Int(200), Sum(MILLIS, MILLIS), Int(0)),TrWaveX(COLOR, MILLIS, Int(200), Sum(MILLIS, MILLIS), Int(32768)))));
 
   }
 }
@@ -5170,7 +5170,7 @@ class TrWipeSparkTipXClass extends MACRO {
   constructor(SPARK_COLOR, MILLIS, SIZE) {
     super("TrWipe with sparktip", arguments);
     this.add_arg("SPARK_COLOR", "COLOR", "Spark color");
-    this.add_arg("MILLIS", "FUNCTION", "wipe milliseconds");
+    this.add_arg("MILLIS", "TIME_FUNCTION", "wipe milliseconds");
     this.add_arg("SIZE", "FUNCTION", "Size of spark.", Int(400));
     this.SetExpansion(TrJoin(TrWipeX(MILLIS),TrSparkX(SPARK_COLOR,this.SIZE,MILLIS,Int(0))));
   }
@@ -5194,7 +5194,7 @@ class TrWipeInSparkTipXClass extends MACRO {
   constructor(SPARK_COLOR, MILLIS, SIZE) {
     super("TrWipeIn with sparktip", arguments);
     this.add_arg("SPARK_COLOR", "COLOR", "Spark color");
-    this.add_arg("MILLIS", "FUNCTION", "wipe milliseconds");
+    this.add_arg("MILLIS", "TIME_FUNCTION", "wipe milliseconds");
     this.add_arg("SIZE", "FUNCTION", "Size of spark.", Int(400));
     this.SetExpansion(TrJoin(TrWipeInX(MILLIS),TrSparkX(SPARK_COLOR,this.SIZE,MILLIS,Int(32768))));
   }
@@ -5277,7 +5277,7 @@ class TrSparkXClass extends TRANSITION {
     super("Spark wave transition", arguments);
     this.add_arg("COLOR", "COLOR", "Color.");
     this.add_arg("SPARK_SIZE", "FUNCTION", "Spark size.", Int(100));
-    this.add_arg("SPARK_MS", "FUNCTION", "Spark MS", Int(100));
+    this.add_arg("SPARK_MS", "TIME_FUNCTION", "Spark MS", Int(100));
     this.add_arg("SPARK_CENTER", "FUNCTION", "Spark center.", Int(16384));
     this.millis = new TRANSITION_BASE("millis", [this.SPARK_MS]);
   }
@@ -5532,7 +5532,7 @@ function TrSelect(ARGS) {
 class TrExtendXClass extends TRANSITION {
   constructor(MILLIS, TRANSITION) {
     super("Extend a transition.", arguments);
-    this.add_arg("MILLIS", "FUNCTION", "How much to extend the transition.");
+    this.add_arg("MILLIS", "TIME_FUNCTION", "How much to extend the transition.");
     this.add_arg("TRANSITION", "TRANSITION", "Transition to extend.");
     this.extending = false;
     this.millis = new TRANSITION_BASE("millis", [this.MILLIS]);
