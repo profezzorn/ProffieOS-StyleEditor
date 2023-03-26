@@ -5799,7 +5799,7 @@ class IntClass extends FUNCTION {
   }
 };
 
-function Int(n) { return new IntClass(n); }
+function Int(n) { return new IntClass(Math.round(n)); }
 
 class IntArgClass extends FUNCTION {
   constructor(ARG, N) {
