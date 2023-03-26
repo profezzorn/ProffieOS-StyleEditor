@@ -8359,10 +8359,6 @@ function startAdjustingValue(adjustment, inputId) {
       var ease = Math.pow(progress, 2);
       var value = Math.round(adjustment * ease);
       adjustmentValue(value, inputId);
-      if (parseInt(document.getElementById(inputId).value) >= 32768) {
-        clearInterval(intervalId);
-        clearTimeout(timeoutId);
-      }
     }, 1000 / 60); // 60 FPS for more responsive input
   }, 500);
 }
