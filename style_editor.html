@@ -6402,7 +6402,7 @@ class SyncAltToVarianceFClass extends FUNCTION {
     } else {
       console.log("SYNC VAR");
       VAR = Alt();
-      FIND("VARIANT").value = VAR;
+      FIND("VARIANT_VALUE").value = VAR;
     }
     this.last_ = VAR;
   }
@@ -8328,63 +8328,56 @@ function IncreaseAlt(n) {
 }
 
 function Variant() {
- return parseInt(FIND("VARIANT").value);
+ return parseInt(FIND("VARIANT_VALUE").value);
 }
 
 /* Variant Slider functions */
-function IncreaseVariant(n) {
-    var variantInput = document.getElementById("VARIANT");
-    var newValue = parseInt(variantInput.value) + n;
-    if (newValue < 0) {
-        newValue = 0;
-    } else if (newValue > 32768) {
-        newValue = 32768;
-    }
-    variantInput.value = newValue;
-    updateValue(newValue);
-}
 
-function updateValue(newValue) {
-    document.getElementById("VARIANT_VALUE").value = newValue;
+function updateVariantValue(newValue) {
+    if (newValue < 0) {
+    newValue = 0;
+  } else if (newValue > 32768) {
+    newValue = 32768;
+  }
+  document.getElementById("VARIANT_VALUE").value = newValue;
+  document.getElementById("VARIANT_SLIDER").value = newValue;
+  console.log("Updated Variant: " + newValue);
 }
 
 var timeoutId, intervalId;
 
-function startIncreasingValue(increment, inputId) {
-    incrementValue(increment, inputId);
-    var speed = 100;
-    clearTimeout(timeoutId);
-    timeoutId = setTimeout(function() {
-        var startTime = new Date().getTime();
-        intervalId = setInterval(function() {
-            var elapsedTime = new Date().getTime() - startTime;
-            var progress = elapsedTime / speed;
-            var ease = Math.pow(progress, 2);
-            var value = Math.round(increment * ease);
-            incrementValue(value, inputId);
-            if (parseInt(document.getElementById(inputId).value) >= 32768) {
-                clearInterval(intervalId);
-                clearTimeout(timeoutId);
-            }
-        }, 1000 / 60); // 60 FPS for more responsive input
-    }, 500);
+// Single click arrow to adjust by 1, hold to accelerate.
+function startAdjustingValue(adjustment, inputId) {
+  adjustmentValue(adjustment, inputId);
+  var speed = 100;
+  clearTimeout(timeoutId);
+  timeoutId = setTimeout(function() {
+    var startTime = new Date().getTime();
+    intervalId = setInterval(function() {
+      var elapsedTime = new Date().getTime() - startTime;
+      var progress = elapsedTime / speed;
+      var ease = Math.pow(progress, 2);
+      var value = Math.round(adjustment * ease);
+      adjustmentValue(value, inputId);
+      if (parseInt(document.getElementById(inputId).value) >= 32768) {
+        clearInterval(intervalId);
+        clearTimeout(timeoutId);
+      }
+    }, 1000 / 60); // 60 FPS for more responsive input
+  }, 500);
 }
 
-function incrementValue(increment, inputId) {
-    var variantInput = document.getElementById(inputId);
-    var newValue = parseInt(variantInput.value) + increment;
-    if (newValue < 0) {
-        newValue = 0;
-    } else if (newValue > 32768) {
-        newValue = 32768;
-    }
-    variantInput.value = newValue;
-    updateValue(newValue);
+function adjustmentValue(adjustment, inputId) {
+  var variantInput = document.getElementById(inputId);
+  var newValue = parseInt(variantInput.value) + adjustment;
+  variantInput.value = newValue;
+  updateVariantValue(newValue);
 }
 
-function stopIncreasingValue() {
-    clearInterval(intervalId);
-    clearTimeout(timeoutId);
+// Release or mouse leave arrow button
+function stopAdjustingValue() {
+  clearInterval(intervalId);
+  clearTimeout(timeoutId);
 }
 /* End Variant Slider functions */
 
@@ -8528,15 +8521,15 @@ function ActivateTab(tab) {
     <span style="white-space:nowrap">
 <div style="background: LightCyan; border: 1px solid black; padding: 2px; display: inline-block;">
   Variant:
-    <input id=VARIANT_MINUS name=varminus type=button value="<" onmousedown="startIncreasingValue(-1, 'VARIANT')" onmouseup="stopIncreasingValue()" onmouseleave="stopIncreasingValue()">
-    <input id=VARIANT name=variant type=range class="variant-slider" min="0" max="32768" step=1 value="0" oninput="updateValue(this.value)">
-    <input id=VARIANT_VALUE name=variant type=input size=6 value="0">
-    <input id=VARIANT_PLUS name=varplus type=button value=">" onmousedown="startIncreasingValue(1, 'VARIANT')" onmouseup="stopIncreasingValue()" onmouseleave="stopIncreasingValue()">
-</div> <div style="background: LightCyan; border: 1px solid black; padding: 2px; display: inline-block;">
+    <input id=VARIANT_MINUS name=varminus type=button value="<" onmousedown="startAdjustingValue(-1, 'VARIANT_SLIDER')" onmouseup="stopAdjustingValue()" onmouseleave="stopAdjustingValue()" >
+    <input id=VARIANT_SLIDER name=varslider type=range class=variant-slider min=0 max=32768 step=1 value="0" oninput="updateVariantValue(this.value)" >
+    <input id=VARIANT_VALUE name=varvalue type=input size=6 value="0" oninput="updateVariantValue(this.value)">
+    <input id=VARIANT_PLUS name=varplus type=button value=">" onmousedown="startAdjustingValue(1, 'VARIANT_SLIDER')" onmouseup="stopAdjustingValue()" onmouseleave="stopAdjustingValue()" >
+</div> <div style="background: LightCyan; border: 1px solid black; padding: 2px; display: inline-block;" >
   Alt:
-    <input id=ALT_MINUS name=altminus type=button value="<"  onclick="IncreaseAlt(-1)" >
+    <input id=ALT_MINUS name=altminus type=button value="<"  onclick="AdjustAlt(-1)" >
     <input id=ALT name=alt type=input size=3 value="0" >
-    <input id=ALT_PLUS name=altplus type=button value=">"  onclick="IncreaseAlt(1)" >
+    <input id=ALT_PLUS name=altplus type=button value=">"  onclick="AdjustAlt(1)" >
 </div>
     </span>
 
