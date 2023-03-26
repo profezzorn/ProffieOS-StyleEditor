@@ -8301,11 +8301,12 @@ function Alt() {
   return parseInt(FIND("ALT").value);
 }
 
-function IncreaseAlt(n) {
+function AdjustAlt(n) {
   var v = Alt() + n;
   if (v < 0) v += num_alternatives;
   if (v > num_alternatives) v -= num_alternatives;
   FIND("ALT").value = v;
+  console.log("Updated Alt: " + v);
 }
 
 function Variant() {
@@ -8462,9 +8463,9 @@ function ActivateTab(tab) {
 
     <span style="white-space:nowrap">
     Alt:
-    <input id=ALT_MINUS name=altminus type=button value="<"  onclick="IncreaseAlt(-1)" >
+    <input id=ALT_MINUS name=altminus type=button value="<"  onclick="AdjustAlt(-1)" >
     <input id=ALT name=alt type=input size=3 value="0" >
-    <input id=ALT_PLUS name=altplus type=button value=">"  onclick="IncreaseAlt(1)" >
+    <input id=ALT_PLUS name=altplus type=button value=">"  onclick="AdjustAlt(1)" >
     </span>
 
     <span style="white-space:nowrap">
