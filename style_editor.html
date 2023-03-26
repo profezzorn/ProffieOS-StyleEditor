@@ -1076,7 +1076,11 @@ class MACRO extends STYLE {
       return this.expansion.IS_RUNNING();
     return false;      
   }
-  bend(t, len, scale) { return this.expansion.bend(t, len, scale); }
+  bend(t, len, scale) {
+    if (this.expansion.bend)
+      return this.expansion.bend(t, len, scale);
+    return scale * t / len;
+  }
 };
 
 class INTEGER  extends STYLE {
