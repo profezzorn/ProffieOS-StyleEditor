@@ -1906,6 +1906,7 @@ AddTransition("TrWipeInSparkTip<White, 300>");
 AddTransition("TrWipeSparkTipX<White, Int<300>>");
 AddTransition("TrWipeInSparkTipX<White, Int<300>>");
 AddTransition("TrExtend<1000, TrFade<500>>");
+AddTransition("TrLoop<TrFade<500>>");
 AddTransition("TrDoEffectAlways<TrFade<100>, EFFECT_BLAST>");
 
 AddFunction("BatteryLevel");
@@ -5661,6 +5662,24 @@ class TrDoEffectAlwaysClass extends MACRO {
 function TrDoEffectAlways(TRANSITION, EFFECT, WAVNUM, LOCATION) {
   return new TrDoEffectAlwaysClass(TRANSITION, EFFECT, WAVNUM, LOCATION);
 }
+
+class TrLoopClass extends TRANSITION {
+  constructor(TRANSITION) {
+    super("Loop transition", arguments);
+    this.add_arg("TRANSITION", "TRANSITION", "Transition to loop");
+  }
+  run(blade) {
+    if (this.TRANSITION.done()) this.TRANSITION.begin();
+    super.run(blade);
+  }
+  begin() { this.TRANSITION.begin(); }
+  done() { return false; }
+  getColor(a, b, led) { return this.TRANSITION.getColor(a, b, led); }
+}
+
+function TrLoop(TRANSITION) {
+  return new TrLoopClass(TRANSITION);
+}
   
 // FUNCTIONS
 
@@ -7453,6 +7472,7 @@ function newCall(Cls) {
     TrWipeInSparkTipX : TrWipeInSparkTipX,
     TrExtendX : TrExtendX,
     TrExtend : TrExtend,
+    TrLoop : TrLoop,
 
     ReverseTime : ReverseTime,
     ReverseTimeX : ReverseTimeX,
