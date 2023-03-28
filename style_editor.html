@@ -8852,12 +8852,26 @@ function ActivateTab(tab) {
     if (value !== '') {
       button.disabled = false;
       button.onclick = actions[value];
+      updateMenuWidth();
     } else {
       // If the selected value is the default, disable the button
       button.disabled = true;
       button.onclick = null;
     }
   });
+  
+  function updateMenuWidth() {
+    const selectedOption = menu.options[menu.selectedIndex];
+    const span = document.createElement('span');
+    span.textContent = selectedOption.textContent;
+    span.style.display = 'inline-block';
+    span.style.visibility = 'hidden';
+    document.body.appendChild(span);
+    const width = span.offsetWidth + 20; // add some padding
+    document.body.removeChild(span);
+    menu.style.width = `${width}px`;
+  }
+
 </script>
 
     <span id=error_message></span>
