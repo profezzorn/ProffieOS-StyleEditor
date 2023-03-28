@@ -1909,6 +1909,7 @@ AddTransition("TrExtend<1000, TrFade<500>>");
 AddTransition("TrLoop<TrFade<500>>");
 AddTransition("TrLoopN<5, TrFade<500>>");
 AddTransition("TrLoopUntil<EffectPulseF<EFFECT_CLASH>, TrConcat<TrFade<500>, Green, TrFade<500>>, TrFade<100>>");
+AddTransition("TrDoEffect<TrFade<100>, EFFECT_BLAST>");
 AddTransition("TrDoEffectAlways<TrFade<100>, EFFECT_BLAST>");
 
 AddFunction("BatteryLevel");
@@ -5665,6 +5666,67 @@ function TrDoEffectAlways(TRANSITION, EFFECT, WAVNUM, LOCATION) {
   return new TrDoEffectAlwaysClass(TRANSITION, EFFECT, WAVNUM, LOCATION);
 }
 
+
+class TrDoEffectXClass extends TRANSITION {
+  constructor(TRANSITION, EFFECT, WAVNUM, LOCATION) {
+    super("Do effect", arguments);
+    this.add_arg("TRANSITION","TRANSITION", "Wrapped transition");
+    this.add_arg("EFFECT", "EFFECT", "Effect to trigger.");
+    this.add_arg("WAVNUM", "FUNCTION", "Select wave number.");
+    this.add_arg("LOCATION", "FUNCTION", "Effect location.");
+    this.begin_ = false;
+    this.done_ = false;
+  }
+  begin() {
+    this.TRANSITION.begin();
+    this.begin_ = true;
+    this.done_ = false;
+  }
+  run(blade) {
+    super.run(blade);
+    if (this.begin_) {
+      if (blade.is_on()) {
+        var location = this.LOCATION.getInteger(0);
+        if (location == -1) location = random(32768)/32768.0;
+        blade.addEffect(this.EFFECT, location);
+      }
+      this.begin_ = false;
+    }
+    if (!this.done_) {
+      /*
+        if (!blade.is_on() && !blade.is_powered()) {
+          this.done_ = true;
+        }
+      */
+    }
+  }
+  done() { return this.done_ || this.TRANSITION.done(); }
+  getColor(a, b, led) {
+    if (this.done_) return b;
+    return this.TRANSITION.getColor(a, b, led);
+  }
+}
+
+function TrDoEffectX(TRANSITION, EFFECT, WAVNUM, LOCATION) {
+  return new TrDoEffectXClass(TRANSITION, EFFECT, WAVNUM, LOCATION);
+}
+
+class TrDoEffectClass extends MACRO {
+  constructor(TRANSITION, EFFECT, WAVNUM, LOCATION) {
+    super("Do effect", arguments);
+    this.add_arg("TRANSITION","TRANSITION", "Wrapped transition");
+    this.add_arg("EFFECT", "EFFECT", "Effect to trigger.");
+    this.add_arg("WAVNUM", "INT", "Select wave number.", -1);
+    this.add_arg("LOCATION", "INT", "Effect location.", -1);
+    this.SetExpansion(TrDoEffectX(TRANSITION, EFFECT, Int(this.WAVNUM), Int(this.LOCATION)));
+  }
+}
+
+function TrDoEffect(TRANSITION, EFFECT, WAVNUM, LOCATION) {
+  return new TrDoEffectClass(TRANSITION, EFFECT, WAVNUM, LOCATION);
+}
+
+
 class TrLoopClass extends TRANSITION {
   constructor(TRANSITION) {
     super("Loop transition", arguments);
@@ -7530,6 +7592,8 @@ function newCall(Cls) {
     TrBoingX : TrBoingX,
     TrBlink : TrBlink,
     TrBlinkX : TrBlinkX,
+    TrDoEffect : TrDoEffect,
+    TrDoEffectX : TrDoEffectX,
     TrDoEffectAlways : TrDoEffectAlways,
     TrDoEffectAlwaysX : TrDoEffectAlwaysX,
     TrWipe : TrWipe,
