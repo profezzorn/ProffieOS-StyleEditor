@@ -1907,6 +1907,7 @@ AddTransition("TrWipeSparkTipX<White, Int<300>>");
 AddTransition("TrWipeInSparkTipX<White, Int<300>>");
 AddTransition("TrExtend<1000, TrFade<500>>");
 AddTransition("TrLoop<TrFade<500>>");
+AddTransition("TrLoopN<5, TrFade<500>>");
 AddTransition("TrDoEffectAlways<TrFade<100>, EFFECT_BLAST>");
 
 AddFunction("BatteryLevel");
@@ -5680,7 +5681,48 @@ class TrLoopClass extends TRANSITION {
 function TrLoop(TRANSITION) {
   return new TrLoopClass(TRANSITION);
 }
-  
+
+class TrLoopNXClass extends TRANSITION {
+  constructor(N, TRANSITION) {
+    super("Loop transition", arguments);
+    this.add_arg("N","FUNCTION", "How many loops.");
+    this.add_arg("TRANSITION", "TRANSITION", "Transition to loop");
+    this.loops = 0;
+  }
+  run(blade) {
+    this.N.run(blade);
+    if (this.loops < 0) this.loops = this.N.getInteger(0) + 1;
+    if (this.loops > 0 && this.TRANSITION.done()) {
+       if (this.loops > 1) this.TRANSITION.begin();
+       this.loops --;
+    }
+    this.TRANSITION.run(blade);
+  }
+  begin() {
+    this.TRANSITION.begin();
+    this.loops = -1;
+  }
+  done() { return this.loops == 0; }
+  getColor(a, b, led) { return this.TRANSITION.getColor(a, b, led); }
+}
+
+function TrLoopNX(N, TRANSITION) {
+  return new TrLoopNXClass(N, TRANSITION);
+}
+
+class TrLoopNClass extends MACRO {
+  constructor(N, TRANSITION) {
+    super("Loop transition", arguments);
+    this.add_arg("N","INT", "How many loops.");
+    this.add_arg("TRANSITION", "TRANSITION", "Transition to loop");
+    this.SetExpansion(TrLoopNX(Int(N), TRANSITION))
+  }
+}
+
+function TrLoopN(N, TRANSITION) {
+  return new TrLoopNClass(N, TRANSITION);
+}
+
 // FUNCTIONS
 
 var BATTERY_LEVEL=24000
@@ -7473,6 +7515,8 @@ function newCall(Cls) {
     TrExtendX : TrExtendX,
     TrExtend : TrExtend,
     TrLoop : TrLoop,
+    TrLoopN : TrLoopN,
+    TrLoopNX : TrLoopNX,
 
     ReverseTime : ReverseTime,
     ReverseTimeX : ReverseTimeX,
