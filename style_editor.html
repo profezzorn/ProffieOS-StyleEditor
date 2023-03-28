@@ -8756,9 +8756,9 @@ function ActivateTab(tab) {
     <input id=VARIANT_PLUS name=varplus type=button value=">" onmousedown="startAdjustingValue(1, 'VARIANT_SLIDER')" onmouseup="stopAdjustingValue()" onmouseleave="stopAdjustingValue()" >
 </div> <div style="background: LightCyan; border: 1px solid black; padding: 2px; display: inline-block;" >
   Alt:
-    <input id=ALT_MINUS name=altminus type=button value="<"  onclick="AdjustAlt(-1)" >
+    <input id=ALT_MINUS name=altminus type=button value="<"  onclick="IncreaseAlt(-1)" >
     <input id=ALT name=alt type=input size=3 value="0" >
-    <input id=ALT_PLUS name=altplus type=button value=">"  onclick="AdjustAlt(1)" >
+    <input id=ALT_PLUS name=altplus type=button value=">"  onclick="IncreaseAlt(1)" >
 </div>
     </span>
     <span style="white-space:nowrap">
