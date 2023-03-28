@@ -119,7 +119,26 @@ span.MAGIC_CLASS_EFFECT input[type=button].btn {
   border: 1px solid #ccc;
   border-top: none;
 }
+	
+/* Slider */
+input[type=range] {
+    -webkit-appearance: none;
+    width: 65px;
+    height: 10px;
+    margin: 0;
+    padding: 0;
+    margin-top: 5px;
+}
 
+.variant-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    background-color: DodgerBlue;
+    width: 14px;
+    height: 14px;
+    border-radius: 20%;
+    border: none;
+}
+	
 </style>
 
 <title>Style Editor</title>
@@ -6608,7 +6627,7 @@ class SyncAltToVarianceFClass extends FUNCTION {
     } else {
       console.log("SYNC VAR");
       VAR = Alt();
-      FIND("VARIANT").value = VAR;
+      FIND("VARIANT_VALUE").value = VAR;
     }
     this.last_ = VAR;
   }
@@ -8542,12 +8561,54 @@ function IncreaseAlt(n) {
 }
 
 function Variant() {
- return parseInt(FIND("VARIANT").value);
+ return parseInt(FIND("VARIANT_VALUE").value);
 }
 
-function IncreaseVariant(n) {
-  FIND("VARIANT").value = Variant() + n;
+/* Variant Slider functions */
+
+function updateVariantValue(newValue) {
+    if (newValue < 0) {
+    newValue = 0;
+  } else if (newValue > 32768) {
+    newValue = 32768;
+  }
+  document.getElementById("VARIANT_VALUE").value = newValue;
+  document.getElementById("VARIANT_SLIDER").value = newValue;
+  console.log("Updated Variant: " + newValue);
 }
+
+var timeoutId, intervalId;
+
+// Single click arrow to adjust by 1, hold to accelerate.
+function startAdjustingValue(adjustment, inputId) {
+  adjustmentValue(adjustment, inputId);
+  var speed = 100;
+  clearTimeout(timeoutId);
+  timeoutId = setTimeout(function() {
+    var startTime = new Date().getTime();
+    intervalId = setInterval(function() {
+      var elapsedTime = new Date().getTime() - startTime;
+      var progress = elapsedTime / speed;
+      var ease = Math.pow(progress, 2);
+      var value = Math.round(adjustment * ease);
+      adjustmentValue(value, inputId);
+    }, 1000 / 60); // 60 FPS for more responsive input
+  }, 500);
+}
+
+function adjustmentValue(adjustment, inputId) {
+  var variantInput = document.getElementById(inputId);
+  var newValue = parseInt(variantInput.value) + adjustment;
+  variantInput.value = newValue;
+  updateVariantValue(newValue);
+}
+
+// Release or mouse leave arrow button
+function stopAdjustingValue() {
+  clearInterval(intervalId);
+  clearTimeout(timeoutId);
+}
+/* End Variant Slider functions */
 
 function Copy() {
   var copyText = FIND("style");
@@ -8687,19 +8748,20 @@ function ActivateTab(tab) {
     </select>
 
     <span style="white-space:nowrap">
-    Variant:
-    <input id=VARIANT_MINUS name=varminus type=button value="<"  onclick="IncreaseVariant(-1)" >
-    <input id=VARIANT name=variant type=input size=6 value="0" >
-    <input id=VARIANT_PLUS name=varplus type=button value=">"  onclick="IncreaseVariant(1)" >
-    </span>
-
-    <span style="white-space:nowrap">
-    Alt:
-    <input id=ALT_MINUS name=altminus type=button value="<"  onclick="IncreaseAlt(-1)" >
+<div style="background: LightCyan; border: 1px solid black; padding: 2px; display: inline-block;">
+  Variant:
+    <input id=VARIANT_MINUS name=varminus type=button value="<" onmousedown="startAdjustingValue(-1, 'VARIANT_SLIDER')" onmouseup="stopAdjustingValue()" onmouseleave="stopAdjustingValue()" >
+    <input id=VARIANT_SLIDER name=varslider type=range class=variant-slider min=0 max=32768 step=1 value="0" oninput="updateVariantValue(this.value)" >
+    <input id=VARIANT_VALUE name=varvalue type=input size=6 value="0" oninput="updateVariantValue(this.value)">
+    <input id=VARIANT_PLUS name=varplus type=button value=">" onmousedown="startAdjustingValue(1, 'VARIANT_SLIDER')" onmouseup="stopAdjustingValue()" onmouseleave="stopAdjustingValue()" >
+</div> <div style="background: LightCyan; border: 1px solid black; padding: 2px; display: inline-block;" >
+  Alt:
+    <input id=ALT_MINUS name=altminus type=button value="<"  onclick="AdjustAlt(-1)" >
     <input id=ALT name=alt type=input size=3 value="0" >
-    <input id=ALT_PLUS name=altplus type=button value=">"  onclick="IncreaseAlt(1)" >
+    <input id=ALT_PLUS name=altplus type=button value=">"  onclick="AdjustAlt(1)" >
+</div>
     </span>
-
+<br>
     <span style="white-space:nowrap">
     <select id="more_effects_menu">
       <option>Select more effects</option>
@@ -8802,7 +8864,8 @@ function ActivateTab(tab) {
     <span id=error_message></span>
     <br>
     <pre><textarea rows=10 cols=80 id=style wrap=off></textarea></pre>
-    <!-- <input id=style type=text size=100 onkeydown="if (event.keyCode == 13) Run();"> --> <input name='run' type=button value="Submit" onclick="Run()"><input name='copy' type=button value="Copy" onclick="Copy()">
+    <!-- <input id=style type=text size=100 onkeydown="if (event.keyCode == 13) Run();"> --> <input name='run' type=button value="Submit" onclick="Run()">
+    <input name='copy' type=button value="Copy" onclick="Copy()">
     <input type=button name='expand' value="Expand" id='expand_button' onclick="DoExpand()">
     <input type=button name='layerize' value="Layerize" id='layerize_button' onclick="DoLayerize()">
     <input type=button name='argify' value="Argify" id='argify_button' onclick="DoArgify()">
