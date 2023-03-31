@@ -1893,12 +1893,14 @@ AddFunction("BendTimePow<1000, 16384>");
 AddFunction("BendTimePowInv<1000, 16384>");
 AddFunction("ReverseTime<1000, 16384>");
 
+
 AddEffect("IgnitionDelay<500, InOutHelper<EasyBlade<OnSpark<Green>, White>, 300, 800>>>");
 AddEffect("RetractionDelay<500, InOutHelper<EasyBlade<OnSpark<Green>, White>, 300, 800>>>");
 
 
 AddLayer("TransitionEffectL<TrConcat<TrWipe<50>, White, TrWipe<50>>, EFFECT_BLAST>");
 AddLayer("MultiTransitionEffectL<TrConcat<TrWipe<50>, White, TrWipe<50>>, EFFECT_BLAST>");
+AddLayer("TransitionPulseL<TrConcat<TrFade<200>, Red, TrFade<200>>, ThresholdPulseF<Saw<Int<60>>, Int<16384>>>")
 
 AddTransition("TrBoing<300, 2>");
 AddTransition("TrBlink<1000, 3>");
@@ -4590,6 +4592,39 @@ class TransitionEffectClass extends MACRO {
 
 function TransitionEffect(T, EC, T1, T2, E) {
   return new TransitionEffectClass(T, EC, T1, T2, E);
+}
+
+class TransitionPulseLClass extends STYLE {
+  constructor(TRANSITION, PULSE) {
+    super("Triggers transition when pulse occurs.", arguments);
+    this.add_arg("TRANSITION", "TRANSITION", "Transition.");
+    this.add_arg("PULSE", "FUNCTION", "Pulse.");
+    this.run_ = false;
+  }
+
+  run(blade) {
+    this.PULSE.run(blade);
+    if (this.PULSE.getInteger(0)) {
+      this.TRANSITION.begin();
+      this.run_ = true;
+    }
+    if (this.run_) {
+      this.TRANSITION.run(blade);
+      if (this.TRANSITION.done()) this.run_ = false;
+    }
+  }
+
+  getColor(led) {
+    if (this.run_) {
+      return this.TRANSITION.getColor(Transparent(), Transparent(), led);
+    } else {
+      return Transparent();
+    }
+  }
+}
+
+function TransitionPulseL(TRANSITION, PULSE) {
+  return new TransitionPulseLClass(TRANSITION, PULSE);
 }
 
 class InOutTrLClass extends STYLE {
@@ -7601,6 +7636,7 @@ function newCall(Cls) {
     TransitionEffectL : TransitionEffectL,
     MultiTransitionEffect : MultiTransitionEffect,
     MultiTransitionEffectL : MultiTransitionEffectL,
+    TransitionPulseL : TransitionPulseL,
     InOutTr : InOutTr,
     InOutTrL : InOutTrL,
 
