@@ -5407,44 +5407,46 @@ class TrConcatClass extends TRANSITION {
     super("Concatenate transitions", ARGS);
     this.ARGS = Array.from(ARGS);
     this.add_arg("TRANSITION", "TRANSITION","Transition");
-    for (var i = 1; i < this.ARGS.length / 2; i++) {
-      this.add_arg("COLOR" + i, "COLOR", "Color " + i);
-      this.add_arg("TRANSITION" + i, "TRANSITION", "Transiton " + i);
+    for (var i = 1; i < this.ARGS.length - 1; i++) {
+      if (this.ARGS[i].getType() == "TRANSITION") {
+        this.add_arg("TRANSITION" + i, "TRANSITION", "Transiton " + i);
+      } else {
+        this.add_arg("COLOR" + i, "COLOR", "Color " + i);
+      }
     }
-    if (!(this.ARGS.length & 1)) {
-      throw "TrConcat must have odd number of arguments";
-    }
-    this.pos_ = this.ARGS.length - 1;
+    // Last argument must be a transition.
+    this.add_arg("TRANSITION" + i, "TRANSITION", "Transiton " + i);
+    this.pos_ = this.ARGS.length;
   }
   begin() {
     this.pos_ = 0;
     this.ARGS[0].begin();
   }
   done() {
-    return this.pos_ == this.ARGS.length - 1 && this.ARGS[this.pos_].done();
+    return this.pos_ >= this.ARGS.length;
   }
   run(blade) {
-    // Run the colors
-    for (var i = 1; i < this.ARGS.length; i+=2) this.ARGS[i].run(blade);
-
     while (true) {
-      this.ARGS[this.pos_].run(blade);
-      if (this.pos_ < this.ARGS.length - 1 && this.ARGS[this.pos_].done()) {
-        this.pos_ += 2;
-        this.ARGS[this.pos_].begin();
+      if (this.pos_ < this.ARGS.length && this.ARGS[this.pos_].done()) {
+        this.pos_++;
+	if (this.pos_ < this.ARGS.length && this.ARGS[this.pos_].getType() != "TRANSITION") this.pos_++;
+        if (this.pos_ < this.ARGS.length) this.ARGS[this.pos_].begin();
       } else {
-        return;
+        break;
       }
     }
+    super.run(blade);
   }
   getColor(A, B, led) {
     if (this.done()) return B;
-    if (this.pos_ != 0) A = this.ARGS[this.pos_-1].getColor(led);
-    if (this.pos_ != this.ARGS.length - 1) B = this.ARGS[this.pos_+1].getColor(led);
+    if (this.pos_ != 0 && this.ARGS[this.pos_-1].getType() != "TRANSITION")
+      A = this.ARGS[this.pos_-1].getColor(led);
+    if (this.pos_ < this.ARGS.length - 1 && this.ARGS[this.pos_+1].getType() != "TRANSITION")
+      B = this.ARGS[this.pos_+1].getColor(led);
     return this.ARGS[this.pos_].getColor(A, B, led);
   }
 };
-
+  
 function TrConcat(ARGS) {
   return new TrConcatClass(Array.from(arguments));
 }
