@@ -5479,16 +5479,20 @@ class TrConcatClass extends TRANSITION {
     return this.pos_ >= this.ARGS.length;
   }
   run(blade) {
-    while (true) {
-      if (this.pos_ < this.ARGS.length && this.ARGS[this.pos_].done()) {
-        this.pos_++;
-	if (this.pos_ < this.ARGS.length && this.ARGS[this.pos_].getType() != "TRANSITION") this.pos_++;
-        if (this.pos_ < this.ARGS.length) this.ARGS[this.pos_].begin();
-      } else {
-        break;
+    for (var i = 0; i < this.ARGS.length; i++) {
+      if (this.ARGS[i].getType() != "TRANSITION") {
+        this.ARGS[i].run(blade);
       }
     }
-    super.run(blade);
+    while (this.pos_ < this.ARGS.length) {
+      this.ARGS[this.pos_].run(blade);
+      if (!this.ARGS[this.pos_].done()) break;
+      this.pos_++;
+      if (this.done()) break;
+      if (this.ARGS[this.pos_].getType() != "TRANSITION") this.pos_++;
+      if (this.done()) break;
+      this.ARGS[this.pos_].begin();
+    }
   }
   getColor(A, B, led) {
     if (this.done()) return B;
