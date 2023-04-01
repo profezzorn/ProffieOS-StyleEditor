@@ -3856,23 +3856,40 @@ class LockupTrLClass extends STYLE {
     this.add_arg("BEGIN_TR", "TRANSITION", "Begin lockup transition.");
     this.add_arg("END_TR", "TRANSITION", "End lockup transition.");
     this.add_arg("LOCKUP_TYPE", "LOCKUP_TYPE", "Lockup type");
+    this.add_arg("CONDITION", "FUNCTION", "Lockup is postponed if conditition is zero.", Int(1));
     HandleLockup(LOCKUP_TYPE);
-    this.active = false;
+    this.active = "inactive";
     this.begin_active = false;
     this.end_active = false;
   }
   run(blade) {
     super.run(blade);
-    if (this.active != (STATE_LOCKUP == this.LOCKUP_TYPE)) {
-      this.active = (STATE_LOCKUP == this.LOCKUP_TYPE);
-      if (this.active) {
-        this.BEGIN_TR.begin();
-	this.begin_active = true;
-      } else {
-        this.END_TR.begin();
-	this.end_active = true;
-      }
+    switch (this.active) {
+       case "inactive":
+          if (STATE_LOCKUP == this.LOCKUP_TYPE) {
+	    if (this.CONDITION.getInteger(0)) {
+	      this.active = "active";
+	      this.BEGIN_TR.begin();
+	      this.begin_active = true;
+	    } else {
+	      this.active = "skipped";
+	    }
+	  }
+	  break;
+       case "active":
+         if (STATE_LOCKUP != this.LOCKUP_TYPE) {
+           this.END_TR.begin();
+           this.end_active = true;
+           this.active = "inactive";
+	 }
+	 break;
+       case "skipped":
+         if (STATE_LOCKUP != this.LOCKUP_TYPE) {
+           this.active = "inactive";
+	 }
+	 break;
     }
+         
 
     if (this.begin_active) {
       this.BEGIN_TR.run(blade);
@@ -3900,14 +3917,14 @@ class LockupTrLClass extends STYLE {
   getColor(led) {
     var off_color = Transparent();
     if (!this.begin_active && !this.end_active) {
-      if (this.active) {
+      if (this.active == "active") {
         return this.COLOR.getColor(led);
       } else {
         return off_color;
       }
     } else {
       var on_color = this.COLOR.getColor(led);
-      if (this.active) {
+      if (this.active == "active") {
         return this.runBegin(this.runEnd(on_color, off_color, led), on_color, led);
       } else {
         return this.runEnd(this.runBegin(off_color, on_color, led), off_color, led);
@@ -3915,7 +3932,7 @@ class LockupTrLClass extends STYLE {
     }
   }
   IS_RUNNING() {
-    return this.active;
+    return this.active == "active";
   }
   argify(state) {
     state.color_argument = lockup_to_argument(this.LOCKUP_TYPE);
@@ -3925,19 +3942,20 @@ class LockupTrLClass extends STYLE {
   }
 };
 
-function LockupTrL(COLOR, BeginTr, EndTr, LOCKUP_TYPE) {
-  return new LockupTrLClass(COLOR, BeginTr, EndTr, LOCKUP_TYPE);
+function LockupTrL(COLOR, BeginTr, EndTr, LOCKUP_TYPE, CONDITION) {
+  return new LockupTrLClass(COLOR, BeginTr, EndTr, LOCKUP_TYPE, CONDITION);
 }
 
 class LockupTrClass extends MACRO {
-  constructor(BASE, COLOR, BeginTr, EndTr, LOCKUP_TYPE) {
+  constructor(BASE, COLOR, BeginTr, EndTr, LOCKUP_TYPE, CONDITION) {
     super("Transition based lockup effect.", arguments);
     this.add_arg("BASE", "COLOR", "Base color.");
     this.add_arg("COLOR", "COLOR", "Effect color.");
     this.add_arg("BEGIN_TR", "TRANSITION", "Begin lockup transition.");
     this.add_arg("END_TR", "TRANSITION", "End lockup transition.");
     this.add_arg("LOCKUP_TYPE", "LOCKUP_TYPE", "Lockup type");
-    this.SetExpansion(Layers(BASE, LockupTrL(COLOR, BeginTr, EndTr, LOCKUP_TYPE)));
+    this.add_arg("CONDITION", "FUNCTION", "Lockup is postponed if conditition is zero.", Int(1));
+    this.SetExpansion(Layers(BASE, LockupTrL(COLOR, BeginTr, EndTr, LOCKUP_TYPE, this.CONDITITION)));
   }
   argify(state) {
     state.color_argument = lockup_to_argument(this.LOCKUP_TYPE);
@@ -3947,8 +3965,8 @@ class LockupTrClass extends MACRO {
   }
 }
 
-function LockupTr(BASE, COLOR, BeginTr, EndTr, LOCKUP_TYPE) {
-  return new LockupTrClass(BASE, COLOR, BeginTr, EndTr, LOCKUP_TYPE);
+function LockupTr(BASE, COLOR, BeginTr, EndTr, LOCKUP_TYPE, CONDITION) {
+  return new LockupTrClass(BASE, COLOR, BeginTr, EndTr, LOCKUP_TYPE, CONDITION);
 }
 
 const start_millis = new Date().getTime();
