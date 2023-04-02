@@ -733,6 +733,9 @@ function Arg(expected_type, arg, default_arg) {
   if (typeof(arg) != "number" && arg.getType() != expected_type) {
     throw "Expected " + expected_type + " but got " + arg;
   }
+  if (expected_type == "INT" && typeof(arg) == "number") {
+    return new INTEGER(arg);
+  }
   if (expected_type == "INT" || expected_type == "EFFECT" || expected_type == "LOCKUP_TYPE" || expected_type == "ArgumentName") {
     return arg;
   }
