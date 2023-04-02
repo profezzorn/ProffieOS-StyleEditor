@@ -8674,6 +8674,15 @@ function stopAdjustingValue() {
 /* End Variant Slider functions */
 
 function Copy() {
+  if (current_style.getType() != "COLOR") {
+    FIND("error_message").innerHTML = "Not a complete style.";
+    return;
+  }
+  var color = current_style.getColor(0);
+  if (color.a != 1.0) {
+    FIND("error_message").innerHTML = "Style is transparent.";
+    return;
+  }
   var copyText = FIND("style");
   var argStr = '"' + ARGUMENTS.slice(3).join(" ") + '"';
   if (argStr == '""') argStr = "";
