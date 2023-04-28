@@ -5753,8 +5753,8 @@ class TrDoEffectXClass extends TRANSITION {
     super("Do effect", arguments);
     this.add_arg("TRANSITION","TRANSITION", "Wrapped transition");
     this.add_arg("EFFECT", "EFFECT", "Effect to trigger.");
-    this.add_arg("WAVNUM", "FUNCTION", "Select wave number.");
-    this.add_arg("LOCATION", "FUNCTION", "Effect location.");
+    this.add_arg("WAVNUM", "FUNCTION", "Select wave number.", Int(-1));
+    this.add_arg("LOCATION", "FUNCTION", "Effect location.", Int(-1));
     this.begin_ = false;
     this.done_ = false;
   }
@@ -5769,7 +5769,7 @@ class TrDoEffectXClass extends TRANSITION {
       if (blade.is_on()) {
         var location = this.LOCATION.getInteger(0);
         if (location == -1) location = random(32768)/32768.0;
-        blade.addEffect(this.EFFECT, location);
+        blade.addEffect(this.EFFECT.value, location);
       }
       this.begin_ = false;
     }
