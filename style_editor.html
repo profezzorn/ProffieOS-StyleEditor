@@ -157,6 +157,244 @@ void main() {
 }
 </script>
 
+<script id='hilt_graflex' type='x-shader/x-fragment'>
+
+#define ITERATIONS 400
+
+float Clamp(vec3 p) {
+  p= vec3(p.x + 0.03, -p.z, p.y);
+  float dist = 100000.0;
+  // clamp
+  dist = min(dist, sdCappedCylinder(p.yxz, 0.040, 0.051));
+  dist = min(dist, sdBox(p.xyz + vec3(0.0, -0.038, 0.0), vec3(0.051, 0.020, 0.015)));
+  return dist;
+}
+
+float RedPill(vec3 p) {
+  p -= vec3(0.143,0,0);
+  if (p.y > 0.0) {
+    p.x-=0.030;
+    p.y = abs(p.y);
+  }
+  float dist = 1000000.0;
+  //  dist = min(dist, sdCappedCylinder(p, 0.011, 0.051));
+  dist = min(dist,
+      max(sdSphere(p, 0.053),
+      sdCappedCylinder(p, 0.011, 0.08)));
+  return dist;
+}
+  
+float Button(vec3 p) {
+  float dist = 1000000.0;
+  dist = min(dist, RedPill(p));
+  p -= vec3(0.143,0,0);
+  if (p.y > 0.0) {
+    p.x-=0.030;
+    p.y = abs(p.y);
+  }
+  dist = min(dist, sdCappedCylinder(p, 0.018, 0.050));
+  //  dist = min(dist, sdCappedCylinder(p, 0.011, 0.051));
+  return dist;
+}
+
+// May need to find a better way to model this.
+float Cut(vec3 p) {
+  p.x -= 0.350;
+  //  p.y -= 0.008;
+  p *= rotz(-0.60);
+  p.x += sin(p.y*50.0)/55.0;
+  return sdBox(p, vec3(0.1, 0.2, 0.1)) * 0.8;
+}
+
+float Slots(vec3 p) {
+  float dist = sdBox(p + vec3(-0.259,0.0,0.0), vec3(0.004, 0.1, 0.005));
+  dist = min(dist, sdBox(p + vec3(-0.227,0.0,0.0), vec3(0.020, 0.1, 0.010)));
+  return dist;
+}
+
+float Slots2(vec3 p) {
+  p.z = -abs(p.z);
+  //  float dist = 100000.0;
+  float dist = sdBox(p + vec3(-0.179,0.055,0.01), vec3(0.010, 0.03, 0.005));
+  p *= rotx(0.95);
+  dist = min(dist, sdCappedCylinder(p+vec3(-0.175,0.040,0), 0.014, 0.02));
+  //  dist = min(dist, sdBox(p + vec3(-0.227,0.0,0.0), vec3(0.020, 0.1, 0.010)));
+  return dist;
+}
+
+float Pins(vec3 p) {
+  p.z = -abs(p.z);
+  p *= rotx(0.95);
+  p += vec3(-0.175,0.015,0);
+  p.x = abs(p.x);
+  p.x -= 0.005;
+  return sdVerticalCapsule(p.yxz, 0.018, 0.002);
+  //  return sdCappedCylinder(p, 0.002, 0.02);
+}
+
+
+float Cylinder(vec3 p) {
+  float dist = sdCappedCylinder(p.yxz, 0.038, 0.270);
+  dist = max(dist, -sdCappedCylinder(p.yxz + vec3(0,-0.470,0), 0.036, 0.270));
+  dist = max(dist, -Cut(p));
+  dist = max(dist, -Slots(p));
+  dist = max(dist, -Slots2(p));
+  return dist;
+}
+
+float sdCircle(vec2 xy, float r) {
+  return length(xy) - r;
+}
+
+float sdRect(vec2 p, vec2 b) {
+  vec2 q = abs(p) - b;
+  return length(max(q,0.0)) + min(max(q.x,q.y),0.0);
+}
+
+float earsFront(vec2 xy) {
+  xy.x = -abs(xy.x);
+  float dist = sdCircle(xy, 0.027);
+  dist = max(dist, -sdCircle(xy, 0.0265));
+  dist = max(dist, -sdRect(xy + vec2(0.0, -0.030), vec2(0.005, 0.010)));
+  dist = min(dist, sdRect(xy + vec2(0.005, -0.056), vec2(0.0005, 0.030)));
+  return dist;
+}
+
+float earsSide(vec2 xy) {
+  xy.x = -abs(xy.x);
+  float dist = sdRect(xy + vec2(0, -0.050), vec2(0.012, 0.030));
+  dist = min(dist, sdRect(xy, vec2(0.016, 0.030)));
+  dist = min(dist, max(
+     sdCircle(xy + vec2(0,-0.069), 0.016),
+     -sdRect(xy + vec2(0.011*2.0, -0.060), vec2(0.011, 0.030))));
+  return dist;
+}
+
+
+float bunnyEars(vec3 p) {
+  p.x -= 0.227;
+  return max(
+      opExtrusion( p.zyx, earsFront(p.zy), 0.1 ),
+      opExtrusion( p, earsSide(p.xy), 0.1 ));
+}
+
+float ROUND(float x) {
+  return floor(x + 0.5);
+}
+
+float grips(vec3 p) {
+  // 6-symmetry
+  float angle = atan(p.z, p.y);
+  float section = ROUND(angle * 3.0 / PI);
+  float angle2 = section * PI / 3.0;
+  vec3 p2 = p * rotx(angle2);
+
+  // T-track
+  float dist = sdBox(p2.xyz + vec3(0.270-0.092,-0.038,0.0), vec3(0.092, 0.004, 0.013));
+  dist = min(dist, sdBox(p2.xyz + vec3(0.270-0.092,-0.038,0.0), vec3(0.091, 0.012, 0.002)) - 0.001);
+  return dist;
+}
+
+#define SCALE 0.25
+
+// FIXME
+vec3 dorot(vec3 p) {
+  p.y -= 3.75;
+  p *= SCALE;
+  p = p.yxz;
+  p.x = -p.x;
+  p *= rotx(-PI/2.0);
+  
+//  p = p  * roty(-0.4) * rotx(PI/5.0);
+  //    p = p  * roty(-0.4) * rotx(PI/7.0);
+  //    p = p * roty(-0.05);
+//  p *= rotz(iTime*0.1) * rotx(-iTime*0.0123) * roty(iTime*0.09781623);
+  return p;
+}
+
+// bounding box
+float bb(vec3 p) {
+  p.y-=0.01;
+  return sdVerticalCapsule(p, 0.25, 0.08);
+}
+
+// Return actual distance, step
+float handle2(vec3 p) {
+  p = dorot(p);
+
+  float dist = bb(p);
+  if (dist > 0.1) return dist;
+
+  dist = 100000.0;
+  dist = min(dist, Cylinder(p));
+  dist = min(dist, Clamp(p));
+  dist = min(dist, Button(p));
+  dist = min(dist, grips(p));
+  dist = min(dist, bunnyEars(p));
+  dist = min(dist, Pins(p));
+
+  return dist;
+}
+
+float handle(vec3 p) {
+  return handle2(p) / SCALE;
+}
+
+Material getHiltMaterial(vec3 hp, vec3 ray_dir) {
+  float dist = handle2(hp);
+  vec3 hpr = dorot(hp);
+
+  if (grips(hpr) == dist) {
+    return Material(vec3(0.01,0.01,0.01), 0.0, 0.4, vec3(0));
+  }
+
+  if (Pins(hpr) == dist) {
+    return Material(vec3(1.00, 0.71, 0.29), 1.0, 0.2, vec3(0));
+  }
+
+  if (length(hpr.zy) < 0.036 && abs(hpr.x) < 0.201) {
+    return Material(vec3(0.01,0.01,0.01), 0.2, 0.2, vec3(0));
+  }
+
+  if (RedPill(hpr) == dist) {
+    return Material(vec3(0.6,0.1,0.1), 0.5, 0.2, vec3(0));
+  }
+
+  if (hpr.z < -0.055 && abs(hpr.y) < 0.011) {
+    if (mod(hpr.x+0.2, 0.006) < 0.002) {
+      return Material(vec3(0.3, 0.9, 0.3), 0.0, 0.4, vec3(0));
+    } else {
+      return Material(vec3(1.00, 0.71, 0.29), 1.0, 0.2, vec3(0));
+    }
+  }
+
+  return Material(vec3(1.0), 0.9, 0.3, vec3(0));
+//  vec2 tpos = vec2(dot(hpr, vec3(13.1,1,0.5)), dot(hpr, vec3(7.033,0.1,2.2)));
+//  vec3 c = texture(iChannel0, tpos).xyz;
+//  return Material(vec3(0.3), 1.0-c.g, c.r*0.8 + 0.1);
+}
+													  
+
+
+</script>
+
+<script id='hilt_cylinder' type='x-shader/x-fragment'>
+
+#define ITERATIONS 100
+
+float handle(vec3 p) {
+   vec2 h = vec2(.15, 0.7);
+   p.y -= 3.65;
+   vec2 d = abs(vec2(length(p.xz),p.y)) - h;
+   return min(max(d.x,d.y),0.0) + length(max(d,0.0));
+}
+
+Material getHiltMaterial(vec3 hp, vec3 ray_dir) {
+  return Material(vec3(1.0), 0.9, 0.3, vec3(0));
+}
+
+</script>
+
 <script id="fragment-shader" type="x-shader/x-fragment">
 precision highp float;
 uniform float u_time;
@@ -167,7 +405,156 @@ uniform sampler2D sampler;
 uniform mat4 u_move_matrix;
 uniform mat4 u_old_move_matrix;
 
+const float PI = 3.1415926535;
+
+struct Material {
+  vec3 color;
+  float metallic;
+  float roughness;
+  vec3 emission;
+};
+
 $VARIABLES$
+
+mat3 rotz(float f) {
+  return mat3(cos(f), sin(f), 0,
+              -sin(f), cos(f), 0,
+              0,0,1);
+}
+
+mat3 roty(float f) {
+  return mat3(cos(f), 0, sin(f),
+              0, 1, 0,
+              -sin(f), 0, cos(f));
+}
+
+mat3 rotx(float f) {
+  return mat3(1,0,0,
+              0, cos(f), sin(f),
+              0, -sin(f), cos(f));
+}
+
+
+
+float opExtrusion( in vec3 p, in float sdf, in float h) {
+  vec2 w = vec2( sdf, abs(p.z) - h );
+  return min(max(w.x,w.y),0.0) + length(max(w,0.0));
+}
+
+float sdBox( vec3 p, vec3 b) {
+  vec3 q = abs(p) - b;
+  return length(max(q,0.0)) + min(max(q.x,max(q.y,q.z)),0.0);
+}
+
+float sdSphere( vec3 p, float s) {
+  return length(p)-s;
+}
+
+float sdCylinder( vec3 p, vec3 c) {
+  return length(p.xz-c.xy)-c.z;
+}
+
+float sdCappedCylinder( vec3 p, float h, float r) {
+  vec2 d = abs(vec2(length(p.xz),p.y)) - vec2(h,r);
+  return min(max(d.x,d.y),0.0) + length(max(d,0.0));
+}
+
+float sdRoundedCylinder( vec3 p, float ra, float rb, float h) {
+  vec2 d = vec2( length(p.xz)-2.0*ra+rb, abs(p.y) - h );
+  return min(max(d.x,d.y),0.0) + length(max(d,0.0)) - rb;
+}
+
+float sdVerticalCapsule( vec3 p, float h, float r )
+{
+  p.x -= clamp( p.x, -h, h );
+  return length( p ) - r;
+}
+
+vec4 opElongate( in vec3 p, in vec3 h) {
+  return vec4( p-clamp(p,-h,h), 0.0 ); // faster, but produces zero in the interior elongated box
+
+  //vec3 q = abs(p)-h;
+  //return vec4( max(q,0.0), min(max(q.x,max(q.y,q.z)),0.0) );
+}
+
+
+
+
+//------------------------------------------------------------------------------
+// BRDF
+//------------------------------------------------------------------------------
+
+float pow5(float x) {
+  float x2 = x * x;
+  return x2 * x2 * x;
+}
+
+float D_GGX(float linearRoughness, float NoH, const vec3 h) {
+  // Walter et al. 2007, "Microfacet Models for Refraction through Rough Surfaces"
+  float oneMinusNoHSquared = 1.0 - NoH * NoH;
+  float a = NoH * linearRoughness;
+  float k = linearRoughness / (oneMinusNoHSquared + a * a);
+  float d = k * k * (1.0 / PI);
+  return d;
+}
+
+float V_SmithGGXCorrelated(float linearRoughness, float NoV, float NoL) {
+  // Heitz 2014, "Understanding the Masking-Shadowing Function in Microfacet-Based BRDFs"
+  float a2 = linearRoughness * linearRoughness;
+  float GGXV = NoL * sqrt((NoV - a2 * NoV) * NoV + a2);
+  float GGXL = NoV * sqrt((NoL - a2 * NoL) * NoL + a2);
+  return 0.5 / (GGXV + GGXL);
+}
+
+vec3 F_Schlick(const vec3 f0, float VoH) {
+  // Schlick 1994, "An Inexpensive BRDF Model for Physically-Based Rendering"
+  return f0 + (vec3(1.0) - f0) * pow5(1.0 - VoH);
+}
+
+float F_Schlick(float f0, float f90, float VoH) {
+  return f0 + (f90 - f0) * pow5(1.0 - VoH);
+}
+
+float Fd_Burley(float linearRoughness, float NoV, float NoL, float LoH) {
+  // Burley 2012, "Physically-Based Shading at Disney"
+  float f90 = 0.5 + 2.0 * linearRoughness * LoH * LoH;
+  float lightScatter = F_Schlick(1.0, f90, NoL);
+  float viewScatter  = F_Schlick(1.0, f90, NoV);
+  return lightScatter * viewScatter * (1.0 / PI);
+}
+
+float Fd_Lambert() {
+  return 1.0 / PI;
+}
+
+//------------------------------------------------------------------------------
+// Indirect lighting
+//------------------------------------------------------------------------------
+
+vec3 Irradiance_SphericalHarmonics(const vec3 n) {
+  // Irradiance from "Ditch River" IBL (http://www.hdrlabs.com/sibl/archive.html)
+  return max(
+     vec3( 0.754554516862612,  0.748542953903366,  0.790921515418539)
+   + vec3(-0.083856548007422,  0.092533500963210,  0.322764661032516) * (n.y)
+   + vec3( 0.308152705331738,  0.366796330467391,  0.466698181299906) * (n.z)
+   + vec3(-0.188884931542396, -0.277402551592231, -0.377844212327557) * (n.x)
+  , 0.0);
+}
+
+vec2 PrefilteredDFG_Karis(float roughness, float NoV) {
+  // Karis 2014, "Physically Based Material on Mobile"
+  const vec4 c0 = vec4(-1.0, -0.0275, -0.572,  0.022);
+  const vec4 c1 = vec4( 1.0,  0.0425,  1.040, -0.040);
+
+  vec4 r = roughness * c0 + c1;
+  float a004 = min(r.x * r.x, exp2(-9.28 * NoV)) * r.x + r.y;
+
+  return vec2(-1.04, 1.04) * a004 + r.zw;
+}
+
+
+
+
 
 vec3 A = vec3(0,3,0);
 vec3 B = vec3(0,-4,0);
@@ -181,7 +568,7 @@ int get_led(vec3 p) {
   return int(get_point(p) * 144.0);
 }
 
-float blade(vec3 p, bool tangent) {
+float blade2(vec3 p, bool tangent) {
    vec3 pa = p - A, ba = B - A;
    float h = clamp( dot(pa,ba)/dot(ba,ba), 0.0, 1.0 );
    vec3 tmp = pa - ba * h;
@@ -195,17 +582,16 @@ float blade(vec3 p, bool tangent) {
    }
 }
 
-float handle(vec3 p) {
-   vec2 h = vec2(.15, 0.7);
-   p.y -= 3.65;
-   vec2 d = abs(vec2(length(p.xz),p.y)) - h;
-   return min(max(d.x,d.y),0.0) + length(max(d,0.0));
+float blade(vec3 p, bool tangent) {
+  float ret = blade2(p, tangent);
+//  ret = min(ret, sdSphere(p, 0.8));
+  return ret;
 }
+$HILT$
 
 float map(vec3 p, bool tangent) {
   return min(blade(p, tangent), handle(p));
 }
-
 
 vec3 getBladeColor(vec3 pos) {
     return texture2D(sampler, vec2(get_point(pos), 0.5)).rgb;
@@ -218,14 +604,57 @@ float march(vec3 start, vec3 dir, out vec3 haze_color) {
   float last_d = 0.0;
   bool hit = false;
   float haze = 1.0;
-  for (int i = 0; i < 100; i++) {
+  for (int i = 0; i < ITERATIONS; i++) {
     vec3 p =start + dir * dist;
     float hilt_dist = handle(p);
     float blade_dist = blade(p, !hit);
     float d = min(hilt_dist, blade_dist);
 
     if (dist > 20.0) return 10000.0;
-    if (d < 0.00001 * dist) {
+    if (d < 0.001) {
+      if (d < 0.0) {
+        hit = true;
+//        dist = last_dist + (dist - last_dist) * (last_d / (last_d - d));
+        dist = last_dist;
+        continue;
+      }
+      return dist;
+    }
+    if (get_led(p) > 0) {
+      // haze_color += getBladeColor(p) * clamp(0.002 / (blade_dist*blade_dist), 0.0, 1.0);
+
+      // haze_color += getBladeColor(p) * 0.0005 / (blade_dist*blade_dist*blade_dist) * d;
+
+      float haze_m = clamp(0.004 / (blade_dist*blade_dist), 0.0, 1.0);
+      haze_color += getBladeColor(p) * haze_m * haze;
+      haze *= (1.0 - haze_m);
+    }
+    d *= 0.99;
+    last_d = d;
+    last_dist = dist;
+    dist += d;
+  }
+//  if (hit) return dist;
+//  return -1.0;
+  return dist;
+}
+
+float march2(vec3 start, vec3 dir, out vec3 haze_color) {
+  haze_color = vec3(0,0,0);
+  float dist = 0.0;
+  float last_dist = 0.0;
+  float last_d = 0.0;
+  bool hit = false;
+  float haze = 1.0;
+  float start_dist = map(start, false);
+  for (int i = 0; i < ITERATIONS; i++) {
+    vec3 p =start + dir * dist;
+    float hilt_dist = handle(p);
+    float blade_dist = blade(p, !hit);
+    float d = min(hilt_dist, blade_dist);
+
+    if (dist > 20.0) return 10000.0;
+    if (d < start_dist / 2.0) {
       if (d < 0.0) {
         hit = true;
 //        dist = last_dist + (dist - last_dist) * (last_d / (last_d - d));
@@ -247,9 +676,9 @@ float march(vec3 start, vec3 dir, out vec3 haze_color) {
     last_dist = dist;
     dist += d;
   }
-  if (hit) return dist;
-  return -1.0;
+  return dist;
 }
+
 
 
 vec3 getNormal(vec3 p) {
@@ -272,8 +701,67 @@ float line_dist(vec3 pt1, vec3 dir1, vec3 pt2, vec3 dir2) {
   return abs(dot(n, pt1 - pt2));
 }
 
+
+
+// Cast a ray starting at "from" and keep going until we hit something or
+// run out of iterations.
+float ray(vec3 from, vec3 direction) {
+  // How far we travelled (so far)
+  float travel_distance = 0.0;
+  float last_travel_distance = 0.0;
+  bool hit = false;
+  for (int i = 0; i < 60; i++) {
+    // calculate the current position along the ray
+    vec3 position = from + direction * travel_distance;
+    float tmp = map(position, false);
+    float distance_to_closest_object = tmp;
+    float step_size = hit ? tmp : tmp;
+
+    if (distance_to_closest_object < 0.0005) {
+      return travel_distance;
+    }
+    last_travel_distance = travel_distance;
+
+    // We can safely advance this far since we know that the closest
+    // object is this far away. (But possibly in a completely different
+    // direction.)
+    travel_distance += step_size;
+  }
+
+  return travel_distance;
+}
+
+
+float shadow(in vec3 origin, in vec3 direction) {
+  float hit = 1.0;
+  float t = 0.001;
+
+  for (int i = 0; i < 100; i++) {
+    float h = map(origin + direction * t, false);
+    if (h < 0.0002) return 0.0;
+    t += h;
+    hit = min(hit, 10.0 * h / t);
+    if (t >= 2.5) break;
+  }
+
+  return clamp(hit, 0.0, 1.0);
+}
+    
+
+
+#define saturate(x) clamp(x, 0.0, 1.0)
+
+
+Material getMaterial(vec3 hp, vec3 dir) {
+  if (blade(hp, false) <= handle(hp)) {
+    return Material(vec3(1.0), 0.0, 0.3, getBladeColor(hp));
+  } else {
+    return getHiltMaterial(hp, dir);
+  }
+}
+
 void main() {
-    vec3 light = vec3(-10.0, 5.0, -10.0);
+    vec3 light = vec3(-5, 8.0, -8.0);
     vec3 eye = vec3(0.0, 0.0, -12.0);
     float zoom = 1.5;
     vec3 dir = normalize(
@@ -287,6 +775,7 @@ void main() {
     mat4 rot = rot3 * u_move_matrix;
     vec3 new_eye = (rot * vec4(eye.xyz, 1.0)).xyz;
     vec3 new_dir = (rot * vec4(dir.xyz, 1.0)).xyz;
+    light = (rot * vec4(light.xyz, 1.0)).xyz;
 
     mat4 old_rot = rot3 * u_old_move_matrix;
     vec3 old_eye = (old_rot * vec4(eye.xyz, 1.0)).xyz;
@@ -314,41 +803,108 @@ void main() {
 
     vec3 haze_color;
     float x = march(eye, dir, haze_color);
+			  
     vec3 hp = eye + dir * x;
-    vec3 color = vec3(1,1,1);
-    vec3 color2 = getBladeColor(hp);
-    if (blade(hp, false) > handle(hp)) {
-      color = vec3(0.3,0.3,0.3);
-      color2 = vec3(0);
-    }
+    vec3 color = vec3(0);
+
+    if (x < 20.0) {
+      Material mat = getMaterial(hp, dir);
    
-    vec3 normal = getNormal(hp);
-    vec3 light_dir = light - hp;
-    float light_dist2 = dot(light_dir, light_dir) / 10.0;
-    light_dir = normalize(light_dir);
-    float l = dot(light_dir, normal) * 5.0;
+//    vec3 normal = getNormal(hp);
+//    vec3 light_dir = light - hp;
+//    float light_dist2 = dot(light_dir, light_dir) / 10.0;
+//    light_dir = normalize(light_dir);
+//    float l = dot(light_dir, normal) * 5.0;
 
-    l = max(l, 0.0);
-    l /= sqrt(light_dist2);
-    l += 0.1;  // ambient
-    color *= l;
-    color += color2 * 2.0;
+//    l = max(l, 0.0);
+//    l /= sqrt(light_dist2);
+//    l += 0.1;  // ambient
+//    color *= l;
+//    color += color2 * 2.0;
 
-    vec3 reflection = reflect(dir, normal);
-    float l2 = max(dot(reflection, light_dir), 0.0);
-    color += vec3(200.0) * pow(l2, 60.0);
-    vec3 haze = vec3(0.01, 0.01, 0.01);
-    float haze_mix = x < 0.0 ? 0.0 : pow(0.95, x);
-    color = haze_mix * color + (1.0 - haze_mix) * haze;
+//    vec3 reflection = reflect(dir, normal);
+//    float l2 = max(dot(reflection, light_dir), 0.0);
+//    color += vec3(200.0) * pow(l2, 60.0);
+//    vec3 haze = vec3(0.01, 0.01, 0.01);
+//    float haze_mix = x < 0.0 ? 0.0 : pow(0.95, x);
+//    color = haze_mix * color + (1.0 - haze_mix) * haze;
+//    color += haze_color;
+
+    
+//    color = sqrt(color);
+//    gl_FragColor = vec4(color, 1.0);
+
+    vec3 v = normalize(-dir);
+    vec3 n = getNormal(hp);
+    vec3 l = light - hp;
+    vec3 ld = normalize(l);
+    vec3 h = normalize(ld + v);
+    vec3 r = normalize(reflect(dir, n));
+
+    float NoV = abs(dot(n, v)) + 1e-5;
+    float NoL = saturate(dot(n, ld));
+    float NoH = saturate(dot(n, h));
+    float LoH = saturate(dot(ld, h));
+
+    vec3 baseColor = mat.color * 0.5;
+
+    float intensity = 3.8;
+    float indirectIntensity = 0.1;
+
+    float linearRoughness = mat.roughness * mat.roughness;
+    vec3 diffuseColor = (1.0 - mat.metallic) * baseColor.rgb;
+    vec3 f0 = 0.04 * (1.0 - mat.metallic) + baseColor.rgb * mat.metallic;
+
+    float attenuation = shadow(hp, l);
+
+    // specular BRDF
+    float D = D_GGX(linearRoughness, NoH, h);
+    float V = V_SmithGGXCorrelated(linearRoughness, NoV, NoL);
+    vec3  F = F_Schlick(f0, LoH);
+    vec3 Fr = (D * V) * F;
+
+    // diffuse BRDF
+    vec3 Fd = diffuseColor * Fd_Burley(linearRoughness, NoV, NoL, LoH);
+
+    color = Fd + Fr;
+    color *= (intensity * attenuation * NoL) * vec3(0.98, 0.92, 0.89);
+
+    // diffuse indirect
+    vec3 indirectDiffuse = Irradiance_SphericalHarmonics(n) * Fd_Lambert();
+
+    vec3 indirect_haze_color;
+    float indirectHit = march2(hp + r * 0.1, r, indirect_haze_color);
+//    float indirectHit = ray(hp + r * 0.1, r);
+    vec3 indirectSpecular = vec3(0.5, 0.5, 0.5) + (dot(vec3(0,0,-1), r) + 1.0) * 0.2;
+    vec3 indirectHitPosition = hp + r * indirectHit;
+    if (indirectHit < 20.0) {
+      Material indirectMaterial = getMaterial(indirectHitPosition, r);
+      indirectSpecular = indirectMaterial.color + indirectMaterial.emission;
+    }
+    indirectSpecular += indirect_haze_color;
+
+    // indirect contribution
+    vec2 dfg = PrefilteredDFG_Karis(mat.roughness, NoV);
+    vec3 specularColor = f0 * dfg.x + dfg.y;
+    vec3 ibl = diffuseColor * indirectDiffuse + indirectSpecular * specularColor;
+
+    color += ibl * indirectIntensity;
+
+    color += mat.emission;
+    }
+
+//    vec3 haze = vec3(0.01, 0.01, 0.01);
+//   float haze_mix = x > 20.0 ? 0.0 : pow(0.95, x);
+//    color = haze_mix * color + (1.0 - haze_mix) * haze;
     color += haze_color;
 
     // Clip to white
     color += vec3(dot(max(color - vec3(1), vec3(0)), vec3(0.33)));
     // color += vec3(dot(max(color - vec3(1), 0.0), vec3(0.299, 0.587, 0.114)));
     // color += vec3(max(dot(color, vec3(0.299, 0.587, 0.114)) - 1.0, 0.0));
-    
-    color = sqrt(color);
-    gl_FragColor = vec4(color, 1.0);
+
+//    gl_FragColor = pow(vec4(color, 1.0), vec4(1.0/2.2));
+    gl_FragColor = pow(vec4(color, 1.0), vec4(1.0/2.2));
 }
 </script>
 
@@ -634,6 +1190,11 @@ function compile() {
   variables = [];
 //  shader_code = shader_code.replace("$FUNCTION$", current_style.gencode());
   shader_code = shader_code.replace("$VARIABLES$", variables.join("\n"));
+  if (use_graflex) {
+    shader_code = shader_code.replace("$HILT$", FIND("hilt_graflex").textContent);
+  } else {
+    shader_code = shader_code.replace("$HILT$", FIND("hilt_cylinder").textContent);
+  }
   // console.log(shader_code);
   
   gl.shaderSource(fragmentShader, shader_code);
@@ -8138,10 +8699,21 @@ var show_style;
 
 var numTick = 0;
 var framesPerUpdate = 0;
+var use_graflex = true;
+var bad_fps = 0;
 
 function drawScene() {
   last_micros = current_micros;
   current_micros = actual_millis() * 1000;
+  if (current_micros - last_micros > 1000000/45) {
+     bad_fps ++;
+  } else {
+     if (bad_fps) bad_fps --;
+  }
+  if (bad_fps > 10 && use_graflex) {
+    use_graflex = false;
+    compile();
+  }
   num_leds = blade.num_leds()
   var pixels = new Uint8Array(num_leds * 4 * 2);
   var S = current_style;
