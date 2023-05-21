@@ -9456,37 +9456,31 @@ function ActivateTab(tab) {
           option.text = nameWithoutEffect;
 
           // Check if the effect belongs to a certain category and add it to the corresponding sub-group
-          if (name.startsWith('EFFECT_GAME')) {
-            gameEffectsMenu.appendChild(option);
-          } else if (name.startsWith('EFFECT_USER')) {
-            userEffectsMenu.appendChild(option);
-          } else if ([
-              EFFECT_STUN, 
-              EFFECT_FIRE, 
-              EFFECT_CLIP_IN, 
-              EFFECT_CLIP_OUT, 
-              EFFECT_RELOAD, 
-              EFFECT_MODE, 
-              EFFECT_RANGE, 
-              EFFECT_EMPTY, 
-              EFFECT_FULL, 
-              EFFECT_JAM, 
-              EFFECT_UNJAM, 
-              EFFECT_PLI_ON, 
-              EFFECT_PLI_OFF
-            ].includes(Number(value))) {
-            blasterEffectsMenu.appendChild(option);
-          } else if ([
-            EFFECT_ERROR_IN_BLADE_ARRAY,
-            EFFECT_ERROR_IN_FONT_DIRECTORY,
-            EFFECT_FONT_DIRECTORY_NOT_FOUND,
-            EFFECT_SD_CARD_NOT_FOUND,
-            EFFECT_LOW_BATTERY
-            ].includes(Number(value))) {
-            errorMessagesMenu.appendChild(option);
-          } else {
-            generalEffectsMenu.appendChild(option);
+          switch (true) {
+            case name.startsWith('EFFECT_GAME'):
+              gameEffectsMenu.appendChild(option);
+              break;
+            case name.startsWith('EFFECT_USER'):
+              userEffectsMenu.appendChild(option);
+              break;
+            case [
+              EFFECT_STUN, EFFECT_FIRE, EFFECT_CLIP_IN, EFFECT_CLIP_OUT, EFFECT_RELOAD,
+              EFFECT_MODE, EFFECT_RANGE, EFFECT_EMPTY, EFFECT_FULL, EFFECT_JAM, EFFECT_UNJAM,
+              EFFECT_PLI_ON, EFFECT_PLI_OFF
+            ].includes(Number(value)):
+              blasterEffectsMenu.appendChild(option);
+              break;
+            case [
+              EFFECT_ERROR_IN_BLADE_ARRAY, EFFECT_ERROR_IN_FONT_DIRECTORY,
+              EFFECT_FONT_DIRECTORY_NOT_FOUND, EFFECT_SD_CARD_NOT_FOUND, EFFECT_LOW_BATTERY
+            ].includes(Number(value)):
+              errorMessagesMenu.appendChild(option);
+              break;
+            default:
+              generalEffectsMenu.appendChild(option);
+              break;
           }
+
           actions[value] = function() { blade.addEffect(value, 0.0) };
         }
 
