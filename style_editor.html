@@ -1,4 +1,11 @@
+<!DOCTYPE html>
+
+<html lang="en">
 <head>
+  <meta charset="UTF-8">
+  <!-- This should show up in search engine results. -->
+  <meta name="description" content="ProffieOS Style Editor: Customize your Proffieboard saber blade animations with this browser based tool.">
+  <title>ProffieOS Style Editor</title>
 <style>
 
 .button_on {
@@ -1031,12 +1038,12 @@ function initGL() {
 
   var str = new URL(window.location.href).searchParams.get("S");
   if (!str) {
-    str = "InOutHelper<SimpleClash<Lockup<Blast<Blue,White>,AudioFlicker<Blue,White>>,White>, 300, 800>";
+    str = "Layers<Red,ResponsiveLockupL<White,TrInstant,TrInstant,Int<26000>>,ResponsiveLightningBlockL<White>,ResponsiveMeltL<Mix<TwistAngle<>,Red,Yellow>>,ResponsiveDragL<White>,ResponsiveClashL<White,TrInstant,TrFade<200>,Int<26000>>,ResponsiveBlastL<White>,ResponsiveBlastWaveL<White>,ResponsiveBlastFadeL<White>,ResponsiveStabL<White>,InOutTrL<TrWipe<300>,TrWipeIn<500>>>";
   }
   FIND("style").value = str;
 
   Run();
-
+  DoLayerize();
 
   //FIND("color_links").innerHTML = qlinks;
   //FIND("effect_links").innerHTML = effect_links;
@@ -9644,3 +9651,4 @@ function ActivateTab(tab) {
   </tr>
 </table>
 </body>
+</html>
