@@ -9467,7 +9467,6 @@ function ActivateTab(tab) {
       } else {
         generalEffectsMenu.appendChild(option);
       }
-      actions[value] = function() { blade.addEffect(value, 0.0) };
     }
   }
 
@@ -9482,7 +9481,9 @@ function ActivateTab(tab) {
     // If the selected value is not the default, enable the button and set its action
     if (menu.value !== '') {
       button.disabled = false;
-      button.onclick = actions[menu.value];
+      button.onclick = function() {
+        AddClickedEffect(menu.value);
+      };
     } else {
       // If the selected value is the default, disable the button
       button.disabled = true;
