@@ -9419,10 +9419,7 @@ function ActivateTab(tab) {
         const menu = FIND('more_effects_menu');
         const button = FIND('do_selected');
 
-        // Create an object to store actions for each item
-        const actions = {};
-
-        /* Add values from the enum builder to an array and sort alphabetically,
+	/* Add values from the enum builder to an array and sort alphabetically,
         excluding effects with dedicated buttons.*/
         const values = Object.entries(EFFECT_ENUM_BUILDER.value_to_name)
           .sort((a, b) => a[1].localeCompare(b[1]))
@@ -9489,7 +9486,6 @@ function ActivateTab(tab) {
                 break;
             }
           }
-          actions[value] = function() { blade.addEffect(value, 0.0) };
         }
 
         // Add the sub-groups to the main menu
