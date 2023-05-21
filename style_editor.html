@@ -9421,7 +9421,11 @@ function ActivateTab(tab) {
 <table>
 <tr>
   <td valign=top width=50%>
-    <canvas id="canvas_id" width=256px height=256px style="width:256px; height:256px;" onmousemove='mouse_move(event)' onmouseleave='mouse_leave(event)'  onclick='AddClash()'> </canvas>
+    <canvas id="canvas_id" width=256px height=256px style="width:256px; height:256px;" 
+      onmousemove='mouse_move(event)'
+      onmouseleave='mouse_leave(event)'
+      onclick='AddClickedEffect()'>
+    </canvas>
     <br>
     <input id=POWER_BUTTON name=on type=button value="Power" onclick="ClickPower();" >
     <input name=clash type=button value="Clash" onclick="AddClash();" >
@@ -9451,9 +9455,6 @@ function ActivateTab(tab) {
   // Get the menu and button elements
   const menu = document.getElementById('more_effects_menu');
   const button = document.getElementById('do-selected');
-
-  // Create a dictionary to store actions for each item
-  const actions = {};
 
   // Add values from the enum builder to an array and sort alphabetically
   const values = Object.entries(EFFECT_ENUM_BUILDER.value_to_name).sort((a, b) => a[1].localeCompare(b[1]));
@@ -9512,7 +9513,6 @@ function ActivateTab(tab) {
       } else {
         generalEffectsMenu.appendChild(option);
       }
-      actions[value] = function() { blade.addEffect(value, 0.0) };
     }
   }
 
@@ -9524,19 +9524,30 @@ function ActivateTab(tab) {
 
   // Set up the event listener for the menu
   menu.addEventListener('change', function() {
-    // Get the selected option value
-    const value = menu.value;
-
     // If the selected value is not the default, enable the button and set its action
-    if (value !== '') {
+    if (menu.value !== '') {
       button.disabled = false;
-      button.onclick = actions[value];
+      button.onclick = function() {
+        AddClickedEffect();
+      };
     } else {
       // If the selected value is the default, disable the button
       button.disabled = true;
       button.onclick = null;
     }
   });
+  // Disable the button initially
+  button.disabled = true;
+  // What to do when preview saber area is clicked
+  function AddClickedEffect() {
+    if (button.disabled) {
+      AddClash();
+    } else {
+      blade.addEffect(menu.value, 0.0)
+    }
+  };
+
+
 </script>
 
       <span class="variant-alt-container">
