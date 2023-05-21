@@ -9407,9 +9407,6 @@ function ActivateTab(tab) {
   const menu = document.getElementById('more_effects_menu');
   const button = document.getElementById('do-selected');
 
-  // Create a dictionary to store actions for each item
-  const actions = {};
-
   // Add values from the enum builder to an array and sort alphabetically
   const values = Object.entries(EFFECT_ENUM_BUILDER.value_to_name).sort((a, b) => a[1].localeCompare(b[1]));
 
@@ -9482,7 +9479,7 @@ function ActivateTab(tab) {
     if (menu.value !== '') {
       button.disabled = false;
       button.onclick = function() {
-        AddClickedEffect(menu.value);
+        AddClickedEffect();
       };
     } else {
       // If the selected value is the default, disable the button
