@@ -9372,7 +9372,11 @@ function ActivateTab(tab) {
 <table>
 <tr>
   <td valign=top width=50%>
-    <canvas id="canvas_id" width=256px height=256px style="width:256px; height:256px;" onmousemove='mouse_move(event)' onmouseleave='mouse_leave(event)'  onclick='AddClash()'> </canvas>
+    <canvas id="canvas_id" width=256px height=256px style="width:256px; height:256px;" 
+      onmousemove='mouse_move(event)'
+      onmouseleave='mouse_leave(event)'
+      onclick='AddClickedEffect()'>
+    </canvas>
     <br>
     <input id=POWER_BUTTON name=on type=button value="Power" onclick="ClickPower();" >
     <input name=clash type=button value="Clash" onclick="AddClash();" >
@@ -9475,19 +9479,28 @@ function ActivateTab(tab) {
 
   // Set up the event listener for the menu
   menu.addEventListener('change', function() {
-    // Get the selected option value
-    const value = menu.value;
-
     // If the selected value is not the default, enable the button and set its action
-    if (value !== '') {
+    if (menu.value !== '') {
       button.disabled = false;
-      button.onclick = actions[value];
+      button.onclick = actions[menu.value];
     } else {
       // If the selected value is the default, disable the button
       button.disabled = true;
       button.onclick = null;
     }
   });
+  // Disable the button initially
+  button.disabled = true;
+  // What to do when preview saber area is clicked
+  function AddClickedEffect() {
+    if (button.disabled) {
+      AddClash();
+    } else {
+      blade.addEffect(menu.value, 0.0)
+    }
+  };
+
+
 </script>
 
     <span style="white-space:nowrap">
