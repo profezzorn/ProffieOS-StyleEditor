@@ -119,24 +119,73 @@ span.MAGIC_CLASS_EFFECT input[type=button].btn {
   border: 1px solid #ccc;
   border-top: none;
 }
-	
-/* Slider */
-input[type=range] {
-    -webkit-appearance: none;
-    width: 65px;
-    height: 10px;
-    margin: 0;
-    padding: 0;
-    margin-top: 5px;
+/* Variant and Alt adjusters */
+.variant-alt-container {
+  background: #6ADA;
+  border: 1px solid black;
+  font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
+  font-size: 15px;
+  padding: 2px;
+  display: inline-block;
+  color: black;
+  white-space: nowrap;
+}
+.variant-label {
+  margin-left: 3px;
+}
+.variant-alt-controls {
+  display: inline-flex;
+  align-items: center;
+}
+.variant-slider {
+  -webkit-appearance: none;
+  width: 65px;
+  height: 10px;
+  margin: 3px 3px;
+  margin-top: 5px;
+  cursor: pointer;
+}
+/* Thumb handle styling for Chrome, Safari, and other WebKit-based browsers */
+.variant-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  background: DodgerBlue;
+  width: 14px;
+  height: 14px;
+  border-radius: 20%;
+  border: 1px solid #333;
+  margin-top: -2px;
+}
+/* Thumb handle styling for Firefox */
+.variant-slider::-moz-range-thumb {
+  background: DodgerBlue;
+  width: 14px;
+  height: 14px;
+  border-radius: 20%;
+  border: 1px solid #333;
+}
+/* Thumb handle styling for Internet Explorer and Edge */
+.variant-slider::-ms-thumb {
+  background: DodgerBlue;
+  width: 14px;
+  height: 14px;
+  border-radius: 20%;
+  border: 1px solid #333;
 }
 
-.variant-slider::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    background-color: DodgerBlue;
-    width: 14px;
-    height: 14px;
-    border-radius: 20%;
-    border: none;
+.alt-label {
+  margin-left: 8px;
+  margin-right: 3px;
+}
+.error-message {
+  color: red; 
+  font-weight: bold;
+}
+/* Blade Style text box */
+.textbox {
+  background-color: #ccc;
+  font-size: 14px;
+  font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
+  width: 100%;
 }
 	
 </style>
@@ -9490,24 +9539,53 @@ function ActivateTab(tab) {
   });
 </script>
 
-    <span style="white-space:nowrap">
-<div style="background: LightCyan; border: 1px solid black; padding: 2px; display: inline-block;">
-  Variant:
-    <input id=VARIANT_MINUS name=varminus type=button value="<" onmousedown="startAdjustingValue(-1, 'VARIANT_SLIDER')" onmouseup="stopAdjustingValue()" onmouseleave="stopAdjustingValue()" >
-    <input id=VARIANT_SLIDER name=varslider type=range class=variant-slider min=0 max=32768 step=1 value="0" oninput="updateVariantValue(this.value)" >
-    <input id=VARIANT_VALUE name=varvalue type=input size=6 value="0" oninput="updateVariantValue(this.value)">
-    <input id=VARIANT_PLUS name=varplus type=button value=">" onmousedown="startAdjustingValue(1, 'VARIANT_SLIDER')" onmouseup="stopAdjustingValue()" onmouseleave="stopAdjustingValue()" >
-</div> <div style="background: LightCyan; border: 1px solid black; padding: 2px; display: inline-block;" >
-  Alt:
-    <input id=ALT_MINUS name=altminus type=button value="<"  onclick="IncreaseAlt(-1)" >
-    <input id=ALT name=alt type=input size=3 value="0" >
-    <input id=ALT_PLUS name=altplus type=button value=">"  onclick="IncreaseAlt(1)" >
-</div>
-    </span>
+      <span class="variant-alt-container">
+        <span class="variant-label">Variant:</span>
+        <span class="variant-alt-controls">
+          <input
+            id="VARIANT_MINUS" name=varminus type=button value="<" 
+            title="Decreases the Variant value. Hold to increase speed of the changing value."
+            onmousedown="startAdjustingValue(-1, 'VARIANT_SLIDER')"
+            onmouseup="stopAdjustingValue()"
+            onmouseleave="stopAdjustingValue()" >
+          <input
+            id="VARIANT_SLIDER" name=varslider type=range class="variant-slider"
+            title="Slide to adjust the Variant value."
+            min="0" max="32768" step="1" value="0"
+            oninput="updateVariantValue(this.value)" >
+          <input
+            id="VARIANT_VALUE" name=varvalue type=input size="6" value="0"
+            title="The current Variant value. You can also type in this field for direct entry of a value."
+            oninput="updateVariantValue(this.value)" >
+          <input 
+            id="VARIANT_PLUS" name=varplus type=button value=">"
+            title="Increases the Variant value. Hold to increase speed of the changing value."
+            onmousedown="startAdjustingValue(1, 'VARIANT_SLIDER')"
+            onmouseup="stopAdjustingValue()"
+            onmouseleave="stopAdjustingValue()" >
+        <span class="alt-label">Alt:</span>
+          <input 
+            id="ALT_MINUS" name=altminus type=button value="<"
+            title="Decreases the Alt value."
+            onclick="IncreaseAlt(-1)" >
+          <input
+            id="ALT" name=alt type=input size="3" value="0"
+            title="The current Alt value. You can also type in this field for direct entry of a value." >
+          <input
+            id="ALT_PLUS" name=altplus type=button value=">"
+            title="Increases the Alt value."
+            onclick="IncreaseAlt(1)" >
+        </span>
+      </span>
+      <br>
 
-    <span id=error_message></span>
-    <br>
-    <pre><textarea rows=10 cols=80 id=style wrap=off></textarea></pre>
+      <span id="error_message" class="error-message"></span>
+
+      <br>
+        <pre><textarea 
+          rows=10 cols=80 id=style wrap="off" class="textbox"
+          title="Style and value editing area. Edits in here are committed by clicking the Submit button below." >
+        </textarea></pre>
     <!-- <input id=style type=text size=100 onkeydown="if (event.keyCode == 13) Run();"> --> <input name='run' type=button value="Submit" onclick="Run()">
     <input name='copy' type=button value="Copy" onclick="Copy()">
     <input type=button name='expand' value="Expand" id='expand_button' onclick="DoExpand()">
