@@ -32,6 +32,8 @@ size when padding and margins may change */
 .middle-btn-container .button-off:hover {
   background-color: lightgray;
   color: darkgray;
+  border: 2px solid lightgray;
+  padding: 2px;
 }
 .middle-btn-container .button-on {
   padding: 2px;
@@ -50,9 +52,12 @@ input[type="button"] {
   font-weight: normal;
 }
 button:hover,
-select:hover,
 input[type="button"]:hover {
-  background-color: #ccc;
+  border: 2px solid #aaa;
+  padding: 2px;
+}
+select:hover {
+  background-color: #ddd;
 }
 button:active,
 input[type="button"]:active {
@@ -87,10 +92,12 @@ select {
  }
 
 /* Do Selected Effect button */
-.more-menu-container .do-selected:disabled {
+.more-menu-container .do-selected:disabled,
+.more-menu-container .do-selected:disabled:hover {
   background-color: lightgray;
   color: darkgray;
   border: 2px solid transparent;
+  padding: 0px;
 }
 .more-menu-container .do-selected {
   border: 2px solid dodgerblue;
