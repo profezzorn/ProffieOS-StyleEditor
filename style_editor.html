@@ -126,6 +126,18 @@ span.MAGIC_CLASS_EFFECT input[type=button].btn {
   border: 1px solid #ccc;
   border-top: none;
 }
+/* Do Selected Effect button */
+.more-menu-container .do-selected:disabled {
+  background-color: lightgray;
+  color: darkgray;
+  border: 2px solid transparent;
+}
+.more-menu-container .do-selected {
+  border: 2px solid dodgerblue;
+}
+.more-menu-container {
+  white-space: nowrap;
+}
 /* Variant and Alt adjusters */
 .variant-alt-container {
   background: #6ADA;
@@ -9451,111 +9463,124 @@ function ActivateTab(tab) {
       <option value=LOCKUP_LIGHTNING_BLOCK>LB</option>
     </select>
 
-    <span style="white-space:nowrap">
-    <select id="more_effects_menu">
-      <option>Select more effects</option>
-    </select>
-    <button id="do-selected" disabled>Do Selected</button>
+    <span class="more-menu-container">
+      <select
+        id="more_effects_menu"
+        title="This menu contains all of the additional EFFECTS. Select one, then use the &quot;Do Selected Effect&quot; button to trigger the effect." >
+      <option value="">Select More Effects</option>
+      </select>
+      <input
+        type=button id="do_selected" value="Do Selected Effect" class="do-selected"
+        title="Press this to trigger the EFFECT selected in the More Effects menu.">
     </span>
     
-<script>
-  // Get the menu and button elements
-  const menu = document.getElementById('more_effects_menu');
-  const button = document.getElementById('do-selected');
+  <script>
+         // Get the menu and button elements
+        const menu = FIND('more_effects_menu');
+        const button = FIND('do_selected');
 
-  // Add values from the enum builder to an array and sort alphabetically
-  const values = Object.entries(EFFECT_ENUM_BUILDER.value_to_name).sort((a, b) => a[1].localeCompare(b[1]));
+        /* Add values from the enum builder to an array and sort alphabetically,
+        excluding effects with dedicated buttons.*/
+        const values = Object.entries(EFFECT_ENUM_BUILDER.value_to_name)
+          .sort((a, b) => a[1].localeCompare(b[1]))
+          .filter(([value]) => ![
+            EFFECT_CLASH,
+            EFFECT_STAB,
+            EFFECT_BLAST,
+            EFFECT_FORCE,
+            EFFECT_BOOT,
+            EFFECT_NEWFONT,
+            EFFECT_PREON,
+          ].includes(Number(value)));
 
-  // Add sub-groups for the different categories of effects
-  const generalEffectsMenu = document.createElement('optgroup');
-  generalEffectsMenu.label = 'General Effects';
-  const userEffectsMenu = document.createElement('optgroup');
-  userEffectsMenu.label = 'User Effects';
-  const blasterEffectsMenu = document.createElement('optgroup');
-  blasterEffectsMenu.label = 'Blaster Effects';
-  const gameEffectsMenu = document.createElement('optgroup');
-  gameEffectsMenu.label = 'Game Effects';
+        // Add sub-groups for the different categories of effects
+        const generalEffectsMenu = document.createElement('optgroup');
+        generalEffectsMenu.label = 'General Effects';
+        const userEffectsMenu = document.createElement('optgroup');
+        userEffectsMenu.label = 'User Effects';
+        const blasterEffectsMenu = document.createElement('optgroup');
+        blasterEffectsMenu.label = 'Blaster Effects';
+        const gameEffectsMenu = document.createElement('optgroup');
+        gameEffectsMenu.label = 'Game Effects';
+        const errorMessagesMenu = document.createElement('optgroup');
+        errorMessagesMenu.label = 'Error Messages';
 
-  // Add sorted values to the menu and actions dictionary, 
-  // excluding effects with dedicated buttons and error msgs.
-  for (const [value, name] of values) {
-    if (![
-      EFFECT_CLASH,
-      EFFECT_STAB,
-      EFFECT_BLAST,
-      EFFECT_FORCE,
-      EFFECT_BOOT,
-      EFFECT_NEWFONT,
-      EFFECT_PREON,
-      EFFECT_ERROR_IN_BLADE_ARRAY,
-      EFFECT_ERROR_IN_FONT_DIRECTORY,
-      EFFECT_FONT_DIRECTORY_NOT_FOUND,
-      EFFECT_SD_CARD_NOT_FOUND
-    ].includes(Number(value))) {
-      const option = document.createElement('option');
-      option.value = value;
-      option.text = name;
+        // Add sorted values to the menu and actions dictionary,
+        for (const [value, name] of values) {
+          const nameWithoutEffect = name.replace(/^EFFECT_/, '');
+          const option = document.createElement('option');
+          option.value = value;
+          option.text = nameWithoutEffect;
 
-      // Check if the effect belongs to a certain category and add it to the corresponding sub-group
-      if (name.startsWith('EFFECT_GAME')) {
-        gameEffectsMenu.appendChild(option);
-      } else if (name.startsWith('EFFECT_USER')) {
-        userEffectsMenu.appendChild(option);
-      } else if ([
-          EFFECT_STUN, 
-          EFFECT_FIRE, 
-          EFFECT_CLIP_IN, 
-          EFFECT_CLIP_OUT, 
-          EFFECT_RELOAD, 
-          EFFECT_MODE, 
-          EFFECT_RANGE, 
-          EFFECT_EMPTY, 
-          EFFECT_FULL, 
-          EFFECT_JAM, 
-          EFFECT_UNJAM, 
-          EFFECT_PLI_ON, 
-          EFFECT_PLI_OFF
-        ].includes(Number(value))) {
-        blasterEffectsMenu.appendChild(option);
-      } else {
-        generalEffectsMenu.appendChild(option);
-      }
-    }
-  }
+          // Check if the effect belongs to a certain category and add it to the corresponding sub-group
+          if (name.startsWith('EFFECT_GAME')) {
+            gameEffectsMenu.appendChild(option);
+          } else if (name.startsWith('EFFECT_USER')) {
+            userEffectsMenu.appendChild(option);
+          } else {
+            switch (Number(value)) {
+              case EFFECT_STUN:
+              case EFFECT_FIRE:
+              case EFFECT_CLIP_IN:
+              case EFFECT_CLIP_OUT:
+              case EFFECT_RELOAD:
+              case EFFECT_MODE:
+              case EFFECT_RANGE:
+              case EFFECT_EMPTY:
+              case EFFECT_FULL:
+              case EFFECT_JAM:
+              case EFFECT_UNJAM:
+              case EFFECT_PLI_ON:
+              case EFFECT_PLI_OFF:
+                blasterEffectsMenu.appendChild(option);
+                break;
+              case EFFECT_ERROR_IN_BLADE_ARRAY:
+              case EFFECT_ERROR_IN_FONT_DIRECTORY:
+              case EFFECT_FONT_DIRECTORY_NOT_FOUND:
+              case EFFECT_SD_CARD_NOT_FOUND:
+              case EFFECT_LOW_BATTERY:
+                errorMessagesMenu.appendChild(option);
+                break;
+              default:
+                generalEffectsMenu.appendChild(option);
+                break;
+            }
+          }
+        }
 
-  // Add the sub-groups to the main menu
-  menu.appendChild(generalEffectsMenu);
-  menu.appendChild(userEffectsMenu);
-  menu.appendChild(blasterEffectsMenu);
-  menu.appendChild(gameEffectsMenu);
+        // Add the sub-groups to the main menu
+        menu.appendChild(generalEffectsMenu);
+        menu.appendChild(userEffectsMenu);
+        menu.appendChild(blasterEffectsMenu);
+        menu.appendChild(gameEffectsMenu);
+        menu.appendChild(errorMessagesMenu);
 
-  // Set up the event listener for the menu
-  menu.addEventListener('change', function() {
-    // If the selected value is not the default, enable the button and set its action
-    if (menu.value !== '') {
-      button.disabled = false;
-      button.onclick = function() {
-        AddClickedEffect();
-      };
-    } else {
-      // If the selected value is the default, disable the button
-      button.disabled = true;
-      button.onclick = null;
-    }
-  });
-  // Disable the button initially
-  button.disabled = true;
-  // What to do when preview saber area is clicked
-  function AddClickedEffect() {
-    if (button.disabled) {
-      AddClash();
-    } else {
-      blade.addEffect(menu.value, 0.0)
-    }
-  };
+        // Set up the event listener for the menu
+        menu.addEventListener('change', function() {
+          // If the selected value is not the default, enable the button and set its action
+          if (menu.value !== '') {
+            button.disabled = false;
+            button.onclick = function() {
+              AddClickedEffect();
+            };
+          } else {
+            // If the selected value is the default, disable the button
+            button.disabled = true;
+            button.onclick = null;
+          }
+        });
+        // Disable the button initially
+        button.disabled = true;
 
-
-</script>
+        // What to do when preview saber area is clicked
+        function AddClickedEffect() {
+          if (button.disabled) {
+            AddClash();
+          } else {
+            blade.addEffect(menu.value, 0.0)
+          }
+        };
+      </script>
 
       <span class="variant-alt-container">
         <span class="variant-label">Variant:</span>
