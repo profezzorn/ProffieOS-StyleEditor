@@ -8,26 +8,167 @@
   <title>ProffieOS Style Editor</title>
 <style>
 
-.button_on {
-  background: lightblue;
-  color: black;
+/* Make page elements non-selectable with drag box */
+/* Took a vote, enabled won, but disabled for now. */
+/** {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}*/
+
+/* Box sizing helps keep buttons uniform in
+size when padding and margins may change */
+* {
+  box-sizing: border-box;
 }
 
-.button_off {
-  background: lightgray;
+/* Submit, copy, etc... */
+.middle-btn-container {
+  white-space: nowrap;
+}
+/* Expand and Layerize buttons */
+.middle-btn-container .button-off,
+.middle-btn-container .button-off:hover {
+  background-color: lightgray;
   color: darkgray;
 }
-
-div.grayout input[type=button].btn {
-  background: lightgray;
-  color: darkgray;
-  padding: 1px 3px;
+.middle-btn-container .button-on {
+  padding: 2px;
+  border: 2px solid dodgerblue;
+}
+/* Other buttons */
+button,
+input[type="button"] {
+  background-color: #ccc;
+  color: black;
+  border-radius: 2px;
+  padding: 3px;
+  font-size: 14px;
+  border: 1px solid #bbb;
+  font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
+  font-weight: normal;
+}
+button:hover,
+select:hover,
+input[type="button"]:hover {
+  background-color: #999;
+}
+button:active,
+input[type="button"]:active {
+  background-color: dodgerblue;
+}
+/* Power and Rotate latching buttons */
+.page-left .button-latched,
+.page-left .button-latched:hover {
+  background-color: dodgerblue;
+}
+/* Lockup and More Effects Drop Downs */
+select {
+  background-color: #ccc;
+  color: black;
+  border-radius: 5px;
+  padding: 2px 0px;
+  font-size: 14px;
 }
 
-div.normal input[type=button].btn {
-  background: lightblue;
+/* Prevent Safari default style takeover at default zoom level */
+@media not all and (min-resolution:.001dpcm) { @media {
+  select {
+  border: 1px solid #ccc;
+  }
+}}
+.page-left {
+  vertical-align: top;
+  width: 50%;
+}
+.page-right {
+  vertical-align: top;
+ }
+ /* Blade Preview area */
+.canvas-style {
+  width: 256px;
+  height: 256px;
+}
+/* Do Selected Effect button */
+.more-menu-container .do-selected:disabled {
+  background-color: lightgray;
+  color: darkgray;
+  border: 2px solid transparent;
+}
+.more-menu-container .do-selected {
+  border: 2px solid dodgerblue;
+}
+.more-menu-container {
+  white-space: nowrap;
+}
+/* Variant and Alt adjusters */
+.variant-alt-container {
+  background: #6ADA;
+  border: 1px solid black;
+  font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
+  font-size: 15px;
+  padding: 2px;
+  display: inline-block;
   color: black;
-  padding: 2px 3px;
+  white-space: nowrap;
+}
+.variant-label {
+  margin-left: 3px;
+}
+.variant-alt-controls {
+  display: inline-flex;
+  align-items: center;
+}
+.variant-slider {
+  -webkit-appearance: none;
+  width: 65px;
+  height: 10px;
+  margin: 3px 3px;
+  margin-top: 5px;
+  cursor: pointer;
+}
+/* Thumb handle styling for Chrome, Safari, and other WebKit-based browsers */
+.variant-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  background: DodgerBlue;
+  width: 14px;
+  height: 14px;
+  border-radius: 20%;
+  border: 1px solid #333;
+  margin-top: -2px;
+}
+/* Thumb handle styling for Firefox */
+.variant-slider::-moz-range-thumb {
+  background: DodgerBlue;
+  width: 14px;
+  height: 14px;
+  border-radius: 20%;
+  border: 1px solid #333;
+}
+/* Thumb handle styling for Internet Explorer and Edge */
+.variant-slider::-ms-thumb {
+  background: DodgerBlue;
+  width: 14px;
+  height: 14px;
+  border-radius: 20%;
+  border: 1px solid #333;
+}
+
+.alt-label {
+  margin-left: 8px;
+  margin-right: 3px;
+}
+.error-message {
+  color: red; 
+  font-weight: bold;
+}
+/* Blade Style text box */
+.textbox {
+  background-color: #ccc;
+  font-size: 14px;
+  font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
+  width: 100%;
 }
 
 div.MAGIC_CLASS_FUNCTION input[type=button].btn {
@@ -126,87 +267,8 @@ span.MAGIC_CLASS_EFFECT input[type=button].btn {
   border: 1px solid #ccc;
   border-top: none;
 }
-/* Do Selected Effect button */
-.more-menu-container .do-selected:disabled {
-  background-color: lightgray;
-  color: darkgray;
-  border: 2px solid transparent;
-}
-.more-menu-container .do-selected {
-  border: 2px solid dodgerblue;
-}
-.more-menu-container {
-  white-space: nowrap;
-}
-/* Variant and Alt adjusters */
-.variant-alt-container {
-  background: #6ADA;
-  border: 1px solid black;
-  font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
-  font-size: 15px;
-  padding: 2px;
-  display: inline-block;
-  color: black;
-  white-space: nowrap;
-}
-.variant-label {
-  margin-left: 3px;
-}
-.variant-alt-controls {
-  display: inline-flex;
-  align-items: center;
-}
-.variant-slider {
-  -webkit-appearance: none;
-  width: 65px;
-  height: 10px;
-  margin: 3px 3px;
-  margin-top: 5px;
-  cursor: pointer;
-}
-/* Thumb handle styling for Chrome, Safari, and other WebKit-based browsers */
-.variant-slider::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  background: DodgerBlue;
-  width: 14px;
-  height: 14px;
-  border-radius: 20%;
-  border: 1px solid #333;
-  margin-top: -2px;
-}
-/* Thumb handle styling for Firefox */
-.variant-slider::-moz-range-thumb {
-  background: DodgerBlue;
-  width: 14px;
-  height: 14px;
-  border-radius: 20%;
-  border: 1px solid #333;
-}
-/* Thumb handle styling for Internet Explorer and Edge */
-.variant-slider::-ms-thumb {
-  background: DodgerBlue;
-  width: 14px;
-  height: 14px;
-  border-radius: 20%;
-  border: 1px solid #333;
-}
 
-.alt-label {
-  margin-left: 8px;
-  margin-right: 3px;
-}
-.error-message {
-  color: red; 
-  font-weight: bold;
-}
-/* Blade Style text box */
-.textbox {
-  background-color: #ccc;
-  font-size: 14px;
-  font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
-  width: 100%;
-}
-	
+  
 </style>
 
 <title>Style Editor</title>
@@ -441,7 +503,7 @@ Material getHiltMaterial(vec3 hp, vec3 ray_dir) {
 //  vec3 c = texture(iChannel0, tpos).xyz;
 //  return Material(vec3(0.3), 1.0-c.g, c.r*0.8 + 0.1);
 }
-													  
+                            
 
 
 </script>
@@ -837,8 +899,8 @@ void main() {
                  (v_position.y) / u_width / zoom, 2.0));
     mat4 rot3 = mat4(0.0, -1.0, 0.0, 0.0,
                      0.0, 0.0, -1.0, 0.0,
-		     1.0, 0.0, 0.0, 0.0,
-		     0.0, 0.0, 0.0, 1.0);
+         1.0, 0.0, 0.0, 0.0,
+         0.0, 0.0, 0.0, 1.0);
 
     mat4 rot = rot3 * u_move_matrix;
     vec3 new_eye = (rot * vec4(eye.xyz, 1.0)).xyz;
@@ -871,7 +933,7 @@ void main() {
 
     vec3 haze_color;
     float x = march(eye, dir, haze_color);
-			  
+        
     vec3 hp = eye + dir * x;
     vec3 color = vec3(0);
 
@@ -1099,9 +1161,9 @@ class Matrix {
       for (var y = 0; y < this.h; y++) {
         var sum = 0.0;
         for (var z = 0; z < this.w; z++) {
-	  sum += this.get(z, y) * o.get(x, z);
+    sum += this.get(z, y) * o.get(x, z);
         }
-	ret.set(x, y, sum);
+  ret.set(x, y, sum);
       }
     }
     return ret;
@@ -1432,7 +1494,7 @@ class STYLE {
     } catch(e) {
       if (typeof(e) == "string") {
         e = new MyError(e + " for argument " + (this.argnum + 1) + " (" + name + ")");
-	e.setArg(this.args[this.argnum]);
+  e.setArg(this.args[this.argnum]);
       }
       throw e;
     }
@@ -1522,11 +1584,11 @@ class STYLE {
     if (arguments.length > 2 || this.argdefs.length > 0) {
       ret += "<";
       for (var i = 2; i < arguments.length; i += 2) {
-	if (comma) ret += ",";
-	comma = true;
-	var V = this.DescribeValue(arguments[i]);
-	var arg = this.Indent(V);
-	ret += arg;
+  if (comma) ret += ",";
+  comma = true;
+  var V = this.DescribeValue(arguments[i]);
+  var arg = this.Indent(V);
+  ret += arg;
       }
       ret += ">";
     }
@@ -1560,19 +1622,19 @@ class STYLE {
       var note = arguments[i+1];
       var comment = null;
       if (typeof(arg) == "number") {
-	arg = "" + arg;
+  arg = "" + arg;
       } else {
         comment = arg.COMMENT;
-	arg = this.call_pp_no_comment(arg);
+  arg = this.call_pp_no_comment(arg);
       }
       if (arg.indexOf("<br>") == -1 && arg.indexOf("<div") == -1 && !comment) {
-	ret += arg+" /* "+note+" */\n";
+  ret += arg+" /* "+note+" */\n";
       } else {
-	ret += "/* "+note+" */"+ this.extraButtons(i/2) +"<br>\n";
-	if (comment) {
-	  ret += "/* "+comment+" */<br>\n";
+  ret += "/* "+note+" */"+ this.extraButtons(i/2) +"<br>\n";
+  if (comment) {
+    ret += "/* "+comment+" */<br>\n";
         }
-	ret += arg;
+  ret += arg;
       }
     }
     ret += "</div>&gt;</div>\n";
@@ -1593,16 +1655,16 @@ class STYLE {
       ret += "&lt;";
       var comma = false;
       for (var i = 2; i < arguments.length; i += 2) {
-	if (comma) ret += ",";
-	comma = true;
-	var arg = arguments[i];
-	var note = arguments[i+1];
-	if (typeof(arg) == "number") {
-	  ret += "<span title='"+note+"'>"+arg+"</span>";
-	} else {
-	  ret += "<span>/* "+note+" */</span><br>\n";
-	  ret += arg.pp();
-	}
+  if (comma) ret += ",";
+  comma = true;
+  var arg = arguments[i];
+  var note = arguments[i+1];
+  if (typeof(arg) == "number") {
+    ret += "<span title='"+note+"'>"+arg+"</span>";
+  } else {
+    ret += "<span>/* "+note+" */</span><br>\n";
+    ret += arg.pp();
+  }
       }
       ret += "&gt;";
     }
@@ -1670,7 +1732,7 @@ class STYLE {
       var r_arg = right[this.argdefs[i].name];
       if (typeof(l_arg) == "object" && typeof(r_arg) == "object") {
         l_arg.set_right_side(r_arg);
-      }	
+      } 
     }
   }
 
@@ -1825,18 +1887,18 @@ class EnumBuilder {
           for (var i = 0; i < v.length; i++) {
             var V = parseInt(v[i]);
             var N = this.constructor.value_to_name[V];
-  	    ret += "<option value="+V;
+        ret += "<option value="+V;
             if (this.value == V) ret+=" selected";
-	    ret += ">"+N+"</option>";
-	  }
+      ret += ">"+N+"</option>";
+    }
           ret += "</select>";
-	  return ret;
-	}
+    return ret;
+  }
 
 
         var ret = this.gencomment() + this.value;
         if (this.constructor.value_to_name[this.value]) {
-	  ret = this.constructor.prefix + this.constructor.value_to_name[this.value];
+    ret = this.constructor.prefix + this.constructor.value_to_name[this.value];
         }
         return this.PPshort(ret, this.getType());
       }
@@ -2036,19 +2098,19 @@ class CONFIG extends STYLE {
       var arg = arguments[i];
       var note = arguments[i+1];
       if (typeof(arg) == "number") {
-	arg = "" + arg;
+  arg = "" + arg;
       } else {
-	arg = arg.pp();
+  arg = arg.pp();
       }
       var comment = arg.COMMENT;
       if (arg.indexOf("<br>") == -1 && arg.indexOf("<div") == -1 && !comment) {
-	ret += arg+" /* "+note+" */\n";
+  ret += arg+" /* "+note+" */\n";
       } else {
-	ret += "/* "+note+" */<br>\n";
-	if (comment) {
-	  ret += "/* "+comment+" */<br>\n";
+  ret += "/* "+note+" */<br>\n";
+  if (comment) {
+    ret += "/* "+comment+" */<br>\n";
         }
-	ret += arg;
+  ret += arg;
       }
     }
     ret += "</div>&gt;\n";
@@ -2126,9 +2188,9 @@ class RgbClass extends STYLE {
   pp() {
     if (this.name) return this.PPshort(this.name,"Color");
     return this.PPshort("Rgb",  "RGB Color",
-			Math.round(this.r*255), "Red component",
-			Math.round(this.g*255), "Green component",
-			Math.round(this.b*255), "Blue component");
+      Math.round(this.r*255), "Red component",
+      Math.round(this.g*255), "Green component",
+      Math.round(this.b*255), "Blue component");
   }
   mix(other, blend) {
     var ret = new RgbClass(0,0,0);
@@ -2218,9 +2280,9 @@ class Rgb16Class extends RgbClass {
   pp() {
     if (this.name) return this.PPshort(this.name,"Color");
     return this.PPshort("Rgb16",  "RGB Color",
-			Math.round(this.r*65535), "Red component",
-			Math.round(this.g*65535), "Green component",
-			Math.round(this.b*65535), "Blue component");
+      Math.round(this.r*65535), "Red component",
+      Math.round(this.g*65535), "Green component",
+      Math.round(this.b*65535), "Blue component");
   }
 };
 
@@ -2306,7 +2368,7 @@ function DownLayer(id, arg, event) {
   var layer = style_ids[id];
   var new_layer = new LayersClass( [layer.BASE].concat(layer.LAYERS.slice(0, arg),
                                     [layer.LAYERS[arg+1], layer.LAYERS[arg]],
-				    layer.LAYERS.slice(arg+2)) );
+            layer.LAYERS.slice(arg+2)) );
   ReplaceNode(layer, new_layer);
 }
 
@@ -2783,8 +2845,8 @@ class Range {
 
 class ColorCycleClass extends STYLE {
   constructor(COLOR, percentage, rpm,
-	      ON_COLOR, on_percentage, on_rpm,
-	      fade_time_millis) {
+        ON_COLOR, on_percentage, on_rpm,
+        fade_time_millis) {
     super();
     this.COLOR = ColorArg(COLOR);
     this.percentage = IntArg(percentage);
@@ -2830,29 +2892,29 @@ class ColorCycleClass extends STYLE {
   }
   pp() {
     return this.PP("ColorCycle", "Rotating beam",
-		   this.COLOR, "beam color",
-		   this.percentage, "percentage of blade lit",
-		   this.rpm, "rotation speed",
-		   this.ON_COLOR, "beam color when on",
-		   this.on_percentage, "percentage of blade lit when on",
-		   this.on_rpm, "rotation speed when on",
-		   this.fade_time_millis, "time to transition to/from on state");
+       this.COLOR, "beam color",
+       this.percentage, "percentage of blade lit",
+       this.rpm, "rotation speed",
+       this.ON_COLOR, "beam color when on",
+       this.on_percentage, "percentage of blade lit when on",
+       this.on_rpm, "rotation speed when on",
+       this.fade_time_millis, "time to transition to/from on state");
   }
 };
 
 function ColorCycle(COLOR, percentage, rpm,
-	       ON_COLOR, on_percentage, on_rpm,
-	       fade_time_millis) {
+         ON_COLOR, on_percentage, on_rpm,
+         fade_time_millis) {
   return new ColorCycleClass(COLOR, percentage, rpm,
-			     ON_COLOR, on_percentage, on_rpm,
-			     fade_time_millis);
+           ON_COLOR, on_percentage, on_rpm,
+           fade_time_millis);
 }
 
 
 class CylonClass extends STYLE {
   constructor(COLOR, percentage, rpm,
-	      ON_COLOR, on_percentage, on_rpm,
-	      fade_time_millis) {
+        ON_COLOR, on_percentage, on_rpm,
+        fade_time_millis) {
     super();
     this.COLOR = ColorArg(COLOR);
     this.percentage = IntArg(percentage);
@@ -2895,22 +2957,22 @@ class CylonClass extends STYLE {
   }
   pp() {
     return this.PP("Cylon", "Rotating beam",
-		   this.COLOR, "beam color",
-		   this.percentage, "percentage of blade lit",
-		   this.rpm, "rotation speed",
-		   this.ON_COLOR, "beam color when on",
-		   this.on_percentage, "percentage of blade lit when on",
-		   this.on_rpm, "rotation speed when on",
-		   this.fade_time_millis, "time to transition to/from on state");
+       this.COLOR, "beam color",
+       this.percentage, "percentage of blade lit",
+       this.rpm, "rotation speed",
+       this.ON_COLOR, "beam color when on",
+       this.on_percentage, "percentage of blade lit when on",
+       this.on_rpm, "rotation speed when on",
+       this.fade_time_millis, "time to transition to/from on state");
   }
 };
 
 function Cylon(COLOR, percentage, rpm,
-	       ON_COLOR, on_percentage, on_rpm,
-	       fade_time_millis) {
+         ON_COLOR, on_percentage, on_rpm,
+         fade_time_millis) {
   return new CylonClass(COLOR, percentage, rpm,
-			ON_COLOR, on_percentage, on_rpm,
-			fade_time_millis);
+      ON_COLOR, on_percentage, on_rpm,
+      fade_time_millis);
 }
 
 class OnSparkFClass extends FUNCTION {
@@ -3061,13 +3123,13 @@ class SparkleFClass extends FUNCTION {
       var fifo = 0
       var N = blade.num_leds();
       for (var i = 2; i <= N + 2; i++) {
-	var x = ((this.sparks[i-1] + this.sparks[i+1]) * 200 + this.sparks[i] * 570) / 1024;
-	this.sparks[i-1] = fifo;
-	fifo = x;
+  var x = ((this.sparks[i-1] + this.sparks[i+1]) * 200 + this.sparks[i] * 570) / 1024;
+  this.sparks[i-1] = fifo;
+  fifo = x;
       }
       this.sparks[N] = fifo;
       if (random(1000) < this.SPARK_CHANCE_PROMILLE) {
-	this.sparks[random(blade.num_leds()) + 2] += this.SPARK_INTENSITY;
+  this.sparks[random(blade.num_leds()) + 2] += this.SPARK_INTENSITY;
       }
     }
   }
@@ -3126,7 +3188,7 @@ class StrobeFClass extends FUNCTION {
     if (m - this.strobe_start_ > timeout) {
       this.strobe_start_ += timeout;
       if (m - this.strobe_start_ > strobe_millis + (1000 / strobe_frequency))
-	this.strobe_start_ = m;
+  this.strobe_start_ = m;
       this.strobe_ = !this.strobe_;
     }
   }
@@ -3251,13 +3313,13 @@ class IgnitionDelayXClass extends STYLE {
     this.blade = blade;
     if (blade.is_on()) {
       if (!this.waiting) {
-	this.waiting = true;
-	this.wait_start_time = millis();
+  this.waiting = true;
+  this.wait_start_time = millis();
       }
       var waited = millis() - this.wait_start_time;
       if (waited > delay_millis) {
-	this.is_on_ = true;
-	this.wait_start_time = millis() - delay_millis - 1;
+  this.is_on_ = true;
+  this.wait_start_time = millis() - delay_millis - 1;
       }
     } else {
       this.waiting = false;
@@ -3306,13 +3368,13 @@ class RetractionDelayXClass extends STYLE {
     this.blade = blade;
     if (!blade.is_on()) {
       if (!this.waiting) {
-	this.waiting = true;
-	this.wait_start_time = millis();
+  this.waiting = true;
+  this.wait_start_time = millis();
       }
       var waited = millis() - this.wait_start_time;
       if (waited > delay_millis) {
-	this.is_on_ = false;
-	this.wait_start_time = millis() - delay_millis - 1;
+  this.is_on_ = false;
+  this.wait_start_time = millis() - delay_millis - 1;
       }
     } else {
       this.waiting = false;
@@ -3486,7 +3548,7 @@ class ColorSequenceClass extends STYLE {
     if (now - this.last_micros > millis_per_color * 1000) {
       if (now - this.last_micros > millis_per_color * 10000) {
         this.n = 0;
-	this.last_micros = now;
+  this.last_micros = now;
       } else {
         this.n = (this.n + 1) % this.COLORS.length;
         this.last_micros += millis_per_color * 1000;
@@ -3707,7 +3769,7 @@ class RemapClass extends STYLE {
     led = clamp(led >> 15, 0, this.num_leds);
     return this.COLOR.getColor(led).mix(
         this.COLOR.getColor(min(led + 1, this.num_leds - 1)),
-	fraction / 32768);
+  fraction / 32768);
   }
 }
 
@@ -3890,15 +3952,15 @@ class StyleFireClass extends STYLE {
       conf = this.CLASH;
     } else if (this.On(blade)) {
       if (STATE_LOCKUP == 0) {
-	conf = this.NORM;
+  conf = this.NORM;
       } else {
-	conf = this.LOCK;
+  conf = this.LOCK;
       }
     }
 
     for (var i = 0; i < this.SPEED; i++) {
       this.heat[num_leds + i] = conf.intensity_base +
-	random(random(random(conf.intensity_rand)));
+  random(random(random(conf.intensity_rand)));
     }
     for (var i = 0; i < num_leds; i++) {
       var x = (this.heat[i + this.SPEED-1] * 3 + this.heat[i + this.SPEED] * 10 + this.heat[i + this.SPEED +1] * 3) >> 4;
@@ -3997,9 +4059,9 @@ function AddPreon() {
 }
 
 var blast_hump = [ 255,255,252,247,240,232,222,211,
-		   199,186,173,159,145,132,119,106,
-		   94,82,72,62,53,45,38,32,
-		   26,22,18,14,11,9,7,5,0 ];
+       199,186,173,159,145,132,119,106,
+       94,82,72,62,53,45,38,32,
+       26,22,18,14,11,9,7,5,0 ];
 
 class BlastFClass extends FUNCTION {
   constructor(FADEOUT_MS, WAVE_SIZE, WAVE_MS, EFFECT_ARG) {
@@ -4021,11 +4083,11 @@ class BlastFClass extends FUNCTION {
       var T = (this.T - this.effects_[i].start_micros);
       var M = 1000 - T / this.FADEOUT_MS;
       if (M > 0) {
-	var dist = Math.abs(this.effects_[i].location - led / this.num_leds_);
-	var N = Math.floor(Math.abs(dist - T / (this.WAVE_MS * 1000.0)) * this.WAVE_SIZE);
-	if (N < 32) {
-	  b += blast_hump[N] * M / 1000.0 / 255.0;
-	}
+  var dist = Math.abs(this.effects_[i].location - led / this.num_leds_);
+  var N = Math.floor(Math.abs(dist - T / (this.WAVE_MS * 1000.0)) * this.WAVE_SIZE);
+  if (N < 32) {
+    b += blast_hump[N] * M / 1000.0 / 255.0;
+  }
       }
     }
     return clamp(b * 32768, 0, 32768);
@@ -4093,7 +4155,7 @@ class BlastFadeoutFClass extends FUNCTION {
       var T = (this.T - this.effects_[i].start_micros);
       var M = 1000 - T / this.FADEOUT_MS;
       if (M > 0) {
-	b += M / 1000.0;
+  b += M / 1000.0;
       }
     }
     return clamp(b * 32768.0, 0, 32768.0);
@@ -4154,9 +4216,9 @@ class OriginalBlastFClass extends FUNCTION {
       var T = (this.T - this.effects_[i].start_micros);
       var t = 0.5 + T / 200000.0;
       if (x == 0.0) {
-	b += 1.0 / (t * t);
+  b += 1.0 / (t * t);
       } else {
-	b += sin(x / (t*t)) / x;
+  b += sin(x / (t*t)) / x;
       }
     }
     return min(b, 1.0) * 32768;
@@ -4211,9 +4273,9 @@ class BlinkingFClass extends FUNCTION {
     if (pulse_progress_micros > pulse_millis * 1000) {
       // Time to start a new pulse
       if (pulse_progress_micros < pulse_millis * 2000) {
-	this.pulse_start_micros_ += pulse_millis * 1000;
+  this.pulse_start_micros_ += pulse_millis * 1000;
       } else {
-	this.pulse_start_micros_ = now;
+  this.pulse_start_micros_ = now;
       }
       pulse_progress_micros = now - this.pulse_start_micros_;
     }
@@ -4418,7 +4480,7 @@ class LockupLClass extends STYLE {
     this.add_arg("LB_SHAPE", "FUNCTION", "Lightning block shape",
             LayerFunctions(Bump(Scale(SlowNoise(Int(2000)),Int(3000),Int(16000)),
                                 Scale(BrownNoiseF(Int(10)),Int(14000),Int(8000))),
-	                   Bump(Scale(SlowNoise(Int(2300)),Int(26000),Int(8000)),
+                     Bump(Scale(SlowNoise(Int(2300)),Int(26000),Int(8000)),
                                 Scale(NoisySoundLevel(),Int(5000),Int(10000))),
                            Bump(Scale(SlowNoise(Int(2300)),Int(20000),Int(30000)),
                                 Scale(IsLessThan(SlowNoise(Int(1500)),Int(8000)),Scale(NoisySoundLevel(),Int(5000),Int(0)),Int(0)))));
@@ -4499,27 +4561,27 @@ class LockupTrLClass extends STYLE {
     switch (this.active) {
        case "inactive":
           if (STATE_LOCKUP == this.LOCKUP_TYPE) {
-	    if (this.CONDITION.getInteger(0)) {
-	      this.active = "active";
-	      this.BEGIN_TR.begin();
-	      this.begin_active = true;
-	    } else {
-	      this.active = "skipped";
-	    }
-	  }
-	  break;
+      if (this.CONDITION.getInteger(0)) {
+        this.active = "active";
+        this.BEGIN_TR.begin();
+        this.begin_active = true;
+      } else {
+        this.active = "skipped";
+      }
+    }
+    break;
        case "active":
          if (STATE_LOCKUP != this.LOCKUP_TYPE) {
            this.END_TR.begin();
            this.end_active = true;
            this.active = "inactive";
-	 }
-	 break;
+   }
+   break;
        case "skipped":
          if (STATE_LOCKUP != this.LOCKUP_TYPE) {
            this.active = "inactive";
-	 }
-	 break;
+   }
+   break;
     }
          
 
@@ -4701,10 +4763,10 @@ class OneshotEffectDetector {
     for (var i = effects.length -1 ; i >=0 ; i--) {
       if (mask[effects[i].type]) {
         if (effects[i].start_micros == this.last_detected_)
-	  return 0;
-	this.last_detected_ = effects[i].start_micros;
+    return 0;
+  this.last_detected_ = effects[i].start_micros;
         last_detected_blade_effect = effects[i];
-	return effects[i];
+  return effects[i];
       }
     }
     return 0;
@@ -4716,7 +4778,7 @@ class OneshotEffectDetector {
     for (var i = effects.length -1 ; i >=0 ; i--)
       if (mask[effects[i].type])
         if (effects[i].start_micros == this.last_detected_)
-	  return effects[i];
+    return effects[i];
     return 0;
   }
 };
@@ -4818,11 +4880,11 @@ function StyleStrobePtr(strobe_color, clash_color, frequency, out_ms, in_ms) {
 
 class StyleFirePtrClass extends MACRO {
   constructor(COLOR1, COLOR2,
-		      BLADE_NUM, DELAY, SPEED,
-		      NORM_BASE, NORM_RAND, NORM_COOL,
-		      CLSH_BASE, CLSH_RAND, CLSH_COOL,
-		      LOCK_BASE, LOCK_RAND, LOCK_COOL,
-		      OFF_BASE, OFF_RAND, OFF_COOL) {
+          BLADE_NUM, DELAY, SPEED,
+          NORM_BASE, NORM_RAND, NORM_COOL,
+          CLSH_BASE, CLSH_RAND, CLSH_COOL,
+          LOCK_BASE, LOCK_RAND, LOCK_COOL,
+          OFF_BASE, OFF_RAND, OFF_COOL) {
     super("Fire Blade", arguments);
     this.add_arg("COLOR1", "COLOR", "Warm color.");
     this.add_arg("COLOR2", "COLOR", "Hot color.");
@@ -4855,11 +4917,11 @@ class StyleFirePtrClass extends MACRO {
 };
 
 function StyleFirePtr(COLOR1, COLOR2,
-		      BLADE_NUM, DELAY, SPEED,
-		      NORM_BASE, NORM_RAND, NORM_COOL,
-		      CLSH_BASE, CLSH_RAND, CLSH_COOL,
-		      LOCK_BASE, LOCK_RAND, LOCK_COOL,
-		      OFF_BASE, OFF_RAND, OFF_COOL) {
+          BLADE_NUM, DELAY, SPEED,
+          NORM_BASE, NORM_RAND, NORM_COOL,
+          CLSH_BASE, CLSH_RAND, CLSH_COOL,
+          LOCK_BASE, LOCK_RAND, LOCK_COOL,
+          OFF_BASE, OFF_RAND, OFF_COOL) {
   return new StyleFirePtrClass(COLOR1, COLOR2,
       BLADE_NUM, DELAY, SPEED,
       NORM_BASE, NORM_RAND, NORM_COOL,
@@ -4955,12 +5017,12 @@ class InOutSparkTipClass extends STYLE {
     this.last_micros_ = now;
     if (blade.is_on()) {
       if (this.extension == 0.0) {
-	// We might have been off for a while, so delta might
-	// be insanely high.
-	this.extension = 0.00001;
+  // We might have been off for a while, so delta might
+  // be insanely high.
+  this.extension = 0.00001;
       } else {
-	this.extension += delta / (this.OUT_MILLIS * 1000.0);
-	this.extension = Math.min(this.extension, 1.0);
+  this.extension += delta / (this.OUT_MILLIS * 1000.0);
+  this.extension = Math.min(this.extension, 1.0);
       }
     } else {
       this.extension -= delta / (this.IN_MILLIS * 1000.0);
@@ -5078,7 +5140,7 @@ class IntSelectClass extends FUNCTION {
 function IntSelect(ARGS) {
   return new IntSelectClass(Array.from(arguments));
 }
-	       
+         
 class TransitionLoopLClass extends STYLE {
   constructor(TRANSITION) {
     super("Continiously loop a transition",arguments);
@@ -5134,9 +5196,9 @@ class MultiTransitionEffectLClass extends STYLE {
     for (var i = 0; i < this.N; i++) {
       if (this.running[i]) {
         this.TRANSITIONS[i].run(blade);
-	if (this.TRANSITIONS[i].done()) {
-	  this.running[i] = false;
-	}
+  if (this.TRANSITIONS[i].done()) {
+    this.running[i] = false;
+  }
       }
     }
   }
@@ -5296,10 +5358,10 @@ class InOutTrLClass extends STYLE {
       this.on_ = blade.is_on();
       if (this.on_) {
         this.OUT_TR.begin();
-	this.out_active_ = true;
+  this.out_active_ = true;
       } else {
         this.IN_TR.begin();
-	this.in_active_ = true;
+  this.in_active_ = true;
       }
     }
 
@@ -5740,7 +5802,7 @@ class TrWipeInXClass extends TRANSITION_BASE {
     this.num_leds_ = blade.num_leds();
     this.fade_ = new Range(this.num_leds_-
                            this.update(this.num_leds_),
-			   this.num_leds_);
+         this.num_leds_);
   }
   getColor(A, B, led) {
     var mix = this.fade_.Intersect(new Range(led, (led + 1))).Size();
@@ -6265,8 +6327,8 @@ class TrExtendXClass extends TRANSITION {
   run(blade) {
     this.TRANSITION.run(blade);
     if (!this.extending && this.TRANSITION.done()) {
-       	this.extending = true;
-	this.millis.begin();
+        this.extending = true;
+  this.millis.begin();
     }
     if (this.extending) {
        this.millis.run(blade);
@@ -6520,7 +6582,7 @@ class TrLoopUntilClass extends TRANSITION {
     if (!this.pulsed) {
       if (this.PULSE.getInteger(0)) {
         this.OUT.begin();
-	this.pulsed = true;
+  this.pulsed = true;
       }
     }
     if (this.pulsed) {
@@ -6568,7 +6630,7 @@ class VolumeLevelClass extends FUNCTION {
 function VolumeLevel() {
   return new VolumeLevelClass();
 }
-	
+  
 class BumpClass extends FUNCTION {
   constructor() {
     super("Function returning a bump shape", arguments);
@@ -6670,7 +6732,7 @@ class InOutFuncXClass extends FUNCTION {
         this.extension = 0.00001;
       } else {
         this.extension += delta / (this.OUT_MILLIS.getInteger(0) * 1000.0);
-	this.extension = Math.min(this.extension, 1.0);
+  this.extension = Math.min(this.extension, 1.0);
       }
     } else {
       this.extension -= delta / (this.IN_MILLIS.getInteger(0) * 1000.0);
@@ -6892,19 +6954,19 @@ class TriggerClass extends FUNCTION {
         case TRIGGER_DELAY:
           this.value = 0;
           return;
-	      case TRIGGER_ATTACK:
+        case TRIGGER_ATTACK:
           this.value = t * 32768.0 / micros_for_state;
-	        return;
+          return;
         case TRIGGER_SUSTAIN:
           this.value = 32768;
-	      return;
+        return;
         case TRIGGER_RELEASE:
-    	    this.value = 32768 - t * 32768 / micros_for_state;
-    	    return;
+          this.value = 32768 - t * 32768 / micros_for_state;
+          return;
         case TRIGGER_OFF:
-    	    this.value = 0;
-    	    return;
-	}
+          this.value = 0;
+          return;
+  }
       }
       if (this.TRIGGER_STATE >= 4) throw "Weird state?";
       this.trigger_state++;
@@ -7701,9 +7763,9 @@ class ResponsiveLockupLClass extends MACRO {
     this.add_arg("BOTTOM", "FUNCTION", "lowermost lockup limit", Int(6000));
     this.add_arg("SIZE", "FUNCTION", "lockup size", Scale(SwingSpeed(100), Int(9000), Int(14000)));
     this.SetExpansion(LockupTrL(AlphaL(COLOR, Bump(Scale(BladeAngle(), this.TOP, this.BOTTOM), this.SIZE)),
-    				       this.TR1,
-    				       this.TR2,
-				       LOCKUP_TYPE(LOCKUP_NORMAL)));;
+                   this.TR1,
+                   this.TR2,
+               LOCKUP_TYPE(LOCKUP_NORMAL)));;
   }
   argify(state) {
     state.color_argument = LOCKUP_COLOR_ARG;
@@ -7726,9 +7788,9 @@ class ResponsiveDragLClass extends MACRO {
     this.add_arg("SIZE1", "FUNCTION", "lower twist limit", Int(2000));
     this.add_arg("SIZE2", "FUNCTION", "upper twist limit", Int(10000));
     this.SetExpansion(LockupTrL(AlphaL(COLOR, SmoothStep(Int(32000), Scale(TwistAngle(), this.SIZE1, this.SIZE2))),
-    				       this.TR1,
-    				       this.TR2,
-				       LOCKUP_TYPE(LOCKUP_DRAG)));
+                   this.TR1,
+                   this.TR2,
+               LOCKUP_TYPE(LOCKUP_DRAG)));
   }
   argify(state) {
     state.color_argument = DRAG_COLOR_ARG;
@@ -7751,9 +7813,9 @@ class ResponsiveMeltLClass extends MACRO {
     this.add_arg("SIZE1", "FUNCTION", "lower twist limit", Int(4000));
     this.add_arg("SIZE2", "FUNCTION", "upper twist limit", Int(10000));
     this.SetExpansion(LockupTrL(AlphaL(this.COLOR, SmoothStep(Int(30000), Scale(TwistAngle(), this.SIZE1, this.SIZE2))),
-    				       this.TR1,
-    				       this.TR2,
-				       LOCKUP_TYPE(LOCKUP_MELT)));
+                   this.TR1,
+                   this.TR2,
+               LOCKUP_TYPE(LOCKUP_MELT)));
   }
 };
 
@@ -7804,8 +7866,8 @@ class ResponsiveClashLClass extends MACRO {
     this.add_arg("SIZE", "FUNCTION", "lockup size", Int(10000));
     this.SetExpansion(TransitionEffectL(TrConcat(this.TR1,
                                                  AlphaL(COLOR, Bump(Scale(BladeAngle(), this.TOP, this.BOTTOM), this.SIZE)),
-						 this.TR2),
-				        EFFECT(EFFECT_CLASH)));
+             this.TR2),
+                EFFECT(EFFECT_CLASH)));
   }
   argify(state) {
     state.color_argument = CLASH_COLOR_ARG;
@@ -7886,9 +7948,9 @@ class ResponsiveBlastFadeLClass extends MACRO {
     this.add_arg("EFFECT", "EFFECT", "effect type", EFFECT(EFFECT_BLAST));
     this.SetExpansion(
         MultiTransitionEffectL(
-	    TrConcat(TrInstant(),
-	             AlphaL(this.COLOR, Bump(Scale(BladeAngle(), this.TOP, this.BOTTOM), this.SIZE)),
-		     TrFadeX(this.FADE)),
+      TrConcat(TrInstant(),
+               AlphaL(this.COLOR, Bump(Scale(BladeAngle(), this.TOP, this.BOTTOM), this.SIZE)),
+         TrFadeX(this.FADE)),
             this.EFFECT));
 
   }
@@ -7915,8 +7977,8 @@ class ResponsiveStabLClass extends MACRO {
     this.SetExpansion(
        TransitionEffectL(TrConcat(this.TR1,
                                   AlphaL(COLOR, SmoothStep(Int(32000), Scale(BladeAngle(), this.SIZE1, this.SIZE2))),
-				  this.TR2),
-		         EFFECT(EFFECT_STAB)));
+          this.TR2),
+             EFFECT(EFFECT_STAB)));
 
   }
   argify(state) {
@@ -8530,17 +8592,17 @@ class Parser {
       if (this.peek() == ' ' || this.peek() == '\t' || this.peek() == '\n' || this.peek() == '\r') { this.pos++; continue; }
       if (this.peek() == '/')  {
         if (this.peek2() == '*') {
-	  this.pos += 2;
-	  while (this.pos < this.str.length && !(this.peek() == '*' && this.peek2() == '/')) this.pos++;
-	  this.pos += 2;
-	  continue;
-	}
+    this.pos += 2;
+    while (this.pos < this.str.length && !(this.peek() == '*' && this.peek2() == '/')) this.pos++;
+    this.pos += 2;
+    continue;
+  }
         if (this.peek2() == '/') {
-	  this.pos += 2;
-	  while (this.pos < this.str.length && this.peek() != '\n') this.pos++;
-	  this.pos ++;
-	  continue;
-	}
+    this.pos += 2;
+    while (this.pos < this.str.length && this.peek() != '\n') this.pos++;
+    this.pos ++;
+    continue;
+  }
       }
       return this.str.substr(start_pos, this.pos - start_pos); // trim?
     }
@@ -8590,12 +8652,12 @@ class Parser {
     while (true) {
       var c = this.peek();
       if ((c >= 'a' && c <= 'z') ||
-	  (c >= 'A' && c <= 'Z') ||
-	  (c >= '0' && c <= '9') || c == '_' || c == ':') {
-	ret += c;
-	this.pos++;
+    (c >= 'A' && c <= 'Z') ||
+    (c >= '0' && c <= '9') || c == '_' || c == ':') {
+  ret += c;
+  this.pos++;
       } else {
-	return ret;
+  return ret;
       }
     }
   }
@@ -8640,21 +8702,21 @@ class Parser {
       if (this.peek() != '>') {
         this.pos = POS; // backtrack for comments
         while (true) {
-	  var v = this.parse_internal();
+    var v = this.parse_internal();
           args.push(v);
           this.skipspace2();
           if (this.peek() != ',') break;
           this.pos++;
-	  POS = this.pos
-	  var comment = this.skipspace2();
-	  if (this.startswithnewline(comment)) {
-	    // Comment belongs to next value.
-	    // rewind and let parse_unary do it.
-	    this.pos = POS;
-	  } else {
-	    v.addcomment(this.stripcomment(comment));
-	    if (v.COMMENT) console.log("SETCOMMENT:" + v.COMMENT);
-	  }
+    POS = this.pos
+    var comment = this.skipspace2();
+    if (this.startswithnewline(comment)) {
+      // Comment belongs to next value.
+      // rewind and let parse_unary do it.
+      this.pos = POS;
+    } else {
+      v.addcomment(this.stripcomment(comment));
+      if (v.COMMENT) console.log("SETCOMMENT:" + v.COMMENT);
+    }
         }
       }
       if (this.peek() != '>') {
@@ -8664,14 +8726,14 @@ class Parser {
       if (this.peek() == '(') {
         this.pos++;
         argstring = this.parse_optional_string();
-	if (this.peek() != ')') throw "Missing )";
-	this.pos++;
+  if (this.peek() != ')') throw "Missing )";
+  this.pos++;
       }
     }
     var ret;
     if (this.identifiers[id]) {
       if (args != 0) {
-	throw "Unexpected arguments";
+  throw "Unexpected arguments";
       }
       ret = this.identifiers[id]();
     } else if (this.classes[id]) {
@@ -8681,17 +8743,17 @@ class Parser {
       if (args == 0) args = [null];
       // var ret = new (Function.prototype.bind.apply(this.classes[id], args));
       try {
-	ret = classes[id].apply(args[0], args.slice(1));
+  ret = classes[id].apply(args[0], args.slice(1));
       } catch(e) {
-	if (typeof(e) == "string")
-	  e = new MyError(id +":" + e);
-	if (typeof(e) == "object" && e.constructor == MyError)
-	  e.desc = id + ":" + e.desc;
-	if (typeof(e) == "object" && e.constructor == MyError && e.end_pos == -1) {
-	  e.setBegin(start_of_atom);
-	  e.setEnd(this.pos);
-	}
-	throw e;
+  if (typeof(e) == "string")
+    e = new MyError(id +":" + e);
+  if (typeof(e) == "object" && e.constructor == MyError)
+    e.desc = id + ":" + e.desc;
+  if (typeof(e) == "object" && e.constructor == MyError && e.end_pos == -1) {
+    e.setBegin(start_of_atom);
+    e.setEnd(this.pos);
+  }
+  throw e;
       }
       // console.log(ret);
       if (argstring) {
@@ -8827,7 +8889,7 @@ function drawScene() {
   // TODO: Generate mipmaps, then adjust level based on distance from blade
   gl.texImage2D(
       gl.TEXTURE_2D,
-      0,	// level
+      0,  // level
       gl.RGBA,  // internalFormat
       num_leds, 2,   // width, height
       0,        // border
@@ -8960,8 +9022,8 @@ function ReplaceCurrentFocus(str) {
   // FIND("template_links").className = type == "COLOR" ? "normal" : "grayout";
   // FIND("function_links").className = type == "FUNCTION" ? "normal" : "grayout";
   // FIND("transition_links").className = type == "TRANSITION" ? "normal" : "grayout";
-  FIND("expand_button").className = current_style && current_style.isMacro ? "button_on" : "button_off";
-  FIND("layerize_button").className = CanLayerize(current_style) ? "button_on" : "button_off";
+  FIND("expand_button").className = current_style && current_style.isMacro ? "button-on" : "button-off";
+  FIND("layerize_button").className = CanLayerize(current_style) ? "button-on" : "button-off";
 
   if (type == "COLOR" && classname.endsWith("LClass")) {
     ActivateTab("layer");
@@ -8979,17 +9041,17 @@ function ReplaceCurrentFocus(str) {
         if (rule.cssText.toLowerCase().includes("magic_class_" + type.toLowerCase())) {
           rule.style.background = "lightblue";
           rule.style.color = "black";
-	} else {
+  } else {
           rule.style.background = "lightgray";
           rule.style.color = "darkgray";
-	}
+  }
       }
       if (rule.cssText.toLowerCase().includes("magic_invisible_class_") ) {
         if (rule.cssText.toLowerCase().includes("magic_invisible_class_" + type.toLowerCase())) {
           rule.style.display = 'inline';
-	} else {
+  } else {
           rule.style.display = 'none';
-	}
+  }
       }
     }
   }
@@ -9001,8 +9063,8 @@ function Run() {
   var err = FIND("error_message");
   var str = sty.value;
   var parser = new Parser(str,
-			  classes,
-			  identifiers);
+        classes,
+        identifiers);
   err.innerHTML = "";
   try {
     current_style = parser.parse();
@@ -9013,33 +9075,33 @@ function Run() {
     console.log(typeof(e));
     if (typeof(e) == "string") {
 
-	err.innerHTML = e;
-	sty.focus();
-	sty.setSelectionRange(parser.pos, parser.pos);
+  err.innerHTML = e;
+  sty.focus();
+  sty.setSelectionRange(parser.pos, parser.pos);
 
-	parser = new Parser("BLACK",
-			    classes,
-			    identifiers);
-	current_style = parser.parse();
-	compile();
-	return;
+  parser = new Parser("BLACK",
+          classes,
+          identifiers);
+  current_style = parser.parse();
+  compile();
+  return;
       } else if (typeof(e) == "object" && e.constructor == MyError) {
-	err.innerHTML = e.desc;
-	sty.focus();
-	if (e.begin_pos > -1) {
+  err.innerHTML = e.desc;
+  sty.focus();
+  if (e.begin_pos > -1) {
           sty.setSelectionRange(e.begin_pos, e.end_pos);
-	} else {
+  } else {
           sty.setSelectionRange(parser.pos, parser.pos);
-	}
+  }
 
-	parser = new Parser("BLACK",
-			    classes,
-			    identifiers);
-	current_style = parser.parse();
-	compile();
-	return;
+  parser = new Parser("BLACK",
+          classes,
+          identifiers);
+  current_style = parser.parse();
+  compile();
+  return;
       } else {
-	throw e;
+  throw e;
       }
   }
   ReplaceCurrentFocus(str);
@@ -9137,7 +9199,7 @@ function SetTo(str) {
   window.history.replaceState(old, "Style Editor", window.location.href);
   window.history.pushState(str, "Style Editor", url);
   window.onpopstate = PopState;
-			   
+         
   FIND("style").value = str;
   Run();
 }
@@ -9177,27 +9239,16 @@ function FocusOn(id, event) {
 function ClickRotate() {
   STATE_ROTATE = !STATE_ROTATE;
   var rotate_button = FIND("ROTATE_BUTTON");
-  rotate_button.style.backgroundColor = STATE_ROTATE ? "lightblue" : "";
+  rotate_button.classList.toggle("button-latched", STATE_ROTATE ? true : false);
   console.log("ROTATE");
 }
 
 function ClickPower() {
   STATE_ON = !STATE_ON; STATE_LOCKUP=0;
   var power_button = FIND("POWER_BUTTON");
-  power_button.style.backgroundColor = STATE_ON ? "lightblue" : "";
+  power_button.classList.toggle("button-latched", STATE_ON ? true : false);
   console.log("POWER");
   blade.addEffect(STATE_ON ? EFFECT_IGNITION : EFFECT_RETRACTION, Math.random() * 0.7 + 0.2);
-}
-
-function UpdateLockupButtons() {
-  var button = FIND("LOCKUP_BUTTON");
-  button.style.backgroundColor = STATE_LOCKUP == LOCKUP_NORMAL ? "lightblue" : "";
-  var button = FIND("DRAG_BUTTON");
-  button.style.backgroundColor = STATE_LOCKUP == LOCKUP_DRAG ? "lightblue" : "";
-  var button = FIND("MELT_BUTTON");
-  button.style.backgroundColor = STATE_LOCKUP == LOCKUP_MELT ? "lightblue" : "";
-  var button = FIND("LB_BUTTON");
-  button.style.backgroundColor = STATE_LOCKUP == LOCKUP_LIGHTNING_BLOCK ? "lightblue" : "";
 }
 
 var lockups_to_event = {};
@@ -9241,13 +9292,13 @@ function ClickMelt() {
 function ClickInhilt() {
   STATE_NUM_LEDS = 145 - STATE_NUM_LEDS;
   var button = FIND("INHILT_BUTTON");
-  button.style.backgroundColor = STATE_NUM_LEDS == 1 ? "lightblue" : "";
+  button.style.backgroundColor = STATE_NUM_LEDS == 1 ? "dodgerblue" : "";
 }
 
 function ClickSlow() {
   framesPerUpdate = 60 - framesPerUpdate;
   var button = FIND("SLOW_BUTTON");
-  button.style.backgroundColor = framesPerUpdate == 60 ? "lightblue" : "";
+  button.style.backgroundColor = framesPerUpdate == 60 ? "dodgerblue" : "";
 }
 
 var num_alternatives = 1000;
@@ -9275,8 +9326,8 @@ function updateVariantValue(newValue) {
   } else if (newValue > 32768) {
     newValue = 32768;
   }
-  document.getElementById("VARIANT_VALUE").value = newValue;
-  document.getElementById("VARIANT_SLIDER").value = newValue;
+  FIND("VARIANT_VALUE").value = newValue;
+  FIND("VARIANT_SLIDER").value = newValue;
   console.log("Updated Variant: " + newValue);
 }
 
@@ -9300,7 +9351,7 @@ function startAdjustingValue(adjustment, inputId) {
 }
 
 function adjustmentValue(adjustment, inputId) {
-  var variantInput = document.getElementById(inputId);
+  var variantInput = FIND(inputId);
   var newValue = parseInt(variantInput.value) + adjustment;
   variantInput.value = newValue;
   updateVariantValue(newValue);
@@ -9437,31 +9488,60 @@ function ActivateTab(tab) {
 </head>
 
 <body onload="initGL()">
-<table>
-<tr>
-  <td valign=top width=50%>
-    <canvas id="canvas_id" width=256px height=256px style="width:256px; height:256px;" 
-      onmousemove='mouse_move(event)'
-      onmouseleave='mouse_leave(event)'
-      onclick='AddClickedEffect()'>
-    </canvas>
-    <br>
-    <input id=POWER_BUTTON name=on type=button value="Power" onclick="ClickPower();" >
-    <input name=clash type=button value="Clash" onclick="AddClash();" >
-    <input name=stab type=button value="Stab" onclick="AddStab();" >
-    <input name=blast type=button value="Blast" onclick="AddBlast()"; >
-    <input name=force type=button value="Force" onclick="AddForce()"; >
-    <input name=boot type=button value="Boot" onclick="AddBoot()"; >
-    <input name=newfont type=button value="NewFont" onclick="AddNewfont()"; >
-    <input name=preon type=button value="Preon" onclick="AddPreon()"; >
 
-    <select name=lockup id=LOCKUP onchange='OnLockupChange()'>
-      <option value=LOCKUP_NONE>No lockup</option>
-      <option value=LOCKUP_NORMAL>Lockup</option>
-      <option value=LOCKUP_DRAG>Drag</option>
-      <option value=LOCKUP_MELT>Melt</option>
-      <option value=LOCKUP_LIGHTNING_BLOCK>LB</option>
-    </select>
+  <table>
+  <tr>
+    <td class="page-left">
+      <canvas 
+        id="canvas_id"  class="canvas-style"
+        title="Blade Preview. Move mouse to swing. Click to Clash or Do Selected Effect (and to dismiss this Tooltip.)  Goto settings to change hilt model or toggle Still mode (no swing on mouse move.)"
+        onmousemove='mouse_move(event)' onmouseleave='mouse_leave(event)'
+        onclick='AddClickedEffect()'>
+      </canvas>
+      <br>
+      <input
+        id="POWER_BUTTON" name="on" type="button" value="Power"
+        title="Turn the blade On and Off. Simulates ignition and retraction events on the blade."
+        onclick="ClickPower();" >
+      <input
+        id="CLASH_BUTTON" name="clash" type="button" value="Clash"
+        title="Simulates an impact hit on the blade. Triggers style code using EFFECT_CLASH."
+        onclick="AddClash();" >
+      <input
+        id="STAB_BUTTON" name="stab" type="button" value="Stab"
+        title="Simulates an impact hit on the tip of the blade. Triggers style code using EFFECT_STAB."
+        onclick="AddStab();" >
+      <input
+        id="BLAST_BUTTON" name="blast" type="button" value="Blast"
+        title="Simulates a blaster bolt deflection impact hit on the blade. Triggers style code using EFFECT_BLAST."
+        onclick="AddBlast();" >
+      <input
+        id="FORCE_BUTTON" name="force" type="button" value="Force"
+        title="Triggers style code using EFFECT_FORCE."
+        onclick="AddForce();" >
+      <input
+        id="BOOT_BUTTON" name="boot" type="button" value="Boot"
+        title="Simulates powering on the Proffieboard. Triggers style code Int<using EFFECT_BOOT."
+        onclick="AddBoot();" >
+      <input
+        id="NEWFONT_BUTTON" name="newfont" type="button" value="NewFont"
+        title="Simulates changing presets. Triggers style code using EFFECT_NEWFONT."
+        onclick="AddNewfont();" >
+      <input
+        id="PREON_BUTTON" name="preon" type="button" value="Preon"
+        title="Simulates &quot;pre-ignition&quot;; pressing the power button when there are preon.wav files available in the current font. Triggers style code using EFFECT_PREON."
+        onclick="AddPreon();" >
+
+      <select
+        id="LOCKUP" name="lockup"
+        title="Choose a Lockup Type to begin lockup effect. Choose &quot;No Lockup&quot; to end lockup."
+        onchange="OnLockupChange()" >
+        <option value=LOCKUP_NONE>No lockup</option>
+        <option value=LOCKUP_NORMAL>Lockup</option>
+        <option value=LOCKUP_DRAG>Drag</option>
+        <option value=LOCKUP_MELT>Melt</option>
+        <option value=LOCKUP_LIGHTNING_BLOCK>LB</option>
+      </select>
 
     <span class="more-menu-container">
       <select
@@ -9629,15 +9709,42 @@ function ActivateTab(tab) {
           rows=10 cols=80 id=style wrap="off" class="textbox"
           title="Style and value editing area. Edits in here are committed by clicking the Submit button below." >
         </textarea></pre>
-    <!-- <input id=style type=text size=100 onkeydown="if (event.keyCode == 13) Run();"> --> <input name='run' type=button value="Submit" onclick="Run()">
-    <input name='copy' type=button value="Copy" onclick="Copy()">
-    <input type=button name='expand' value="Expand" id='expand_button' onclick="DoExpand()">
-    <input type=button name='layerize' value="Layerize" id='layerize_button' onclick="DoLayerize()">
-    <input type=button name='argify' value="Argify" id='argify_button' onclick="DoArgify()">
-    <input id=ROTATE_BUTTON name=rotate type=button value="Rotate"  onclick="ClickRotate()" >
-    <input id=INHILT_BUTTON name=inhilt type=button value="Inhilt"  onclick="ClickInhilt()" >
-    <input id=SLOW_BUTTON name=inhilt type=button value="Slow"  onclick="ClickSlow()" ><br>
+        <span class="middle-btn-container">
+          <input
+            type=button name=run value="Submit"
+            title="Submit what is currently in the text box above."
+            onclick='Run()'>
+          <input
+            type=button name=copy value="Copy"
+            title="Adds StylePtr&lt;&gt;() wrapper and copies the style to the clipboard."
+            onclick='Copy()'>
+          <input
+            type=button id="expand_button" name=expand value="Expand"
+            title="Reveals the &quot;under the hood&quot; code that the shorthand macro uses. This allows access to otherwise omitted arguments, and is only an active button when applicable."
+            onclick="DoExpand()">
+          <input
+            type=button id="layerize_button" name=layerize value="Layerize"
+            title="Transforms nested version style code and breaks it out into more contemporary Layers format."
+            onclick="DoLayerize()" >
+          <input
+            type=button id="argify_button" name=argify value="Argify"
+            title="Converts arguments to their ARG version counterparts for use with ProffieOS Workbench or Edit Mode. See the &quot;ArgString&quot; tab below."
+            onclick="DoArgify()" >
+          <input
+            type=button id="ROTATE_BUTTON" name=rotate value="Rotate"
+            title="Toggles animation of the preview blade above."
+            onclick="ClickRotate()" >
+          <input
+            type=button id=INHILT_BUTTON name=inhilt  value="Inhilt"
+            title="Simulates In-Hilt LED blades, (no addressable pixel effects)."
+            onclick="ClickInhilt()" >
+          <input
+            type=button id=SLOW_BUTTON name=inhilt value="Slow"
+            title="Provides &quot;snapshots&quot; of rapidly moving things to see what they look like without fast movement. *Note* Graflex hilt model probably won't be able to render with this on."
+            onclick="ClickSlow()" >
+      </span>
 
+    <br>
     <div id=TABS>
       <div id=TABLINKS class=tab></div>
       <div id=TABBODIES class=tabcontainer></div>
@@ -9657,11 +9764,11 @@ function ActivateTab(tab) {
     <div>
       <font face="helvetica,arial" size=-1>
       This page has been accessed <accessed type=comma_grouped> times since
- 	<accessed since part=month type=string>
+  <accessed since part=month type=string>
          <accessed since part=date type=ordered>,
          <accessed since part=year>.<br>
       Last modified:
- 	<modified part=month type=string>
+  <modified part=month type=string>
          <modified part=date type=ordered>,
          <modified part=year>
       </font>
