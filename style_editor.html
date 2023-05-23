@@ -2390,10 +2390,10 @@ class LayersClass extends STYLE {
   extraButtons(arg) {
     if (arg == 1) return "";
     var id = this.get_id();
-    var ret = "<button onclick='DuplicateLayer("+id+","+arg+",event)'>+</button>";
-    ret += "<button onclick='RemoveLayer("+id+","+arg+",event)'>&#10799;</button>";
-    if (arg > 2) ret += "<button onclick='UpLayer("+id+","+arg+",event)'>&#5169;</button>";
-    if (arg <= this.LAYERS.length) ret += "<button onclick='DownLayer("+id+","+arg+",event)'>&#5167;</button>";
+    var ret = "<button id='extra_buttons' class='extra-buttons' title='Duplicate Layer' onclick='DuplicateLayer("+id+","+arg+",event)'>+</button>";
+    ret += "<button id='extra_buttons' class='extra-buttons' title='Remove Layer' onclick='RemoveLayer("+id+","+arg+",event)'>&#88;</button>";
+    if (arg > 2) ret += "<button id='extra_buttons' class='extra-buttons' title='Move Layer Up' onclick='UpLayer("+id+","+arg+",event)'>&#5169;</button>";
+    if (arg <= this.LAYERS.length) ret += "<button id='extra_buttons' class='extra-buttons' title='Move Layer Down'onclick='DownLayer("+id+","+arg+",event)'>&#5167;</button>";
     return ret;
   }
   constructor(ARGS) {
