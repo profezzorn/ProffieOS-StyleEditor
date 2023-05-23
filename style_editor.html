@@ -8,26 +8,169 @@
   <title>ProffieOS Style Editor</title>
 <style>
 
-.button_on {
-  background: lightblue;
-  color: black;
+/* Make page elements non-selectable with drag box */
+/* Took a vote, enabled won, but disabled for now. */
+/** {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}*/
+
+/* Box sizing helps keep buttons uniform in
+size when padding and margins may change */
+* {
+  box-sizing: border-box;
 }
 
-.button_off {
-  background: lightgray;
+/* Expand and Layerize buttons */
+.middle-btn-container .button-off,
+.middle-btn-container .button-off:hover {
+  background-color: lightgray;
   color: darkgray;
+  border: 2px solid lightgray;
+  padding: 2px;
 }
-
-div.grayout input[type=button].btn {
-  background: lightgray;
-  color: darkgray;
-  padding: 1px 3px;
+.middle-btn-container .button-on {
+  padding: 2px;
+  border: 2px solid dodgerblue;
 }
-
-div.normal input[type=button].btn {
-  background: lightblue;
+/* Other buttons */
+button,
+input[type="button"] {
+  display: inline-block;
+  background-color: #eee;
   color: black;
-  padding: 2px 3px;
+  border-radius: 2px;
+  padding: 3px;
+  font-size: 14px;
+  border: 1px solid #bbb;
+  font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
+  font-weight: normal;
+}
+button:hover,
+input[type="button"]:hover {
+  border: 2px solid #aaa;
+  padding: 2px;
+}
+select:hover {
+  background-color: #ddd;
+}
+button:active,
+input[type="button"]:active {
+  background-color: dodgerblue;
+}
+/* Power and Rotate latching buttons */
+.page-left .button-latched,
+.page-left .button-latched:hover {
+  background-color: dodgerblue;
+}
+/* Lockup and More Effects Drop Downs */
+select {
+  background-color: #eee;
+  color: black;
+  border-radius: 5px;
+  padding: 2px 0px;
+  font-size: 14px;
+}
+
+.page-left {
+  vertical-align: top;
+  width: 50%;
+}
+.page-right {
+  vertical-align: top;
+ }
+
+/* Do Selected Effect button */
+.more-menu-container .do-selected:disabled,
+.more-menu-container .do-selected:disabled:hover {
+  background-color: lightgray;
+  color: darkgray;
+  border: 2px solid transparent;
+  padding: 2px;
+}
+.more-menu-container .do-selected {
+  border: 2px solid dodgerblue;
+}
+.more-menu-container .do-selected:hover {
+  background-color: #ddd;
+  border: 2px solid dodgerblue;
+  padding: 3px;
+}
+.more-menu-container .do-selected:active {
+  background-color: dodgerblue;
+}
+.more-menu-container {
+  white-space: nowrap;
+}
+/* Variant and Alt adjusters */
+.variant-alt-container {
+  background: #6ADA;
+  border: 1px solid black;
+  font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
+  font-size: 15px;
+  padding: 2px;
+  display: inline-block;
+  color: black;
+  white-space: nowrap;
+}
+.variant-label {
+  margin-left: 3px;
+}
+.variant-alt-controls {
+  display: inline-flex;
+  align-items: center;
+}
+.variant-slider {
+  -webkit-appearance: none;
+  width: 65px;
+  height: 10px;
+  margin: 3px 3px;
+  margin-top: 5px;
+  cursor: pointer;
+}
+/* Thumb handle styling for Chrome, Safari, and other WebKit-based browsers */
+.variant-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  background: DodgerBlue;
+  width: 14px;
+  height: 14px;
+  border-radius: 20%;
+  border: 1px solid #333;
+  margin-top: -2px;
+}
+/* Thumb handle styling for Firefox */
+.variant-slider::-moz-range-thumb {
+  background: DodgerBlue;
+  width: 14px;
+  height: 14px;
+  border-radius: 20%;
+  border: 1px solid #333;
+}
+/* Thumb handle styling for Internet Explorer and Edge */
+.variant-slider::-ms-thumb {
+  background: DodgerBlue;
+  width: 14px;
+  height: 14px;
+  border-radius: 20%;
+  border: 1px solid #333;
+}
+
+.alt-label {
+  margin-left: 8px;
+  margin-right: 3px;
+}
+.error-message {
+  color: red; 
+  font-weight: bold;
+}
+/* Blade Style text box */
+.textbox {
+  background-color: #eee;
+  font-size: 14px;
+  font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
+  width: 100%;
 }
 
 div.MAGIC_CLASS_FUNCTION input[type=button].btn {
@@ -126,87 +269,7 @@ span.MAGIC_CLASS_EFFECT input[type=button].btn {
   border: 1px solid #ccc;
   border-top: none;
 }
-/* Do Selected Effect button */
-.more-menu-container .do-selected:disabled {
-  background-color: lightgray;
-  color: darkgray;
-  border: 2px solid transparent;
-}
-.more-menu-container .do-selected {
-  border: 2px solid dodgerblue;
-}
-.more-menu-container {
-  white-space: nowrap;
-}
-/* Variant and Alt adjusters */
-.variant-alt-container {
-  background: #6ADA;
-  border: 1px solid black;
-  font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
-  font-size: 15px;
-  padding: 2px;
-  display: inline-block;
-  color: black;
-  white-space: nowrap;
-}
-.variant-label {
-  margin-left: 3px;
-}
-.variant-alt-controls {
-  display: inline-flex;
-  align-items: center;
-}
-.variant-slider {
-  -webkit-appearance: none;
-  width: 65px;
-  height: 10px;
-  margin: 3px 3px;
-  margin-top: 5px;
-  cursor: pointer;
-}
-/* Thumb handle styling for Chrome, Safari, and other WebKit-based browsers */
-.variant-slider::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  background: DodgerBlue;
-  width: 14px;
-  height: 14px;
-  border-radius: 20%;
-  border: 1px solid #333;
-  margin-top: -2px;
-}
-/* Thumb handle styling for Firefox */
-.variant-slider::-moz-range-thumb {
-  background: DodgerBlue;
-  width: 14px;
-  height: 14px;
-  border-radius: 20%;
-  border: 1px solid #333;
-}
-/* Thumb handle styling for Internet Explorer and Edge */
-.variant-slider::-ms-thumb {
-  background: DodgerBlue;
-  width: 14px;
-  height: 14px;
-  border-radius: 20%;
-  border: 1px solid #333;
-}
 
-.alt-label {
-  margin-left: 8px;
-  margin-right: 3px;
-}
-.error-message {
-  color: red; 
-  font-weight: bold;
-}
-/* Blade Style text box */
-.textbox {
-  background-color: #eee;
-  font-size: 14px;
-  font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
-  width: 100%;
-}
-	
 </style>
 
 <title>Style Editor</title>
@@ -8960,8 +9023,8 @@ function ReplaceCurrentFocus(str) {
   // FIND("template_links").className = type == "COLOR" ? "normal" : "grayout";
   // FIND("function_links").className = type == "FUNCTION" ? "normal" : "grayout";
   // FIND("transition_links").className = type == "TRANSITION" ? "normal" : "grayout";
-  FIND("expand_button").className = current_style && current_style.isMacro ? "button_on" : "button_off";
-  FIND("layerize_button").className = CanLayerize(current_style) ? "button_on" : "button_off";
+  FIND("expand_button").className = current_style && current_style.isMacro ? "button-on" : "button-off";
+  FIND("layerize_button").className = CanLayerize(current_style) ? "button-on" : "button-off";
 
   if (type == "COLOR" && classname.endsWith("LClass")) {
     ActivateTab("layer");
@@ -9177,14 +9240,14 @@ function FocusOn(id, event) {
 function ClickRotate() {
   STATE_ROTATE = !STATE_ROTATE;
   var rotate_button = FIND("ROTATE_BUTTON");
-  rotate_button.style.backgroundColor = STATE_ROTATE ? "lightblue" : "";
+  rotate_button.classList.toggle("button-latched", STATE_ROTATE ? true : false);
   console.log("ROTATE");
 }
 
 function ClickPower() {
   STATE_ON = !STATE_ON; STATE_LOCKUP=0;
   var power_button = FIND("POWER_BUTTON");
-  power_button.style.backgroundColor = STATE_ON ? "lightblue" : "";
+  power_button.classList.toggle("button-latched", STATE_ON ? true : false);
   console.log("POWER");
   blade.addEffect(STATE_ON ? EFFECT_IGNITION : EFFECT_RETRACTION, Math.random() * 0.7 + 0.2);
 }
@@ -9241,13 +9304,13 @@ function ClickMelt() {
 function ClickInhilt() {
   STATE_NUM_LEDS = 145 - STATE_NUM_LEDS;
   var button = FIND("INHILT_BUTTON");
-  button.style.backgroundColor = STATE_NUM_LEDS == 1 ? "lightblue" : "";
+  button.style.backgroundColor = STATE_NUM_LEDS == 1 ? "dodgerblue" : "";
 }
 
 function ClickSlow() {
   framesPerUpdate = 60 - framesPerUpdate;
   var button = FIND("SLOW_BUTTON");
-  button.style.backgroundColor = framesPerUpdate == 60 ? "lightblue" : "";
+  button.style.backgroundColor = framesPerUpdate == 60 ? "dodgerblue" : "";
 }
 
 var num_alternatives = 1000;
@@ -9275,8 +9338,8 @@ function updateVariantValue(newValue) {
   } else if (newValue > 32768) {
     newValue = 32768;
   }
-  document.getElementById("VARIANT_VALUE").value = newValue;
-  document.getElementById("VARIANT_SLIDER").value = newValue;
+  FIND("VARIANT_VALUE").value = newValue;
+  FIND("VARIANT_SLIDER").value = newValue;
   console.log("Updated Variant: " + newValue);
 }
 
@@ -9300,7 +9363,7 @@ function startAdjustingValue(adjustment, inputId) {
 }
 
 function adjustmentValue(adjustment, inputId) {
-  var variantInput = document.getElementById(inputId);
+  var variantInput = FIND(inputId);
   var newValue = parseInt(variantInput.value) + adjustment;
   variantInput.value = newValue;
   updateVariantValue(newValue);
@@ -9437,31 +9500,60 @@ function ActivateTab(tab) {
 </head>
 
 <body onload="initGL()">
-<table>
-<tr>
-  <td valign=top width=50%>
-    <canvas id="canvas_id" width=256px height=256px style="width:256px; height:256px;" 
-      onmousemove='mouse_move(event)'
-      onmouseleave='mouse_leave(event)'
-      onclick='AddClickedEffect()'>
-    </canvas>
-    <br>
-    <input id=POWER_BUTTON name=on type=button value="Power" onclick="ClickPower();" >
-    <input name=clash type=button value="Clash" onclick="AddClash();" >
-    <input name=stab type=button value="Stab" onclick="AddStab();" >
-    <input name=blast type=button value="Blast" onclick="AddBlast()"; >
-    <input name=force type=button value="Force" onclick="AddForce()"; >
-    <input name=boot type=button value="Boot" onclick="AddBoot()"; >
-    <input name=newfont type=button value="NewFont" onclick="AddNewfont()"; >
-    <input name=preon type=button value="Preon" onclick="AddPreon()"; >
 
-    <select name=lockup id=LOCKUP onchange='OnLockupChange()'>
-      <option value=LOCKUP_NONE>No lockup</option>
-      <option value=LOCKUP_NORMAL>Lockup</option>
-      <option value=LOCKUP_DRAG>Drag</option>
-      <option value=LOCKUP_MELT>Melt</option>
-      <option value=LOCKUP_LIGHTNING_BLOCK>LB</option>
-    </select>
+  <table>
+  <tr>
+    <td class="page-left">
+      <canvas 
+        id="canvas_id"  class="canvas-style"
+        title="Blade Preview. Move mouse to swing. Click to Clash or Do Selected Effect (and to dismiss this Tooltip.)  Goto settings to change hilt model or toggle Still mode (no swing on mouse move.)"
+        onmousemove='mouse_move(event)' onmouseleave='mouse_leave(event)'
+        onclick='AddClickedEffect()'>
+      </canvas>
+      <br>
+      <input
+        id="POWER_BUTTON" name="on" type="button" value="Power"
+        title="Turn the blade On and Off. Simulates ignition and retraction events on the blade."
+        onclick="ClickPower();" >
+      <input
+        id="CLASH_BUTTON" name="clash" type="button" value="Clash"
+        title="Simulates an impact hit on the blade. Triggers style code using EFFECT_CLASH."
+        onclick="AddClash();" >
+      <input
+        id="STAB_BUTTON" name="stab" type="button" value="Stab"
+        title="Simulates an impact hit on the tip of the blade. Triggers style code using EFFECT_STAB."
+        onclick="AddStab();" >
+      <input
+        id="BLAST_BUTTON" name="blast" type="button" value="Blast"
+        title="Simulates a blaster bolt deflection impact hit on the blade. Triggers style code using EFFECT_BLAST."
+        onclick="AddBlast();" >
+      <input
+        id="FORCE_BUTTON" name="force" type="button" value="Force"
+        title="Triggers style code using EFFECT_FORCE."
+        onclick="AddForce();" >
+      <input
+        id="BOOT_BUTTON" name="boot" type="button" value="Boot"
+        title="Simulates powering on the Proffieboard. Triggers style code Int<using EFFECT_BOOT."
+        onclick="AddBoot();" >
+      <input
+        id="NEWFONT_BUTTON" name="newfont" type="button" value="NewFont"
+        title="Simulates changing presets. Triggers style code using EFFECT_NEWFONT."
+        onclick="AddNewfont();" >
+      <input
+        id="PREON_BUTTON" name="preon" type="button" value="Preon"
+        title="Simulates &quot;pre-ignition&quot;; pressing the power button when there are preon.wav files available in the current font. Triggers style code using EFFECT_PREON."
+        onclick="AddPreon();" >
+
+      <select
+        id="LOCKUP" name="lockup"
+        title="Choose a Lockup Type to begin lockup effect. Choose &quot;No Lockup&quot; to end lockup."
+        onchange="OnLockupChange()" >
+        <option value=LOCKUP_NONE>No lockup</option>
+        <option value=LOCKUP_NORMAL>Lockup</option>
+        <option value=LOCKUP_DRAG>Drag</option>
+        <option value=LOCKUP_MELT>Melt</option>
+        <option value=LOCKUP_LIGHTNING_BLOCK>LB</option>
+      </select>
 
     <span class="more-menu-container">
       <select
@@ -9629,15 +9721,42 @@ function ActivateTab(tab) {
           rows=10 cols=80 id=style wrap="off" class="textbox"
           title="Style and value editing area. Edits in here are committed by clicking the Submit button below." >
         </textarea></pre>
-    <!-- <input id=style type=text size=100 onkeydown="if (event.keyCode == 13) Run();"> --> <input name='run' type=button value="Submit" onclick="Run()">
-    <input name='copy' type=button value="Copy" onclick="Copy()">
-    <input type=button name='expand' value="Expand" id='expand_button' onclick="DoExpand()">
-    <input type=button name='layerize' value="Layerize" id='layerize_button' onclick="DoLayerize()">
-    <input type=button name='argify' value="Argify" id='argify_button' onclick="DoArgify()">
-    <input id=ROTATE_BUTTON name=rotate type=button value="Rotate"  onclick="ClickRotate()" >
-    <input id=INHILT_BUTTON name=inhilt type=button value="Inhilt"  onclick="ClickInhilt()" >
-    <input id=SLOW_BUTTON name=inhilt type=button value="Slow"  onclick="ClickSlow()" ><br>
+        <span class="middle-btn-container">
+          <input
+            type=button name=run value="Submit"
+            title="Submit what is currently in the text box above."
+            onclick='Run()'>
+          <input
+            type=button name=copy value="Copy"
+            title="Adds StylePtr&lt;&gt;() wrapper and copies the style to the clipboard."
+            onclick='Copy()'>
+          <input
+            type=button id="expand_button" name=expand value="Expand"
+            title="Reveals the &quot;under the hood&quot; code that the shorthand macro uses. This allows access to otherwise omitted arguments, and is only an active button when applicable."
+            onclick="DoExpand()">
+          <input
+            type=button id="layerize_button" name=layerize value="Layerize"
+            title="Transforms nested version style code and breaks it out into more contemporary Layers format."
+            onclick="DoLayerize()" >
+          <input
+            type=button id="argify_button" name=argify value="Argify"
+            title="Converts arguments to their ARG version counterparts for use with ProffieOS Workbench or Edit Mode. See the &quot;ArgString&quot; tab below."
+            onclick="DoArgify()" >
+          <input
+            type=button id="ROTATE_BUTTON" name=rotate value="Rotate"
+            title="Toggles animation of the preview blade above."
+            onclick="ClickRotate()" >
+          <input
+            type=button id=INHILT_BUTTON name=inhilt  value="Inhilt"
+            title="Simulates In-Hilt LED blades, (no addressable pixel effects)."
+            onclick="ClickInhilt()" >
+          <input
+            type=button id=SLOW_BUTTON name=inhilt value="Slow"
+            title="Provides &quot;snapshots&quot; of rapidly moving things to see what they look like without fast movement. *Note* Graflex hilt model probably won't be able to render with this on."
+            onclick="ClickSlow()" >
+      </span>
 
+    <br>
     <div id=TABS>
       <div id=TABLINKS class=tab></div>
       <div id=TABBODIES class=tabcontainer></div>
