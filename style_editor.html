@@ -22,19 +22,53 @@ size when padding and margins may change */
 * {
   box-sizing: border-box;
 }
+.page-left {
+  vertical-align: top;
+  width: 50%;
+}
+.page-right {
+  vertical-align: top;
+ }
 
-/* Expand and Layerize buttons */
-.middle-btn-container .button-off,
-.middle-btn-container .button-off:hover {
+/* This keeps the More Effects menu and
+the Do Selected Effect button together */
+.more-menu-container {
+  white-space: nowrap;
+}
+
+/* Do Selected Effect, Expand, and Layerize */
+.page-left .button-off,
+.page-left .button-off:hover {
   background-color: lightgray;
   color: darkgray;
   border: 2px solid lightgray;
   padding: 2px;
 }
-.middle-btn-container .button-on {
+.page-left .button-on {
   padding: 2px;
   border: 2px solid dodgerblue;
 }
+.page-left .button-on:hover {
+  background-color: #ddd;
+  padding: 2px;
+  border: 2px solid dodgerblue;
+}
+.page-left .button-on:active {
+  background-color: dodgerblue;
+}
+
+/* Lockup and More Effects Drop Downs */
+select {
+  background-color: #eee;
+  color: black;
+  border-radius: 5px;
+  padding: 2px 0px;
+  font-size: 14px;
+}
+select:hover {
+  background-color: #ddd;
+}
+
 /* Other buttons */
 button,
 input[type="button"] {
@@ -43,6 +77,7 @@ input[type="button"] {
   color: black;
   border-radius: 2px;
   padding: 3px;
+  margin-bottom: 3px;
   font-size: 14px;
   border: 1px solid #bbb;
   font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
@@ -50,11 +85,8 @@ input[type="button"] {
 }
 button:hover,
 input[type="button"]:hover {
-  border: 2px solid #aaa;
+  border: 2px solid dodgerblue;
   padding: 2px;
-}
-select:hover {
-  background-color: #ddd;
 }
 button:active,
 input[type="button"]:active {
@@ -65,46 +97,9 @@ input[type="button"]:active {
 .page-left .button-latched:hover {
   background-color: dodgerblue;
 }
-/* Lockup and More Effects Drop Downs */
-select {
-  background-color: #eee;
-  color: black;
-  border-radius: 5px;
-  padding: 2px 0px;
-  font-size: 14px;
-}
 
-.page-left {
-  vertical-align: top;
-  width: 50%;
-}
-.page-right {
-  vertical-align: top;
- }
-
-/* Do Selected Effect button */
-.more-menu-container .do-selected:disabled,
-.more-menu-container .do-selected:disabled:hover {
-  background-color: lightgray;
-  color: darkgray;
-  border: 2px solid transparent;
-  padding: 2px;
-}
-.more-menu-container .do-selected {
-  border: 2px solid dodgerblue;
-}
-.more-menu-container .do-selected:hover {
-  background-color: #ddd;
-  border: 2px solid dodgerblue;
-  padding: 3px;
-}
-.more-menu-container .do-selected:active {
-  background-color: dodgerblue;
-}
-.more-menu-container {
-  white-space: nowrap;
-}
 /* Variant and Alt adjusters */
+
 .variant-alt-container {
   background: #6ADA;
   border: 1px solid black;
@@ -120,7 +115,7 @@ select {
 }
 .variant-alt-controls {
   display: inline-flex;
-  align-items: center;
+  align-items: baseline;
 }
 .variant-slider {
   -webkit-appearance: none;
@@ -2507,7 +2502,7 @@ function mkcolorbutton(name, r, g, b) {
   b = mapcolor(b);
   var color = "rgb("+r+","+g+","+b+")";
   if (r == 0 && g == 0 && b == 0) color = "white";
-  return "<input type=button style='background:"+color+"' class=btn onclick='SetTo(\""+name+"\")' value='"+enc(name)+"'>\n";
+  return "<input type=button style='border: 1px solid black;padding:8px;color:black;background:"+color+"' class=btn onclick='SetTo(\""+name+"\")' value='"+enc(name)+"'>\n";
 }
 function AddColor(name, r, g, b) {
   colorNames[r+","+g+","+b] = name;
@@ -9566,14 +9561,14 @@ function ActivateTab(tab) {
       <option value="">Select More Effects</option>
       </select>
       <input
-        type=button id="do_selected" value="Do Selected Effect" class="do-selected"
+        type=button id="do_selected" value="Do Selected Effect"
         title="Press this to trigger the EFFECT selected in the More Effects menu.">
     </span>
     
   <script>
          // Get the menu and button elements
         const menu = FIND('more_effects_menu');
-        const button = FIND('do_selected');
+        const do_selected_button = FIND('do_selected');
 
         /* Add values from the enum builder to an array and sort alphabetically,
         excluding effects with dedicated buttons.*/
@@ -9655,22 +9650,25 @@ function ActivateTab(tab) {
         menu.addEventListener('change', function() {
           // If the selected value is not the default, enable the button and set its action
           if (menu.value !== '') {
-            button.disabled = false;
-            button.onclick = function() {
+            do_selected_button.disabled = false;
+            do_selected_button.className = "button-on"
+            do_selected_button.onclick = function() {
               AddClickedEffect();
             };
           } else {
             // If the selected value is the default, disable the button
-            button.disabled = true;
-            button.onclick = null;
+            do_selected_button.disabled = true;
+            do_selected_button.onclick = null;
+            do_selected_button.className = "button-off"
           }
         });
         // Disable the button initially
-        button.disabled = true;
+        do_selected_button.disabled = true;
+        do_selected_button.className = "button-off"
 
         // What to do when preview saber area is clicked
         function AddClickedEffect() {
-          if (button.disabled) {
+          if (do_selected_button.disabled) {
             AddClash();
           } else {
             blade.addEffect(menu.value, 0.0)
