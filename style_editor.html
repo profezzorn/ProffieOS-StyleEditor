@@ -8761,7 +8761,7 @@ class Parser {
       }
     }
     if (!ret) {
-      throw  "Unknown identifier:" + id;
+      throw  "Unknown identifier: " + id;
     }
     ret.addcomment(this.stripcomment(midcomment));
     return ret;
