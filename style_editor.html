@@ -269,7 +269,13 @@ span.MAGIC_CLASS_EFFECT input[type=button].btn {
   border: 1px solid #ccc;
   border-top: none;
 }
-
+/* Structured View Layer buttons
+Add, Delete, Move Up, Move Down */
+.extra-buttons {
+  margin: 3px;
+  line-height: 1.0em;
+  font-size: 16px;
+}
 </style>
 
 
@@ -2388,10 +2394,10 @@ class LayersClass extends STYLE {
   extraButtons(arg) {
     if (arg == 1) return "";
     var id = this.get_id();
-    var ret = "<button onclick='DuplicateLayer("+id+","+arg+",event)'>+</button>";
-    ret += "<button onclick='RemoveLayer("+id+","+arg+",event)'>&#10799;</button>";
-    if (arg > 2) ret += "<button onclick='UpLayer("+id+","+arg+",event)'>&#5169;</button>";
-    if (arg <= this.LAYERS.length) ret += "<button onclick='DownLayer("+id+","+arg+",event)'>&#5167;</button>";
+    var ret = "<button class='extra-buttons' title='Duplicate Layer' onclick='DuplicateLayer("+id+","+arg+",event)'>+</button>";
+    ret += "<button class='extra-buttons' title='Remove Layer' onclick='RemoveLayer("+id+","+arg+",event)'>X</button>";
+    if (arg > 2) ret += "<button class='extra-buttons' title='Move Layer Up' onclick='UpLayer("+id+","+arg+",event)'>&#5169;</button>";
+    if (arg <= this.LAYERS.length) ret += "<button class='extra-buttons' title='Move Layer Down'onclick='DownLayer("+id+","+arg+",event)'>&#5167;</button>";
     return ret;
   }
   constructor(ARGS) {
