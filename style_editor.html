@@ -7322,7 +7322,7 @@ class WavLenClass extends FUNCTION {
     super("Length of associated wav file in MS", arguments);
     this.add_arg("EFFECT", "EFFECT", "Which effect to get the length of.", EFFECT(EFFECT_NONE));
   }
-
+  // WavLen value can be set in settings panel
   setLength(value) {
     this.wavlenValue = value;
     // console.log("BC-setLength-this.wavlenValue;:", this.wavlenValue);
@@ -9718,6 +9718,7 @@ function updateVariantValue(newValue) {
   console.log("Updated Variant: " + newValue);
   clearTimeout(variantTimeoutId);
   // console.log("BC-Variant value changed: " + newValue);
+  // Variant cookie save delayed so rapid change doesn't do a bunch of saves
   if (!isNaN(newValue)) {
     variantTimeoutId = setTimeout(function() {
       // console.log("BC-Saving cookie variantValue: " + newValue);
