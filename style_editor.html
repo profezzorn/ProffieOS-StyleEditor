@@ -8745,9 +8745,9 @@ class Parser {
 	ret = classes[id].apply(args[0], args.slice(1));
       } catch(e) {
 	if (typeof(e) == "string")
-	  e = new MyError(id +":" + e);
+	  e = new MyError(id +": " + e);
 	if (typeof(e) == "object" && e.constructor == MyError)
-	  e.desc = id + ":" + e.desc;
+	  e.desc = id + ": " + e.desc;
 	if (typeof(e) == "object" && e.constructor == MyError && e.end_pos == -1) {
 	  e.setBegin(start_of_atom);
 	  e.setEnd(this.pos);
@@ -8761,7 +8761,7 @@ class Parser {
       }
     }
     if (!ret) {
-      throw  "Unknown identifier:" + id;
+      throw  "Unknown identifier: " + id;
     }
     ret.addcomment(this.stripcomment(midcomment));
     return ret;
