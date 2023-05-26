@@ -9632,24 +9632,33 @@ function onPageLoad() {
   // console.log("BC-getSavedCookie called, wavlenValue = " + wavlenValue);
   wavlenInput.value = wavlenValue;
   myWavLen.setLength(wavlenValue);
-  // Listen for changes to the WAVLEN_VALUE element
-  wavlenInput.addEventListener("input", function() {
-    var value = parseInt(this.value);
-    if (isNaN(value) || value < 1) {
-      this.value = Math.max(1, value); // Set the minimum value of 1
-    }
-    saveCookie("wavlenValue", parseInt(value));
-    myWavLen.setLength(value);
-  });
-  // Listen for keydown event to prevent deleting the last digit
-  wavlenInput.addEventListener("keydown", function(e) {
-    if (e.key === "Backspace" || e.key === "Delete") {
-      if (this.value.length === 1) {
-        this.value = "1"; // Autofill the minimum value of 1
-        e.preventDefault();
-      }
-    }
-  });
+wavlenInput.addEventListener("click", function(e) {
+  this.select(); // Select the entire contents of the input box
+});
+wavlenInput.addEventListener("input", function(e) {
+  var value = parseInt(this.value);
+  var newValue = value;
+  if (isNaN(value) || value < 1) {
+    newValue = Math.max(1, value); // Set the minimum value of 1
+  }
+  this.value = newValue;
+  saveCookie("wavlenValue", newValue);
+  myWavLen.setLength(newValue);
+});
+wavlenInput.addEventListener("keydown", function(e) {
+  if (e.key === "Enter") {
+    this.blur(); // Remove focus from the input box when Enter key is pressed
+  } else if ((e.key === "Backspace" || e.key === "Delete") && this.value.length === 1) {
+    this.value = "1"; // Autofill "1" if the only digit is deleted
+    e.preventDefault();
+  }
+});
+wavlenInput.addEventListener("keyup", function(e) {
+  if (this.value.length === 0) {
+    this.value = "1"; // Autofill "1" if the input box is empty after keyup
+    this.select(); // Select the entire contents of the input box
+  }
+});
 
   // VARIANT_VALUE
   var variantInput = FIND("VARIANT_VALUE");
