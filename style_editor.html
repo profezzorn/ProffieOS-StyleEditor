@@ -9635,8 +9635,20 @@ function onPageLoad() {
   // Listen for changes to the WAVLEN_VALUE element
   wavlenInput.addEventListener("input", function() {
     var value = parseInt(this.value);
+    if (isNaN(value) || value < 1) {
+      this.value = Math.max(1, value); // Set the minimum value of 1
+    }
     saveCookie("wavlenValue", parseInt(value));
     myWavLen.setLength(value);
+  });
+  // Listen for keydown event to prevent deleting the last digit
+  wavlenInput.addEventListener("keydown", function(e) {
+    if (e.key === "Backspace" || e.key === "Delete") {
+      if (this.value.length === 1) {
+        this.value = "1"; // Autofill the minimum value of 1
+        e.preventDefault();
+      }
+    }
   });
 
   // VARIANT_VALUE
