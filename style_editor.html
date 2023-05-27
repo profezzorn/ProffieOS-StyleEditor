@@ -8849,7 +8849,7 @@ function drawScene() {
      if (bad_fps) bad_fps --;
   }
   if (bad_fps > 10 && use_graflex) {
-    FIND("error_message").innerHTML = "Struggling to render hilt model. Switching to simpler design. To re-enable Graflex model, goto Settings.";
+    FIND("error_message").innerHTML = "Struggling to render hilt model. Switching to simpler design.";
     use_graflex = false;
     compile();
   }
