@@ -9251,17 +9251,6 @@ function ClickPower() {
   blade.addEffect(STATE_ON ? EFFECT_IGNITION : EFFECT_RETRACTION, Math.random() * 0.7 + 0.2);
 }
 
-function UpdateLockupButtons() {
-  var button = FIND("LOCKUP_BUTTON");
-  button.style.backgroundColor = STATE_LOCKUP == LOCKUP_NORMAL ? "lightblue" : "";
-  var button = FIND("DRAG_BUTTON");
-  button.style.backgroundColor = STATE_LOCKUP == LOCKUP_DRAG ? "lightblue" : "";
-  var button = FIND("MELT_BUTTON");
-  button.style.backgroundColor = STATE_LOCKUP == LOCKUP_MELT ? "lightblue" : "";
-  var button = FIND("LB_BUTTON");
-  button.style.backgroundColor = STATE_LOCKUP == LOCKUP_LIGHTNING_BLOCK ? "lightblue" : "";
-}
-
 var lockups_to_event = {};
 lockups_to_event[LOCKUP_NORMAL] = [ EFFECT_LOCKUP_BEGIN, EFFECT_LOCKUP_END ];
 lockups_to_event[LOCKUP_DRAG] = [ EFFECT_DRAG_BEGIN, EFFECT_DRAG_END ];
@@ -9280,24 +9269,20 @@ function OnLockupChange() {
 
 function ClickLockup() {
   STATE_LOCKUP = STATE_LOCKUP == LOCKUP_NORMAL ? 0 : LOCKUP_NORMAL;
-  UpdateLockupButtons();
   blade.addEffect(STATE_LOCKUP ? EFFECT_LOCKUP_BEGIN : EFFECT_LOCKUP_END, Math.random() * 0.7 + 0.2);
 }
 
 function ClickDrag() {
   STATE_LOCKUP = STATE_LOCKUP == LOCKUP_DRAG ? 0 : LOCKUP_DRAG;
-  UpdateLockupButtons();
   blade.addEffect(STATE_LOCKUP ? EFFECT_DRAG_BEGIN : EFFECT_DRAG_END, 1.0);
 }
 
 function ClickLB() {
   STATE_LOCKUP = STATE_LOCKUP == LOCKUP_LIGHTNING_BLOCK ? 0 : LOCKUP_LIGHTNING_BLOCK;
-  UpdateLockupButtons();
 }
 
 function ClickMelt() {
   STATE_LOCKUP = STATE_LOCKUP == LOCKUP_MELT ? 0 : LOCKUP_MELT;
-  UpdateLockupButtons();
 }
 
 function ClickInhilt() {
