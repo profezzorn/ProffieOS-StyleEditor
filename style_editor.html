@@ -9326,7 +9326,7 @@ https://github.com/eligrey/FileSaver.js/ -->
 function ClickSave() {
   Copy();
   let textArea = FIND("style");
-  let content = "Saved from ProffieOS Style Editor:\nhttps://fredrik.hubbe.net/lightsaber/style_editor.html" + "\n\n" + textArea.value;
+  let content = "/*\nSaved from ProffieOS Style Editor:\nhttps://fredrik.hubbe.net/lightsaber/style_editor.html\n*/" + "\n\n" + textArea.value;
   let blob = new Blob([content], {type: "text/plain;charset=utf-8"});
   saveAs(blob, "style.txt");
 }
