@@ -103,8 +103,8 @@ input[type="button"]:active {
 .variant-alt-container {
   background: #6ADA;
   border: 1px solid black;
-  font-size: 15px;
-  padding: 2px;
+  font-size: 90%;
+  padding-inline: 5px;
   display: inline-block;
   color: black;
   white-space: nowrap;
@@ -9663,16 +9663,16 @@ function ActivateTab(tab) {
         <span class="variant-label">Variant:</span>
         <span class="variant-alt-controls">
           <input
+            id="VARIANT_SLIDER" name=varslider type=range class="variant-slider"
+            title="Slide to adjust the Variant value."
+            min="0" max="32768" step="1" value="0"
+            oninput="updateVariantValue(this.value)" >
+          <input
             id="VARIANT_MINUS" name=varminus type=button value="<" 
             title="Decreases the Variant value. Hold to increase speed of the changing value."
             onmousedown="startAdjustingValue(-1, 'VARIANT_SLIDER')"
             onmouseup="stopAdjustingValue()"
             onmouseleave="stopAdjustingValue()" >
-          <input
-            id="VARIANT_SLIDER" name=varslider type=range class="variant-slider"
-            title="Slide to adjust the Variant value."
-            min="0" max="32768" step="1" value="0"
-            oninput="updateVariantValue(this.value)" >
           <input
             id="VARIANT_VALUE" name=varvalue type=input size="6" value="0"
             title="The current Variant value. You can also type in this field for direct entry of a value."
