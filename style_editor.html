@@ -99,15 +99,19 @@ input[type="button"]:active {
 }
 
 /* Variant and Alt adjusters */
-
 .variant-alt-container {
   background: #6ADA;
   border: 1px solid black;
-  font-size: 90%;
-  padding-inline: 5px;
-  display: inline-block;
+  border-radius: 4px;
+  font-size: 18px;
+  display: inline-flex;
   color: black;
   white-space: nowrap;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  transform: scale(.8);
+  margin-left: -35px;
+  padding-inline: 5px;
 }
 .variant-label {
   margin-left: 3px;
@@ -9660,8 +9664,8 @@ function ActivateTab(tab) {
       </script>
 
       <span class="variant-alt-container">
-        <span class="variant-label">Variant:</span>
         <span class="variant-alt-controls">
+          <span class="variant-label">Variant:</span>
           <input
             id="VARIANT_SLIDER" name=varslider type=range class="variant-slider"
             title="Slide to adjust the Variant value."
