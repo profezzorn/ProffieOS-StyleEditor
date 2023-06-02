@@ -9632,18 +9632,11 @@ function ActivateTab(tab) {
         // Set up the event listener for the menu
         menu.addEventListener('change', function() {
           // If the selected value is not the default, enable the button and set its action
-          if (menu.value !== '') {
-            do_selected_button.disabled = false;
-            do_selected_button.className = "button-on"
-            do_selected_button.onclick = function() {
-              AddClickedEffect();
-            };
-          } else {
-            // If the selected value is the default, disable the button
-            do_selected_button.disabled = true;
-            do_selected_button.onclick = null;
-            do_selected_button.className = "button-off"
-          }
+          do_selected_button.disabled = menu.value !== '';
+          do_selected_button.className = menu.value !== '' ? "button-on" : "button-off";
+          do_selected_button.onclick = menu.value !== '' ? function() {
+            AddClickedEffect();
+          } : null;
         });
         // Disable the button initially
         do_selected_button.disabled = true;
