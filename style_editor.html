@@ -9494,37 +9494,31 @@ function ActivateTab(tab) {
       </canvas>
       <br>
       <input
-        id="POWER_BUTTON" name="on" type="button" value="Power"
+      <button
+        id="POWER_BUTTON" 
         title="Turn the blade On and Off. Simulates ignition and retraction events on the blade."
-        onclick="ClickPower();" >
-      <input
-        id="CLASH_BUTTON" name="clash" type="button" value="Clash"
+        onclick="ClickPower()">Power</button>
+      <button
         title="Simulates an impact hit on the blade. Triggers style code using EFFECT_CLASH."
-        onclick="AddClash();" >
-      <input
-        id="STAB_BUTTON" name="stab" type="button" value="Stab"
+        onclick="AddClash()">Clash</button>
+      <button
         title="Simulates an impact hit on the tip of the blade. Triggers style code using EFFECT_STAB."
-        onclick="AddStab();" >
-      <input
-        id="BLAST_BUTTON" name="blast" type="button" value="Blast"
+        onclick="AddStab()">Stab</button>
+      <button
         title="Simulates a blaster bolt deflection impact hit on the blade. Triggers style code using EFFECT_BLAST."
-        onclick="AddBlast();" >
-      <input
-        id="FORCE_BUTTON" name="force" type="button" value="Force"
+        onclick="AddBlast()">Blast</button>
+      <button
         title="Triggers style code using EFFECT_FORCE."
-        onclick="AddForce();" >
-      <input
-        id="BOOT_BUTTON" name="boot" type="button" value="Boot"
+        onclick="AddForce()">Force</button>
+      <button
         title="Simulates powering on the Proffieboard. Triggers style code Int<using EFFECT_BOOT."
-        onclick="AddBoot();" >
-      <input
-        id="NEWFONT_BUTTON" name="newfont" type="button" value="NewFont"
+        onclick="AddBoot()">Boot</button>
+      <button
         title="Simulates changing presets. Triggers style code using EFFECT_NEWFONT."
-        onclick="AddNewfont();" >
-      <input
-        id="PREON_BUTTON" name="preon" type="button" value="Preon"
+        onclick="AddNewfont()">NewFont</button>
+      <button
         title="Simulates &quot;pre-ignition&quot;; pressing the power button when there are preon.wav files available in the current font. Triggers style code using EFFECT_PREON."
-        onclick="AddPreon();" >
+        onclick="AddPreon()">Preon</button>
 
       <select
         id="LOCKUP" name="lockup"
@@ -9707,30 +9701,32 @@ function ActivateTab(tab) {
           title="Style and value editing area. Edits in here are committed by clicking the Submit button below." >
         </textarea></pre>
         <span class="middle-btn-container">
-          <input
-            type=button name=run value="Submit"
-            title="Submit what is currently in the text box above."
-            onclick='Run()'>
-          <input
-            type=button name=copy value="Copy"
-            title="Adds StylePtr&lt;&gt;() wrapper and copies the style to the clipboard."
-            onclick='Copy()'>
-          <input
-            type=button id="expand_button" name=expand value="Expand"
+          <button 
+            class="submit-button icon-button" title="Submit what is currently in the text box above."
+            onclick="Run()">
+            <i class="fa-solid fa-right-from-bracket fa-beat"></i> Submit</button>
+          <button 
+            class="icon-button" title="Adds StylePtr&lt;&gt;() wrapper and copies the style to the clipboard."
+            onclick="Copy()">
+            <i class="fa-solid fa-copy fa-flip icon-flip"></i> Copy</button>
+          <button 
+            class="icon-button" id="expand_button"
             title="Reveals the &quot;under the hood&quot; code that the shorthand macro uses. This allows access to otherwise omitted arguments, and is only an active button when applicable."
             onclick="DoExpand()">
-          <input
-            type=button id="layerize_button" name=layerize value="Layerize"
+            <i class="fa-solid fa-up-right-and-down-left-from-center fa-beat"></i> Expand</button>
+          <button 
+            class="icon-button" id="layerize_button"
             title="Transforms nested version style code and breaks it out into more contemporary Layers format."
-            onclick="DoLayerize()" >
-          <input
-            type=button id="argify_button" name=argify value="Argify"
-            title="Converts arguments to their ARG version counterparts for use with ProffieOS Workbench or Edit Mode. See the &quot;ArgString&quot; tab below."
-            onclick="DoArgify()" >
-          <input
-            type=button id="ROTATE_BUTTON" name=rotate value="Rotate"
-            title="Toggles animation of the preview blade above."
-            onclick="ClickRotate()" >
+            onclick="DoLayerize()">
+            <i class="fa-solid fa-layer-group fa-bounce"></i> Layerize</button>
+          <button
+            class="icon-button" title="Converts arguments to their ARG version counterparts for use with ProffieOS Workbench or Edit Mode. See the &quot;ArgString&quot; tab below."
+            onclick="DoArgify()">
+            <i class="fa-solid fa-list fa-bounce"></i> Argify</button>
+          <button
+            id="ROTATE_BUTTON" class="icon-button" title="Toggles animation of the preview blade above."
+            onclick="ClickRotate()">
+            <i class="fa-solid fa-arrows-rotate fa-spin"></i> Rotate</button>
           <input
             type=button id=INHILT_BUTTON name=inhilt  value="Inhilt"
             title="Simulates In-Hilt LED blades, (no addressable pixel effects)."
