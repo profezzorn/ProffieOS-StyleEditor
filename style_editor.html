@@ -8,9 +8,8 @@
   <title>ProffieOS Style Editor</title>
 <style>
 
-/* Make page elements non-selectable with drag box */
-/* Took a vote, enabled won, but disabled for now. */
-/** {
+/* Make page elements like buttons and whitespace non-selectable with drag box */
+* {
   -webkit-user-select: none;
   -moz-user-select: none;
   -ms-user-select: none;
@@ -323,7 +322,7 @@ Add, Delete, Move Up, Move Down */
 </style>
 
 
-<script id="vertex-shader" type="x-shader/x-vertex">
+<script id="vertex_shader" type="x-shader/x-vertex">
 precision highp float;
 attribute vec2 a_position;
 varying vec2 v_position;
@@ -336,7 +335,7 @@ void main() {
 }
 </script>
 
-<script id='hilt_graflex' type='x-shader/x-fragment'>
+<script id="hilt_graflex" type="x-shader/x-fragment">
 
 #define ITERATIONS 400
 
@@ -557,7 +556,7 @@ Material getHiltMaterial(vec3 hp, vec3 ray_dir) {
 
 </script>
 
-<script id='hilt_cylinder' type='x-shader/x-fragment'>
+<script id="hilt_cylinder" type="x-shader/x-fragment">
 
 #define ITERATIONS 100
 
@@ -574,7 +573,7 @@ Material getHiltMaterial(vec3 hp, vec3 ray_dir) {
 
 </script>
 
-<script id="fragment-shader" type="x-shader/x-fragment">
+<script id="fragment_shader" type="x-shader/x-fragment">
 precision highp float;
 uniform float u_time;
 varying vec2 v_position;
@@ -1360,7 +1359,7 @@ function compile() {
   // Create a shader that samples a 2D image.
   var vertexShader = gl.createShader(gl.VERTEX_SHADER);
   gl.shaderSource(vertexShader,
-                  FIND("vertex-shader").textContent);
+                  FIND("vertex_shader").textContent);
   gl.compileShader(vertexShader);
 
   var fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
@@ -7299,7 +7298,7 @@ class LayerFunctionsClass extends FUNCTION {
     super("Mix functions", ARGS);
     this.LAYERS = Array.from(ARGS);
     for (var i = 1; i < this.LAYERS.length + 1; i++)
-      this.add_arg("FUNCTION" + i, "FUNCTION", "COLOR " + i);
+      this.add_arg("FUNCTION" + i, "FUNCTION", "FUNCTION " + i);
   }
   getInteger(led) {
     var ret = 0;
@@ -9428,8 +9427,8 @@ function startAdjustingValue(adjustment, inputId) {
       var ease = Math.pow(progress, 2);
       var value = Math.round(adjustment * ease);
       adjustmentValue(value, inputId);
-    }, 1000 / 60); // 60 FPS for more responsive input
-  }, 500);
+    }, 1000 / 60); // 60 FPS for more responsive input.
+  }, 500); // delay until hold down button acceleration starts.
 }
 
 function adjustmentValue(adjustment, inputId) {
@@ -9756,6 +9755,11 @@ function ActivateTab(tab) {
             min="0" max="32768" step="1" value="0"
             oninput="updateVariantValue(this.value)" >
           <input
+            id="VARIANT_SLIDER" name=varslider type=range class="variant-slider"
+            title="Slide to adjust the Variant value."
+            min="0" max="32768" step="1" value="0"
+            oninput="updateVariantValue(this.value)" >
+          <input
             id="VARIANT_MINUS" name=varminus type=button value="<" 
             title="Decreases the Variant value. Hold to increase speed of the changing value."
             onmousedown="startAdjustingValue(-1, 'VARIANT_SLIDER')"
@@ -9789,7 +9793,6 @@ function ActivateTab(tab) {
 
       <span id="error_message" class="error-message"></span>
 
-      <br>
         <pre><textarea 
           rows=10 cols=80 id=style wrap="off" class="textbox"
           title="Style and value editing area. Edits in here are committed by clicking the Submit button below." >
