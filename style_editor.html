@@ -269,6 +269,49 @@ Add, Delete, Move Up, Move Down */
   line-height: 1.0em;
   font-size: 16px;
 }
+
+/* Footer */
+.footer-title {
+  min-width: 180px;
+  font-size: 16px;
+}
+.footer-container {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #eee;
+  padding: 2px 15px;
+}
+.other-sites {
+  float: right;
+  padding-right: 10px;
+  margin-left: 35px;
+}
+.footer-links {
+  display: flex;
+  align-items: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 100px;
+}
+.other-sites {
+  float: right;
+  padding-right: 10px;
+}
+.footer-links a img {
+  height: 16px;
+  width: 16px;
+  margin-right: 5px;
+}
+.footer-links a:hover {
+  color: #000;
+}
+	
 /* Popup Window */
 .popup-window.show {
   opacity: 1;
