@@ -8879,39 +8879,41 @@ var use_graflex = true;
 var bad_fps = 0;
 
 </script>
-
 <div id="popup_window" class="popup-window">
   <p id="popup_message"></p>
   <button title="OK" onclick="dismissPopupMessage()">OK</button>
   <br>
-  <label title="Disable this popup again. Refresh page to show again.">
+  <label title="Don't show this again. Click 'Restore Defaults' in Settings to re-enable.">
     <input type="checkbox" id="dont_show_again" name="dontshow" onclick="DontShowAgain()">
-    <span class="dont-show-again-label">Don't show this again</span>
+    <span>Don't show this again</span>
   </label>
 </div>
 <div id="overlay" class="overlay"></div>
 
 <script>
-
-  var enablePopup = true;
+  var popupIdentifier;
   var popupWindow = FIND("popup_window");
   var overlay = FIND("overlay");
 
-  function showPopupMessage(message) {
-    console.log("Popup triggered. hidden?");
-    if (enablePopup) {
+  function showPopupMessage(message, currentPopup) {
+    popupIdentifier = currentPopup;
+    if (localStorage.getItem(popupIdentifier) === "false") {
+      console.log(popupIdentifier + " is disabled.");
+    } else {
       FIND("popup_message").innerHTML = message;
       popupWindow.classList.add("show");
       overlay.classList.add("show");
     }
   }
+
   function dismissPopupMessage() {
     popupWindow.classList.remove("show");
     overlay.classList.remove("show");
   }
+
   function DontShowAgain() {
-    enablePopup = false;
-    // saveCookie("allowPopup", enablePopup);
+    localStorage.setItem(popupIdentifier, "false");
+  console.log("Saving " + popupIdentifier + " false");
   }
 
 function drawScene() {
@@ -8923,8 +8925,7 @@ function drawScene() {
      if (bad_fps) bad_fps --;
   }
   if (bad_fps > 10 && use_graflex) {
-    popupMessage = "Struggling to render hilt model.<br>Switching to simpler design.<br>To re-enable Graflex model, go to Settings.";
-    showPopupMessage(popupMessage);
+    showPopupMessage("Struggling to render hilt model.<br>Switching to simpler design.<br>To re-enable Graflex model, go to Settings.", "graflexPopup");
     use_graflex = false;
     compile();
   }
