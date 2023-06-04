@@ -8,9 +8,8 @@
   <title>ProffieOS Style Editor</title>
 <style>
 
-/* Make page elements non-selectable with drag box */
-/* Took a vote, enabled won, but disabled for now. */
-/** {
+/* Make page elements like buttons and whitespace non-selectable with drag box */
+* {
   -webkit-user-select: none;
   -moz-user-select: none;
   -ms-user-select: none;
@@ -23,9 +22,15 @@ size when padding and margins may change */
   font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
   box-sizing: border-box;
 }
+body {
+  margin-top: -3px;
+  margin-bottom: 0;
+}
 .page-left {
+  position: relative;
   vertical-align: top;
   width: 50%;
+  padding-bottom: 30px;
 }
 .page-right {
   vertical-align: top;
@@ -99,22 +104,19 @@ input[type="button"]:active {
 }
 
 /* Variant and Alt adjusters */
-
 .variant-alt-container {
   background: #6ADA;
   border: 1px solid black;
-  font-size: 15px;
-  padding: 2px;
+  border-radius: 4px;
   display: inline-block;
-  color: black;
-  white-space: nowrap;
+  padding: 4px;
 }
 .variant-label {
   margin-left: 3px;
 }
 .variant-alt-controls {
   display: inline-flex;
-  align-items: baseline;
+  align-items: center;
 }
 .variant-slider {
   -webkit-appearance: none;
@@ -262,6 +264,13 @@ span.MAGIC_CLASS_EFFECT input[type=button].btn {
   border: 1px solid #ccc;
   border-top: none;
 }
+.structured-view {
+  position: sticky;
+  top: 0;
+  width: 100%;
+  height: 100vh;
+  overflow-y: scroll;
+}
 /* Structured View Layer buttons
 Add, Delete, Move Up, Move Down */
 .extra-buttons {
@@ -360,10 +369,11 @@ Add, Delete, Move Up, Move Down */
 .overlay.show {
   display: block;
 }
+
 </style>
 
 
-<script id="vertex-shader" type="x-shader/x-vertex">
+<script id="vertex_shader" type="x-shader/x-vertex">
 precision highp float;
 attribute vec2 a_position;
 varying vec2 v_position;
@@ -376,7 +386,7 @@ void main() {
 }
 </script>
 
-<script id='hilt_graflex' type='x-shader/x-fragment'>
+<script id="hilt_graflex" type="x-shader/x-fragment">
 
 #define ITERATIONS 400
 
@@ -597,7 +607,7 @@ Material getHiltMaterial(vec3 hp, vec3 ray_dir) {
 
 </script>
 
-<script id='hilt_cylinder' type='x-shader/x-fragment'>
+<script id="hilt_cylinder" type="x-shader/x-fragment">
 
 #define ITERATIONS 100
 
@@ -614,7 +624,7 @@ Material getHiltMaterial(vec3 hp, vec3 ray_dir) {
 
 </script>
 
-<script id="fragment-shader" type="x-shader/x-fragment">
+<script id="fragment_shader" type="x-shader/x-fragment">
 precision highp float;
 uniform float u_time;
 varying vec2 v_position;
@@ -1400,7 +1410,7 @@ function compile() {
   // Create a shader that samples a 2D image.
   var vertexShader = gl.createShader(gl.VERTEX_SHADER);
   gl.shaderSource(vertexShader,
-                  FIND("vertex-shader").textContent);
+                  FIND("vertex_shader").textContent);
   gl.compileShader(vertexShader);
 
   var fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
@@ -2585,13 +2595,50 @@ function mapcolor(x) {
   x = Math.pow(x, 1.0/2.2);
   return Math.round(x * 255);
 }
+
+function rgbToHsl(r, g, b) {
+  r /= 255, g /= 255, b /= 255;
+
+  var max = Math.max(r, g, b);
+  var min = Math.min(r, g, b);
+  var h, s, l = (max + min) / 2;
+
+  if (max == min) {
+    h = s = 0; // achromatic
+  } else {
+    var d = max - min;
+    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+
+    switch (max) {
+      case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+      case g: h = (b - r) / d + 2; break;
+      case b: h = (r - g) / d + 4; break;
+    }
+
+    h /= 6;
+  }
+
+  return [ h, s, l ];
+}
+
+  
 function mkcolorbutton(name, r, g, b) {
   r = mapcolor(r);
   g = mapcolor(g);
   b = mapcolor(b);
+  var hsl = rgbToHsl(r, g, b);
+  console.log("mkcolorbutton:name="+name+"  rgb="+r+","+g+","+b+"    hsl="+hsl[0]+","+hsl[1]+","+hsl[2]+"  ");
+  var sortString;
+  if (hsl[1] == 0.0) {
+    sortString = "C:"+hsl[2];
+  } else if (hsl[1] < 0.3 || hsl[2] > 0.8 || hsl[2] < 0.2) {
+    sortString = "B:"+hsl[0];
+  } else {
+    sortString = "A:"+hsl[0];
+  }
   var color = "rgb("+r+","+g+","+b+")";
   if (r == 0 && g == 0 && b == 0) color = "white";
-  return "<input type=button style='border: 1px solid black;padding:8px;color:black;background:"+color+"' class=btn onclick='SetTo(\""+name+"\")' value='"+enc(name)+"'>\n";
+  return "<input srt='"+sortString+"' type=button style='border: 1px solid black;padding:8px;color:black;background:"+color+"' class=btn onclick='SetTo(\""+name+"\")' value='"+enc(name)+"'>\n";
 }
 function AddColor(name, r, g, b) {
   colorNames[r+","+g+","+b] = name;
@@ -7302,7 +7349,7 @@ class LayerFunctionsClass extends FUNCTION {
     super("Mix functions", ARGS);
     this.LAYERS = Array.from(ARGS);
     for (var i = 1; i < this.LAYERS.length + 1; i++)
-      this.add_arg("FUNCTION" + i, "FUNCTION", "COLOR " + i);
+      this.add_arg("FUNCTION" + i, "FUNCTION", "FUNCTION " + i);
   }
   getInteger(led) {
     var ret = 0;
@@ -9470,8 +9517,8 @@ function startAdjustingValue(adjustment, inputId) {
       var ease = Math.pow(progress, 2);
       var value = Math.round(adjustment * ease);
       adjustmentValue(value, inputId);
-    }, 1000 / 60); // 60 FPS for more responsive input
-  }, 500);
+    }, 1000 / 60); // 60 FPS for more responsive input.
+  }, 500); // delay until hold down button acceleration starts.
 }
 
 function adjustmentValue(adjustment, inputId) {
@@ -9790,19 +9837,24 @@ function ActivateTab(tab) {
       </script>
 
       <span class="variant-alt-container">
-        <span class="variant-label">Variant:</span>
         <span class="variant-alt-controls">
+          <span class="variant-label">Variant:</span>
+          <input
+            id="VARIANT_SLIDER" name=varslider type=range class="variant-slider"
+            title="Slide to adjust the Variant value."
+            min="0" max="32768" step="1" value="0"
+            oninput="updateVariantValue(this.value)" >
+          <input
+            id="VARIANT_SLIDER" name=varslider type=range class="variant-slider"
+            title="Slide to adjust the Variant value."
+            min="0" max="32768" step="1" value="0"
+            oninput="updateVariantValue(this.value)" >
           <input
             id="VARIANT_MINUS" name=varminus type=button value="<" 
             title="Decreases the Variant value. Hold to increase speed of the changing value."
             onmousedown="startAdjustingValue(-1, 'VARIANT_SLIDER')"
             onmouseup="stopAdjustingValue()"
             onmouseleave="stopAdjustingValue()" >
-          <input
-            id="VARIANT_SLIDER" name=varslider type=range class="variant-slider"
-            title="Slide to adjust the Variant value."
-            min="0" max="32768" step="1" value="0"
-            oninput="updateVariantValue(this.value)" >
           <input
             id="VARIANT_VALUE" name=varvalue type=input size="6" value="0"
             title="The current Variant value. You can also type in this field for direct entry of a value."
@@ -9831,7 +9883,6 @@ function ActivateTab(tab) {
 
       <span id="error_message" class="error-message"></span>
 
-      <br>
         <pre><textarea 
           rows=10 cols=80 id=style wrap="off" class="textbox"
           title="Style and value editing area. Edits in here are committed by clicking the Submit button below." >
@@ -9877,17 +9928,6 @@ function ActivateTab(tab) {
       <div id=TABBODIES class=tabcontainer></div>
     </div>
 
-
-<!--
-    <div id=effect_links  class=MAGIC_CLASS_COLOR></div>
-    <div id=color_links class=MAGIC_CLASS_COLOR></div>
-    <div id=transition_links class=MAGIC_INVISIBLE_CLASS_TRANSITION></div>
-    <div id=function_links  class=MAGIC_INVISIBLE_CLASS_FUNCTION></div>
-    <div id=effect_type_links  class=MAGIC_INVISIBLE_CLASS_EFFECT></div>
-    <div id=template_links  class=MAGIC_CLASS_COLOR></div>
-    <b>History:</b><div id=history_links></div>
--->
-
     <div>
       <font face="helvetica,arial" size=-1>
       This page has been accessed <accessed type=comma_grouped> times since
@@ -9900,14 +9940,27 @@ function ActivateTab(tab) {
          <modified part=year>
       </font>
     </div>
-  </td>
-  <td valign=top>
-    <div style="width: 100%; height: 99vh; overflow-y: scroll;">
-      <b>Structured view, click to edit</b>
-      <div id=pp></div>
+
+    <div class="footer-container">
+      <span class="footer-title">ProffieOS Style Editor</span>
+      <span class="footer-links">
+        <span class="other-sites">Other sites: </span>
+        <a href="https://crucible.hubbe.net/" target="_blank"><img src="https://crucible.hubbe.net/uploads/default/optimized/1X/2237f551ca8f4f69ac478df5c64aee1c951c33f5_2_180x180.png" alt="Crucible logo"></a>
+        <a href="https://pod.hubbe.net/" target="_blank"><img src="https://pod.hubbe.net/images/favicon.png" alt="Pod logo"></a>   
+        <a href="https://fredrik.hubbe.net/lightsaber/" target="_blank"><img src="https://fredrik.hubbe.net/favicon.ico" alt="Lightsaber logo"></a>   
+        <a href="https://www.fett263.com/" target="_blank"><img src="https://www.fett263.com//favicon.ico" alt="Fett263 logo"></a>   
+        <a href="https://www.facebook.com/groups/opensourcesabers/" target="_blank"><img src="https://www.facebook.com/favicon.ico" alt="Facebook logo"></a>   
+      </span>
     </div>
-  </td>
-  </tr>
-</table>
-</body>
+
+    </td>
+    <td class="page-right">
+      <div id="structured_view" class="structured-view">
+        <span class="structured-view-label">Structured view, click to edit.</span>
+        <div id="pp" class="pp"></div>
+      </div>
+    </td>
+    </tr>
+  </table>
+  </body>
 </html>
