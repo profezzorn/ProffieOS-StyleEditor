@@ -5,14 +5,11 @@
   <meta charset="UTF-8">
   <!-- This should show up in search engine results. -->
   <meta name="description" content="ProffieOS Style Editor: Customize your Proffieboard saber blade animations with this browser based tool.">
-  <link rel="stylesheet" href="fontawesome-free-6.4.0-web/css/all.css" crossorigin="anonymous"/>
-  <!--   Font Awesome Free 6.4.0 by @fontawesome - https://fontawesome.com
-  License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License -->
   <title>ProffieOS Style Editor</title>
 <style>
 
 /* Make page elements like buttons and whitespace non-selectable with drag box */
-* {
+/* {
   -webkit-user-select: none;
   -moz-user-select: none;
   -ms-user-select: none;
@@ -1417,7 +1414,7 @@ function compile() {
   gl.compileShader(vertexShader);
 
   var fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
-  var shader_code = FIND("fragment-shader").textContent;
+  var shader_code = FIND("fragment_shader").textContent;
 
   variables = [];
 //  shader_code = shader_code.replace("$FUNCTION$", current_style.gencode());
