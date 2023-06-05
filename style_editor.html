@@ -2636,9 +2636,9 @@ function mkcolorbutton(name, r, g, b) {
   } else {
     sortString = "A:"+hsl[0];
   }
-  var color = "rgb("+r+","+g+","+b+")";
-  if (r == 0 && g == 0 && b == 0) color = "white";
-  return "<input srt='"+sortString+"' type=button style='border: 1px solid black;padding:8px;color:black;background:"+color+"' class=btn onclick='SetTo(\""+name+"\")' value='"+enc(name)+"'>\n";
+  var text = (name === "Black" || name === "Blue") ? "white" : "black";
+  var color = (name === "Black") ? "black" : "rgb("+r+","+g+","+b+")";
+  return "<input srt='"+sortString+"' type=button style='border: 1px solid black;padding:8px;color:"+text+";background:"+color+"' class=btn onclick='SetTo(\""+name+"\")' value='"+enc(name)+"'>\n";
 }
 function AddColor(name, r, g, b) {
   colorNames[r+","+g+","+b] = name;
