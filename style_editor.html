@@ -101,96 +101,6 @@ input[type="button"]:active {
   background-color: dodgerblue;
 }
 
-.icon-button {
-  position: relative;
-}
-
-.icon-button .fa-flip {
-  animation: none;
-}
-.icon-button:hover .fa-flip {
-  animation: flip-once 0.75s ease forwards;
-}
-@keyframes flip-once {
-  0% {
-    transform: rotateY(0deg);
-  }
-  100% {
-    transform: rotateY(360deg);
-  }
-}
-
-.icon-button .fa-spin {
- animation: none;
-}
-.icon-button:hover .fa-spin {
-  animation: spin-once 1.5s ease forwards;
-}
-.page-left .button-latched .fa-spin {
-  animation: fa-spin 2s linear infinite;
-}
-
-@keyframes spin-once {
-  0% {
-    transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(360deg);
-  }
-}
-
-.icon-button .fa-beat {
-  animation: none;
-}
-.icon-button:hover .fa-beat {
-  animation: beat-once .75s ease forwards;
-}
-.icon-button.submit-button .fa-beat {
-  animation: none;
-}
-.icon-button.submit-button:hover .fa-beat {
-  animation: beat-once .75s ease forwards;
-}
-.page-left .button-on:hover .fa-beat {
-  animation: beat-once .75s ease forwards;
-}
-@keyframes beat-once {
-  0%, 90% {
-    transform: scale(1);
-  }
-  45% {
-    transform: scale(1.2);
-  }
-}
-
-.page-left .button-off .fa-beat,
-.page-left .button-on .fa-beat,
-.page-left .button-off .fa-bounce,
-.page-left .button-on .fa-bounce{
-  animation: none;
-}
-
-.icon-button .fa-bounce {
-  animation: none;
-}
-.icon-button:hover .fa-bounce {
-  animation: bounce-once 1s cubic-bezier(0.28, 0.84, 0.42, 1) forwards;
-}
-.page-left .button-on:hover .fa-bounce {
-  animation: bounce-once 1s cubic-bezier(0.28, 0.84, 0.42, 1) forwards;
-}
-@keyframes bounce-once {
-  0%, 30%, 60%, 100% {
-    transform: translateY(0);
-  }
-  20% {
-    transform: translateY(-6px);
-  }
-  40% {
-    transform: translateY(-3px);
-  }
-}
-
 /* Power and Rotate latching buttons */
 .page-left .button-latched,
 .page-left .button-latched:hover {
@@ -9979,33 +9889,34 @@ function ActivateTab(tab) {
           rows=10 cols=80 id=style wrap="off" class="textbox"
           title="Style and value editing area. Edits in here are committed by clicking the Submit button below." >
         </textarea></pre>
+
         <span>
           <button 
-            class="submit-button icon-button" title="Submit what is currently in the text box above."
+            class="submit-button" title="Submit what is currently in the text box above."
             onclick="Run()">
-            <i class="fa-solid fa-right-from-bracket fa-beat"></i> Submit</button>
+            <i class="fa-solid fa-right-from-bracket"></i> Submit</button>
           <button 
-            class="icon-button" title="Adds StylePtr&lt;&gt;() wrapper and copies the style to the clipboard."
+            title="Adds StylePtr&lt;&gt;() wrapper and copies the style to the clipboard."
             onclick="Copy()">
-            <i class="fa-solid fa-copy fa-flip icon-flip"></i> Copy</button>
+            <i class="fa-solid fa-copy"></i> Copy</button>
           <button 
-            class="icon-button" id="expand_button"
+            id="expand_button"
             title="Reveals the &quot;under the hood&quot; code that the shorthand macro uses. This allows access to otherwise omitted arguments, and is only an active button when applicable."
             onclick="DoExpand()">
-            <i class="fa-solid fa-up-right-and-down-left-from-center fa-beat"></i> Expand</button>
+            <i class="fa-solid fa-up-right-and-down-left-from-center"></i> Expand</button>
           <button 
-            class="icon-button" id="layerize_button"
+            id="layerize_button"
             title="Transforms nested version style code and breaks it out into more contemporary Layers format."
             onclick="DoLayerize()">
-            <i class="fa-solid fa-layer-group fa-bounce"></i> Layerize</button>
+            <i class="fa-solid fa-layer-group"></i> Layerize</button>
           <button
-            class="icon-button" title="Converts arguments to their ARG version counterparts for use with ProffieOS Workbench or Edit Mode. See the &quot;ArgString&quot; tab below."
+            title="Converts arguments to their ARG version counterparts for use with ProffieOS Workbench or Edit Mode. See the &quot;ArgString&quot; tab below."
             onclick="DoArgify()">
-            <i class="fa-solid fa-list fa-bounce"></i> Argify</button>
+            <i class="fa-solid fa-list"></i> Argify</button>
           <button
-            id="ROTATE_BUTTON" class="icon-button" title="Toggles animation of the preview blade above."
+            id="ROTATE_BUTTON" title="Toggles animation of the preview blade above."
             onclick="ClickRotate()">
-            <i class="fa-solid fa-arrows-rotate fa-spin"></i> Rotate</button>
+            <i class="fa-solid fa-arrows-rotate"></i> Rotate</button>
           <input
             type=button id=INHILT_BUTTON name=inhilt  value="Inhilt"
             title="Simulates In-Hilt LED blades, (no addressable pixel effects)."
