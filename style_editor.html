@@ -274,6 +274,15 @@ span.MAGIC_CLASS_EFFECT input[type=button].btn {
   height: 100vh;
   overflow-y: scroll;
 }
+.structured-view-label {
+    display: block;
+    font-size: 110%;
+    padding-top: 9px;
+    padding-bottom: 5px;
+}
+.structured-view .selected-area-container {
+  background-color: lightblue;
+}
 /* Fat font in Structured View */
 .pp span {
   padding-left: 6px;
@@ -9196,7 +9205,7 @@ function ReplaceCurrentFocus(str) {
       console.log("Lost focus when parsing " + str);
       console.log(focus_trace);
     } else {
-      container.style.backgroundColor = 'lightblue';
+    container.classList.add("selected-area-container");
     }
   } else {
     console.log("No focus catcher found!!");
