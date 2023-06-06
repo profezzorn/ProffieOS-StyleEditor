@@ -262,10 +262,11 @@ span.MAGIC_CLASS_EFFECT input[type=button].btn {
   margin-bottom: 10px;
 }
 .settings-panel .settings-header-label {
-  font-weight: bold;
+  margin-left: 66px;
   color: #333;
   font-size: 22px;
-  margin-bottom: 10px;
+  margin-top: -15px;
+  flex-direction: row;
   justify-content: center;
 }
 .settings-section-label {
@@ -9980,7 +9981,7 @@ function ActivateTab(tab) {
            title="Close Settings Panel."
             class="close-settings" onclick="toggleSettingsPanel()">X</button>
 
-            <label class="settings-header-label">Settings</label>
+            <h2 class="settings-header-label">Settings</h2>
 
           <div class="settings-section">
             <label class="settings-section-label" title="These settings apply to the blade preview above.">Blade Preview:</label>
