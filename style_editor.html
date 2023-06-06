@@ -9639,18 +9639,14 @@ function DoArgify() {
 
 function AddTab(tab, name, contents) {
   FIND("TABLINKS").innerHTML += "<button id="+tab+"_tab class=tablinks onclick=\"ActivateTab('"+tab+"')\">" + name + "</button>";
-  FIND("TABBODIES").innerHTML += "<div id="+tab+"_tabcontent class=tabcontent></div>";
+  FIND("TABBODIES").innerHTML += "<div id=" + tab + "_tabcontent class='tabcontent " + tab + "-tabcontent'></div>";
   if (contents) {
     AddTabContent(tab, contents);
   }
 }
 
 function AddTabContent(tab, data) {
-  var tabContentElement = FIND(tab + "_tabcontent");
-  tabContentElement.innerHTML += data;
-  if (tab === 'rgb') {
-    tabContentElement.classList.add('rgb-tabcontent');
-  }
+  FIND(tab + "_tabcontent").innerHTML += data;
 }
 
 function ActivateTab(tab) {
