@@ -9531,11 +9531,26 @@ function Alt() {
   return parseInt(FIND("ALT").value);
 }
 
+function updateAltValue(newValue) {
+  if (isNaN(newValue)) {
+    newValue = 0;
+  } else if (newValue > num_alternatives) {
+    newValue = num_alternatives;
+  }
+  FIND("ALT").value = newValue;
+  console.log("Updated Alt: " + newValue);
+}
+
+FIND("ALT").addEventListener('input', function(e) {
+  updateAltValue(parseInt(this.value));
+});
+
 function IncreaseAlt(n) {
   var v = Alt() + n;
   if (v < 0) v += num_alternatives;
   if (v > num_alternatives) v -= num_alternatives;
   FIND("ALT").value = v;
+  console.log("Updated Alt: " + v)
 }
 
 function Variant() {
@@ -9545,7 +9560,7 @@ function Variant() {
 /* Variant Slider functions */
 
 function updateVariantValue(newValue) {
-    if (newValue < 0) {
+    if (newValue <= 0) {
     newValue = 0;
   } else if (newValue > 32768) {
     newValue = 32768;
