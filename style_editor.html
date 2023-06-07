@@ -9693,7 +9693,7 @@ function ActivateTab(tab) {
   if(!FIND(tab+"_tab")) {
     console.log("No such tab");
     return;
-}
+  }
   // Get all elements with class="tabcontent" and hide them
   var tabcontent = document.getElementsByClassName("tabcontent");
   for (var i = 0; i < tabcontent.length; i++) {
