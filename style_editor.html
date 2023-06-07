@@ -264,6 +264,12 @@ span.MAGIC_CLASS_EFFECT input[type=button].btn {
   border: 1px solid #ccc;
   border-top: none;
 }
+.tabcontent .btn {
+  border-radius: 5px;
+}
+.rgb-tabcontent {
+  color: black;
+}
 .custom-color {
   background: #ccc;
   text-align: center;
@@ -283,6 +289,36 @@ span.MAGIC_CLASS_EFFECT input[type=button].btn {
   width: 100%;
   height: 100vh;
   overflow-y: scroll;
+}
+.structured-view-label {
+  display: block;
+  font-size: 110%;
+  padding-top: 9px;
+  padding-bottom: 5px;
+}
+.structured-view .selected-area-container {
+  background-color: lightblue;
+}
+/* Fat font in Structured View */
+.pp span {
+  padding-left: 6px;
+  font-weight: 600;
+}
+/* Structured View style arguments borders */
+.pp-container {
+  border-color: gray;
+  border-style: solid;
+  border-width: 1px;
+  padding: 2px;
+}
+.pp-content {
+  margin-left: 1em;
+}
+/* Chartreuse highlighted borders */
+.running {
+  border-color: chartreuse;
+  border-width: 3px;
+  padding: 0px;
 }
 /* Structured View Layer buttons
 Add, Delete, Move Up, Move Down */
@@ -1725,9 +1761,9 @@ class STYLE {
       ret += "/* "+this.COMMENT.split("\n").join("<br>")+" */<br>";
       console.log("RET = " + ret);
     }
-    ret += "<div id=X"+id+" style='border-style:solid;border-width:1px;border-color:gray;' onclick='FocusOn("+id+",event)'>\n";
-    ret += "<span title='"+ note +"'>" + name + "</span>&lt;\n";
-    ret += "<div style='margin-left:1em'>\n";
+    ret += "<div id=X" + id + " class='pp-container' onclick='FocusOn(" + id + ",event)'>\n";
+    ret += "<span title='" + note + "'>" + name + "</span>&lt;\n";
+    ret += "<div class='pp-content'>\n";
     var comma = false;
     for (var i = 2; i < arguments.length; i += 2) {
       if (comma) ret += ",<br>";
@@ -1762,8 +1798,8 @@ class STYLE {
     }
     var id = this.get_id();
     var ret = this.gencomment();
-    ret += "<div id=X"+id+" style='border-style:solid;border-width:1px;border-color:gray;' onclick='FocusOn("+id+",event)'>\n";
-    ret += "<span title='"+ note +"'>" + name + "</span>\n";
+    ret += "<div id=X" + id + " class='pp-container' onclick='FocusOn(" + id + ",event)'>\n";
+    ret += "<span title='" + note + "'>" + name + "</span>\n";
 
     if (arguments.length > 2) {
       ret += "&lt;";
@@ -1866,9 +1902,9 @@ class STYLE {
       var container = this.get_container();
       if (container) {
         if (this.IS_RUNNING()) {
-          container.style["border-color"] = 'yellow';
+          container.classList.add('running');
         } else {
-          container.style["border-color"] = 'gray';
+          container.classList.remove('running');
         }
       }
     }
@@ -7107,18 +7143,18 @@ class TriggerClass extends FUNCTION {
         case TRIGGER_DELAY:
           this.value = 0;
           return;
-              case TRIGGER_ATTACK:
+        case TRIGGER_ATTACK:
           this.value = t * 32768.0 / micros_for_state;
-                return;
+          return;
         case TRIGGER_SUSTAIN:
           this.value = 32768;
-              return;
+          return;
         case TRIGGER_RELEASE:
-            this.value = 32768 - t * 32768 / micros_for_state;
-            return;
+          this.value = 32768 - t * 32768 / micros_for_state;
+          return;
         case TRIGGER_OFF:
-            this.value = 0;
-            return;
+          this.value = 0;
+          return;
         }
       }
       if (this.TRIGGER_STATE >= 4) throw "Weird state?";
@@ -9189,7 +9225,7 @@ function ReplaceCurrentFocus(str) {
       console.log("Lost focus when parsing " + str);
       console.log(focus_trace);
     } else {
-      container.style.backgroundColor = 'lightblue';
+    container.classList.add("selected-area-container");
     }
   } else {
     console.log("No focus catcher found!!");
