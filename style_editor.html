@@ -9560,7 +9560,8 @@ function Variant() {
 /* Variant Slider functions */
 
 function updateVariantValue(newValue) {
-    if (newValue <= 0) {
+// Ensure that negative values and auto-filled zeros get registered as 0.
+  if (newValue <= 0) {
     newValue = 0;
   } else if (newValue > 32768) {
     newValue = 32768;
