@@ -267,6 +267,22 @@ span.MAGIC_CLASS_EFFECT input[type=button].btn {
 .tabcontent .btn {
   border-radius: 5px;
 }
+.rgb-tabcontent {
+  color: black;
+}
+.custom-color {
+  background: #ccc;
+  text-align: center;
+  position: relative;
+}
+.rgb-tabcontent .btn {
+  border-radius: 16px;
+  width: 125px;
+}
+.rgb-tabcontent .custom-color .color-picker {
+  width: 100px;
+}
+
 .structured-view {
   position: sticky;
   top: 0;
@@ -1182,8 +1198,10 @@ var height;
 function initGL() {
   AddTab("color", "Styles",effect_links.sort().join(""))
   AddTab("rgb", "Colors",
-    "<input type=color id=COLOR value='#ff0000' onclick='ClickColor()' />" +
-    qlinks.sort().join(""));
+    qlinks.sort().join("") +
+    "<div class='custom-color'>" +
+    "<label for='COLOR'>Custom color </label>" +
+    "<input type='color' id='COLOR' value='#ff0000' class='color-picker' onclick='ClickColor()' /></div>");
   AddTab("layer", "Layers", layer_links.sort().join(""));
   AddTab("function", "Functions", function_links.sort().join(""));
   AddTab("transition", "Transitions", transition_links.sort().join(""));
@@ -2669,10 +2687,12 @@ function mkcolorbutton(name, r, g, b) {
   } else {
     sortString = "A:"+hsl[0];
   }
-  var color = "rgb("+r+","+g+","+b+")";
-  if (r == 0 && g == 0 && b == 0) color = "white";
-  return "<input srt='"+sortString+"' type=button style='border: 1px solid black;padding:8px;color:black;background:"+color+"' class=btn onclick='SetTo(\""+name+"\")' value='"+enc(name)+"'>\n";
+  var bgColor = "rgb("+r+","+g+","+b+")";
+  if (r == 0 && g == 0 && b == 0) bgColor = "black"
+  var textColor = (name === "Black" || name === "Blue") ? "white" : "black";
+  return "<input srt='"+sortString+"' type=button style='border: 1px solid black;padding:8px;color:"+textColor+";background:"+bgColor+"' class=btn onclick='SetTo(\""+name+"\")' value='"+enc(name)+"'>\n";
 }
+
 function AddColor(name, r, g, b) {
   colorNames[r+","+g+","+b] = name;
   qlinks.push(mkcolorbutton(name, r, g, b));
@@ -9655,7 +9675,7 @@ function DoArgify() {
 
 function AddTab(tab, name, contents) {
   FIND("TABLINKS").innerHTML += "<button id="+tab+"_tab class=tablinks onclick=\"ActivateTab('"+tab+"')\">" + name + "</button>";
-  FIND("TABBODIES").innerHTML += "<div id="+tab+"_tabcontent class=tabcontent></div>";
+  FIND("TABBODIES").innerHTML += "<div id=" + tab + "_tabcontent class='tabcontent " + tab + "-tabcontent'></div>";
   if (contents) {
     AddTabContent(tab, contents);
   }
