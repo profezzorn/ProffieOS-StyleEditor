@@ -1180,7 +1180,7 @@ var height;
 
 function safeguardInputs() {
   // Get all input elements
-  var inputs = document.querySelectorAll('input');
+  var inputs = document.querySelectorAll('input[type="text"]');
 
   inputs.forEach(function(input) {
     // Select the entire contents of the input box on click
@@ -1219,7 +1219,7 @@ function initGL() {
 
   // Add arg string.
   var A = "";
-  A += "Arg string: <input id=ARGSTR name=arg type=input size=80 value='builtin 0 1' onchange='ArgStringChanged()' /><br><table>";
+  A += "Arg string: <input id=ARGSTR name=arg type=text size=80 value='builtin 0 1' onchange='ArgStringChanged()' /><br><table>";
   var v = Object.keys(ArgumentName_ENUM_BUILDER.value_to_name);
   for (var i = 0; i < v.length; i++) {
     var V = parseInt(v[i]);
@@ -1229,7 +1229,7 @@ function initGL() {
        A += "<input type=color id=ARGSTR_"+N+" onclick='ClickArgColor("+N+")' onchange='ClickArgColor("+N+")' >";
     } else {
        A += "<input type=button value='<'  onclick='IncreaseArg("+N+",-1)' >";
-       A += "<input id=ARGSTR_"+N+" type=input size=6 value=0 onchange='ArgChanged("+N+")' >";
+       A += "<input id=ARGSTR_"+N+" type=text size=6 value=0 onchange='ArgChanged("+N+")' >";
        A += "<input type=button value='>'  onclick='IncreaseArg("+N+",1)' >";
     }
     A += "</td></tr>\n";
@@ -9924,7 +9924,7 @@ function ActivateTab(tab) {
             onmouseup="stopAdjustingValue()"
             onmouseleave="stopAdjustingValue()" >
           <input
-            id="VARIANT_VALUE" name=varvalue type=input size="6" value="0"
+            id="VARIANT_VALUE" name=varvalue type=text size="6" value="0"
             title="The current Variant value. You can also type in this field for direct entry of a value."
             oninput="updateVariantValue(this.value)" >
           <input
@@ -9939,7 +9939,7 @@ function ActivateTab(tab) {
             title="Decreases the Alt value."
             onclick="IncreaseAlt(-1)" >
           <input
-            id="ALT" name=alt type=input size="3" value="0"
+            id="ALT" name=alt type=text size="3" value="0"
             title="The current Alt value. You can also type in this field for direct entry of a value." >
           <input
             id="ALT_PLUS" name=altplus type=button value=">"
