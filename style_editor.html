@@ -5,6 +5,9 @@
   <meta charset="UTF-8">
   <!-- This should show up in search engine results. -->
   <meta name="description" content="ProffieOS Style Editor: Customize your Proffieboard saber blade animations with this browser based tool.">
+  <link rel="stylesheet" href="fontawesome-free-6.4.0-web/css/all.css" crossorigin="anonymous"/>
+  <!--   Font Awesome Free 6.4.0 by @fontawesome - https://fontawesome.com
+  License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License -->
   <title>ProffieOS Style Editor</title>
 <style>
 
@@ -97,6 +100,7 @@ button:active,
 input[type="button"]:active {
   background-color: dodgerblue;
 }
+
 /* Power and Rotate latching buttons */
 .page-left .button-latched,
 .page-left .button-latched:hover {
@@ -9915,31 +9919,34 @@ function ActivateTab(tab) {
           rows=10 cols=80 id=style wrap="off" class="textbox"
           title="Style and value editing area. Edits in here are committed by clicking the Submit button below." >
         </textarea></pre>
-        <span class="middle-btn-container">
-          <input
-            type=button name=run value="Submit"
-            title="Submit what is currently in the text box above."
-            onclick='Run()'>
-          <input
-            type=button name=copy value="Copy"
+
+        <span>
+          <button 
+            class="submit-button" title="Submit what is currently in the text box above."
+            onclick="Run()">
+            <i class="fa-solid fa-right-from-bracket"></i> Submit</button>
+          <button 
             title="Adds StylePtr&lt;&gt;() wrapper and copies the style to the clipboard."
-            onclick='Copy()'>
-          <input
-            type=button id="expand_button" name=expand value="Expand"
+            onclick="Copy()">
+            <i class="fa-solid fa-copy"></i> Copy</button>
+          <button 
+            id="expand_button"
             title="Reveals the &quot;under the hood&quot; code that the shorthand macro uses. This allows access to otherwise omitted arguments, and is only an active button when applicable."
             onclick="DoExpand()">
-          <input
-            type=button id="layerize_button" name=layerize value="Layerize"
+            <i class="fa-solid fa-up-right-and-down-left-from-center"></i> Expand</button>
+          <button 
+            id="layerize_button"
             title="Transforms nested version style code and breaks it out into more contemporary Layers format."
-            onclick="DoLayerize()" >
-          <input
-            type=button id="argify_button" name=argify value="Argify"
+            onclick="DoLayerize()">
+            <i class="fa-solid fa-layer-group"></i> Layerize</button>
+          <button
             title="Converts arguments to their ARG version counterparts for use with ProffieOS Workbench or Edit Mode. See the &quot;ArgString&quot; tab below."
-            onclick="DoArgify()" >
-          <input
-            type=button id="ROTATE_BUTTON" name=rotate value="Rotate"
-            title="Toggles animation of the preview blade above."
-            onclick="ClickRotate()" >
+            onclick="DoArgify()">
+            <i class="fa-solid fa-list"></i> Argify</button>
+          <button
+            id="ROTATE_BUTTON" title="Toggles animation of the preview blade above."
+            onclick="ClickRotate()">
+            <i class="fa-solid fa-arrows-rotate"></i> Rotate</button>
           <input
             type=button id=INHILT_BUTTON name=inhilt  value="Inhilt"
             title="Simulates In-Hilt LED blades, (no addressable pixel effects)."
