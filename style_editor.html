@@ -9561,7 +9561,7 @@ function Variant() {
 
 function updateVariantValue(newValue) {
   // Ensure values are in range, and auto-filled zeros get registered as 0.
-  if (newValue <= 0) {
+  if (isNaN(newValue) || newValue <= 0) {
     newValue = 0;
   } else if (newValue > 32768) {
     newValue = 32768;
