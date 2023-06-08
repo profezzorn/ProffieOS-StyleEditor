@@ -9326,7 +9326,7 @@ function ClickSave() {
   let textArea = FIND("style");
   let content = "/*\nSaved from ProffieOS Style Editor:\nhttps://fredrik.hubbe.net/lightsaber/style_editor.html\n*/" + "\n\n" + textArea.value;
   let blob = new Blob([content], {type: "text/plain;charset=utf-8"});
-  saveAs(blob, "style.txt");
+  saveAs(blob, "blade_style.txt");
 }
 
 var num_alternatives = 1000;
@@ -9774,7 +9774,8 @@ function ActivateTab(tab) {
             onclick="ClickSlow()" >
           <button 
             title="Save the blade style to your computer."
-            onclick="ClickSave()">Save</button>
+            onclick="ClickSave()">
+            <i class="fa-solid fa-save"></i> Save</button>
       </span>
 
     <br>
