@@ -6,11 +6,64 @@
   <!-- This should show up in search engine results. -->
   <meta name="description" content="ProffieOS Style Editor: Customize your Proffieboard saber blade animations with this browser based tool.">
   <title>ProffieOS Style Editor</title>
-<style>
 
-/* Make page elements non-selectable with drag box */
-/* Took a vote, enabled won, but disabled for now. */
-/** {
+<style>
+/*
+ * Font Awesome Free 6.4.0 by @fontawesome - https://fontawesome.com
+ * License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License)
+ * Copyright 2023 Fonticons, Inc.
+ */
+
+.fas,
+.fa-solid {
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-font-smoothing: antialiased;
+  display: var(--fa-display, inline-block);
+  font-style: normal;
+  font-variant: normal;
+  line-height: 1;
+  text-rendering: auto; }
+
+.fas,
+.fa-solid {
+  font-family: 'Font Awesome 6 Free'; }
+
+.fa-right-from-bracket::before {
+  content: "\f2f5"; }
+
+.fa-copy::before {
+  content: "\f0c5"; }
+
+.fa-up-right-and-down-left-from-center::before {
+  content: "\f424"; }
+
+.fa-layer-group::before {
+  content: "\f5fd"; }
+
+.fa-list::before {
+  content: "\f03a"; }
+
+.fa-arrows-rotate::before {
+  content: "\f021"; }
+
+.fa-save::before {
+  content: "\f0c7"; }
+
+.fa-cog::before {
+  content: "\f013"; }
+
+.fa-solid {
+  font-weight: 900; }
+
+@font-face {
+  font-family: 'Font Awesome 6 Free';
+  font-style: normal;
+  font-weight: 900;
+  font-display: block;
+  src: url("fontawesome-free-6.4.0-web/webfonts/fa-solid-900.woff2") format("woff2"), url("fontawesome-free-6.4.0-web/webfonts/fa-solid-900.ttf") format("truetype"); }
+
+/* Make page elements like buttons and whitespace non-selectable with drag box */
+/* {
   -webkit-user-select: none;
   -moz-user-select: none;
   -ms-user-select: none;
@@ -20,11 +73,18 @@
 /* Box sizing helps keep buttons uniform in
 size when padding and margins may change */
 * {
+  font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
   box-sizing: border-box;
 }
+body {
+  margin-top: -3px;
+  margin-bottom: 0;
+}
 .page-left {
+  position: relative;
   vertical-align: top;
   width: 50%;
+  padding-bottom: 30px;
 }
 .page-right {
   vertical-align: top;
@@ -80,7 +140,6 @@ input[type="button"] {
   margin-bottom: 3px;
   font-size: 14px;
   border: 1px solid #bbb;
-  font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
   font-weight: normal;
 }
 button:hover,
@@ -92,30 +151,27 @@ button:active,
 input[type="button"]:active {
   background-color: dodgerblue;
 }
+
 /* Power and Rotate latching buttons */
 .page-left .button-latched,
 .page-left .button-latched:hover {
-  background-color: dodgerblue;
+  background-color: #A1D1F3;
 }
 
 /* Variant and Alt adjusters */
-
 .variant-alt-container {
-  background: #6ADA;
+  background: #A1D1F3;
   border: 1px solid black;
-  font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
-  font-size: 15px;
-  padding: 2px;
+  border-radius: 4px;
   display: inline-block;
-  color: black;
-  white-space: nowrap;
+  padding: 4px;
 }
 .variant-label {
   margin-left: 3px;
 }
 .variant-alt-controls {
   display: inline-flex;
-  align-items: baseline;
+  align-items: center;
 }
 .variant-slider {
   -webkit-appearance: none;
@@ -164,7 +220,6 @@ input[type="button"]:active {
 .textbox {
   background-color: #eee;
   font-size: 14px;
-  font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
   width: 100%;
 }
 
@@ -254,7 +309,7 @@ span.MAGIC_CLASS_EFFECT input[type=button].btn {
 
 /* Create an active/current tablink class */
 .tab button.active {
-  background-color: #ccc;
+  background-color: #A1D1F3;
 }
 
 /* Style the tab content */
@@ -264,6 +319,62 @@ span.MAGIC_CLASS_EFFECT input[type=button].btn {
   border: 1px solid #ccc;
   border-top: none;
 }
+.tabcontent .btn {
+  border-radius: 5px;
+}
+.rgb-tabcontent {
+  color: black;
+}
+.custom-color {
+  background: #ccc;
+  text-align: center;
+  position: relative;
+}
+.rgb-tabcontent .btn {
+  border-radius: 16px;
+  width: 125px;
+}
+.rgb-tabcontent .custom-color .color-picker {
+  width: 100px;
+}
+
+.structured-view {
+  position: sticky;
+  top: 0;
+  width: 100%;
+  height: 100vh;
+  overflow-y: scroll;
+}
+.structured-view-label {
+  display: block;
+  font-size: 110%;
+  padding-top: 9px;
+  padding-bottom: 5px;
+}
+.structured-view .selected-area-container {
+  background-color: lightblue;
+}
+/* Fat font in Structured View */
+.pp span {
+  padding-left: 6px;
+  font-weight: 600;
+}
+/* Structured View style arguments borders */
+.pp-container {
+  border-color: gray;
+  border-style: solid;
+  border-width: 1px;
+  padding: 2px;
+}
+.pp-content {
+  margin-left: 1em;
+}
+/* Chartreuse highlighted borders */
+.running {
+  border-color: chartreuse;
+  border-width: 3px;
+  padding: 0px;
+}
 /* Structured View Layer buttons
 Add, Delete, Move Up, Move Down */
 .extra-buttons {
@@ -271,10 +382,102 @@ Add, Delete, Move Up, Move Down */
   line-height: 1.0em;
   font-size: 16px;
 }
+
+/* Footer */
+.footer-title {
+  min-width: 180px;
+  font-size: 16px;
+}
+.footer-container {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #eee;
+  padding: 2px 15px;
+}
+.other-sites {
+  float: right;
+  padding-right: 10px;
+  margin-left: 35px;
+}
+.footer-links {
+  display: flex;
+  align-items: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 100px;
+}
+.other-sites {
+  float: right;
+  padding-right: 10px;
+}
+.footer-links a img {
+  height: 16px;
+  width: 16px;
+  margin-right: 5px;
+}
+.footer-links a:hover {
+  color: #000;
+}
+	
+/* Popup Window */
+.popup-window.show {
+  opacity: 1;
+  pointer-events: auto;
+}
+.popup-window {
+  font-weight: 500;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 30%;
+  color: black;
+  border: 3px solid #888;
+  background: #ddd;
+  padding: 20px;
+  text-align: center;
+  border-radius: 9px;
+  box-shadow: 6px 10px 10px rgba(0, 0, 0, 0.9);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease-in-out;
+  z-index: 9999;
+}
+
+.popup-window button {
+  background-color: steelblue;
+  color: black;
+  border-radius: 5px;
+  padding: 3px 35px;
+  font-size: 20px;
+  font-weight: bold;
+  border: 1px solid black;
+  cursor: pointer;
+}
+.overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 9998;
+}
+.overlay.show {
+  display: block;
+}
+
 </style>
 
 
-<script id="vertex-shader" type="x-shader/x-vertex">
+<script id="vertex_shader" type="x-shader/x-vertex">
 precision highp float;
 attribute vec2 a_position;
 varying vec2 v_position;
@@ -287,7 +490,7 @@ void main() {
 }
 </script>
 
-<script id='hilt_graflex' type='x-shader/x-fragment'>
+<script id="hilt_graflex" type="x-shader/x-fragment">
 
 #define ITERATIONS 400
 
@@ -313,7 +516,7 @@ float RedPill(vec3 p) {
       sdCappedCylinder(p, 0.011, 0.08)));
   return dist;
 }
-  
+
 float Button(vec3 p) {
   float dist = 1000000.0;
   dist = min(dist, RedPill(p));
@@ -434,7 +637,7 @@ vec3 dorot(vec3 p) {
   p = p.yxz;
   p.x = -p.x;
   p *= rotx(-PI/2.0);
-  
+
 //  p = p  * roty(-0.4) * rotx(PI/5.0);
   //    p = p  * roty(-0.4) * rotx(PI/7.0);
   //    p = p * roty(-0.05);
@@ -503,12 +706,12 @@ Material getHiltMaterial(vec3 hp, vec3 ray_dir) {
 //  vec3 c = texture(iChannel0, tpos).xyz;
 //  return Material(vec3(0.3), 1.0-c.g, c.r*0.8 + 0.1);
 }
-													  
+
 
 
 </script>
 
-<script id='hilt_cylinder' type='x-shader/x-fragment'>
+<script id="hilt_cylinder" type="x-shader/x-fragment">
 
 #define ITERATIONS 100
 
@@ -525,7 +728,7 @@ Material getHiltMaterial(vec3 hp, vec3 ray_dir) {
 
 </script>
 
-<script id="fragment-shader" type="x-shader/x-fragment">
+<script id="fragment_shader" type="x-shader/x-fragment">
 precision highp float;
 uniform float u_time;
 varying vec2 v_position;
@@ -876,7 +1079,7 @@ float shadow(in vec3 origin, in vec3 direction) {
 
   return clamp(hit, 0.0, 1.0);
 }
-    
+
 
 
 #define saturate(x) clamp(x, 0.0, 1.0)
@@ -899,8 +1102,8 @@ void main() {
                  (v_position.y) / u_width / zoom, 2.0));
     mat4 rot3 = mat4(0.0, -1.0, 0.0, 0.0,
                      0.0, 0.0, -1.0, 0.0,
-		     1.0, 0.0, 0.0, 0.0,
-		     0.0, 0.0, 0.0, 1.0);
+                     1.0, 0.0, 0.0, 0.0,
+                     0.0, 0.0, 0.0, 1.0);
 
     mat4 rot = rot3 * u_move_matrix;
     vec3 new_eye = (rot * vec4(eye.xyz, 1.0)).xyz;
@@ -933,13 +1136,13 @@ void main() {
 
     vec3 haze_color;
     float x = march(eye, dir, haze_color);
-			  
+
     vec3 hp = eye + dir * x;
     vec3 color = vec3(0);
 
     if (x < 20.0) {
       Material mat = getMaterial(hp, dir);
-   
+
 //    vec3 normal = getNormal(hp);
 //    vec3 light_dir = light - hp;
 //    float light_dist2 = dot(light_dir, light_dir) / 10.0;
@@ -960,7 +1163,7 @@ void main() {
 //    color = haze_mix * color + (1.0 - haze_mix) * haze;
 //    color += haze_color;
 
-    
+
 //    color = sqrt(color);
 //    gl_FragColor = vec4(color, 1.0);
 
@@ -1047,11 +1250,13 @@ var width;
 var height;
 
 // Create n textures of about 1MB each.
-function initGL() { 
+function initGL() {
   AddTab("color", "Styles",effect_links.sort().join(""))
   AddTab("rgb", "Colors",
-    "<input type=color id=COLOR value='#ff0000' onclick='ClickColor()' />" +
-    qlinks.sort().join(""));
+    qlinks.sort().join("") +
+    "<div class='custom-color'>" +
+    "<label for='COLOR'>Custom color </label>" +
+    "<input type='color' id='COLOR' value='#ff0000' class='color-picker' onclick='ClickColor()' /></div>");
   AddTab("layer", "Layers", layer_links.sort().join(""));
   AddTab("function", "Functions", function_links.sort().join(""));
   AddTab("transition", "Transitions", transition_links.sort().join(""));
@@ -1103,7 +1308,7 @@ function initGL() {
   canvas.height = height * dpr;
   canvas.style.width = width + 'px';
   canvas.style.height = height + 'px';
-  
+
   gl = canvas.getContext("experimental-webgl", {colorSpace: "srgb", antialias:false});
 
   if (!gl) {
@@ -1135,9 +1340,9 @@ function initGL() {
   gl.enableVertexAttribArray(shaderProgram.a_position);
   gl.vertexAttribPointer(shaderProgram.a_position, 2, gl.FLOAT, false, 0, 0);
 
-  var texture = gl.createTexture();  
+  var texture = gl.createTexture();
   gl.bindTexture(gl.TEXTURE_2D, texture);
-    
+
   // Start the event loop.
   tick();
 }
@@ -1161,9 +1366,9 @@ class Matrix {
       for (var y = 0; y < this.h; y++) {
         var sum = 0.0;
         for (var z = 0; z < this.w; z++) {
-	  sum += this.get(z, y) * o.get(x, z);
+          sum += this.get(z, y) * o.get(x, z);
         }
-	ret.set(x, y, sum);
+        ret.set(x, y, sum);
       }
     }
     return ret;
@@ -1311,11 +1516,11 @@ function compile() {
   // Create a shader that samples a 2D image.
   var vertexShader = gl.createShader(gl.VERTEX_SHADER);
   gl.shaderSource(vertexShader,
-                  FIND("vertex-shader").textContent);
+                  FIND("vertex_shader").textContent);
   gl.compileShader(vertexShader);
 
   var fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
-  var shader_code = FIND("fragment-shader").textContent;
+  var shader_code = FIND("fragment_shader").textContent;
 
   variables = [];
 //  shader_code = shader_code.replace("$FUNCTION$", current_style.gencode());
@@ -1326,7 +1531,7 @@ function compile() {
     shader_code = shader_code.replace("$HILT$", FIND("hilt_cylinder").textContent);
   }
   // console.log(shader_code);
-  
+
   gl.shaderSource(fragmentShader, shader_code);
   gl.compileShader(fragmentShader);
   if (!gl.getShaderParameter(fragmentShader, gl.COMPILE_STATUS)) {
@@ -1366,7 +1571,7 @@ function setvar(variable, val) {
   if (vartypes[variable] == "float") {
     gl.uniform1f(gl.getUniformLocation(shaderProgram, variable),  val);
     return;
-  } 
+  }
   if (vartypes[variable] == "int") {
     gl.uniform1i(gl.getUniformLocation(shaderProgram, variable),  val);
     return;
@@ -1494,7 +1699,7 @@ class STYLE {
     } catch(e) {
       if (typeof(e) == "string") {
         e = new MyError(e + " for argument " + (this.argnum + 1) + " (" + name + ")");
-	e.setArg(this.args[this.argnum]);
+        e.setArg(this.args[this.argnum]);
       }
       throw e;
     }
@@ -1527,7 +1732,7 @@ class STYLE {
      finally {
        arg.COMMENT = C;
      }
-     return ret; 
+     return ret;
   }
 
   DescribeValue(arg) {
@@ -1584,11 +1789,11 @@ class STYLE {
     if (arguments.length > 2 || this.argdefs.length > 0) {
       ret += "<";
       for (var i = 2; i < arguments.length; i += 2) {
-	if (comma) ret += ",";
-	comma = true;
-	var V = this.DescribeValue(arguments[i]);
-	var arg = this.Indent(V);
-	ret += arg;
+        if (comma) ret += ",";
+        comma = true;
+        var V = this.DescribeValue(arguments[i]);
+        var arg = this.Indent(V);
+        ret += arg;
       }
       ret += ">";
     }
@@ -1611,9 +1816,9 @@ class STYLE {
       ret += "/* "+this.COMMENT.split("\n").join("<br>")+" */<br>";
       console.log("RET = " + ret);
     }
-    ret += "<div id=X"+id+" style='border-style:solid;border-width:1px;border-color:gray;' onclick='FocusOn("+id+",event)'>\n";
-    ret += "<span title='"+ note +"'>" + name + "</span>&lt;\n";
-    ret += "<div style='margin-left:1em'>\n";
+    ret += "<div id=X" + id + " class='pp-container' onclick='FocusOn(" + id + ",event)'>\n";
+    ret += "<span title='" + note + "'>" + name + "</span>&lt;\n";
+    ret += "<div class='pp-content'>\n";
     var comma = false;
     for (var i = 2; i < arguments.length; i += 2) {
       if (comma) ret += ",<br>";
@@ -1622,19 +1827,19 @@ class STYLE {
       var note = arguments[i+1];
       var comment = null;
       if (typeof(arg) == "number") {
-	arg = "" + arg;
+        arg = "" + arg;
       } else {
         comment = arg.COMMENT;
-	arg = this.call_pp_no_comment(arg);
+        arg = this.call_pp_no_comment(arg);
       }
       if (arg.indexOf("<br>") == -1 && arg.indexOf("<div") == -1 && !comment) {
-	ret += arg+" /* "+note+" */\n";
+        ret += arg+" /* "+note+" */\n";
       } else {
-	ret += "/* "+note+" */"+ this.extraButtons(i/2) +"<br>\n";
-	if (comment) {
-	  ret += "/* "+comment+" */<br>\n";
+        ret += "/* "+note+" */"+ this.extraButtons(i/2) +"<br>\n";
+        if (comment) {
+          ret += "/* "+comment+" */<br>\n";
         }
-	ret += arg;
+        ret += arg;
       }
     }
     ret += "</div>&gt;</div>\n";
@@ -1648,23 +1853,23 @@ class STYLE {
     }
     var id = this.get_id();
     var ret = this.gencomment();
-    ret += "<div id=X"+id+" style='border-style:solid;border-width:1px;border-color:gray;' onclick='FocusOn("+id+",event)'>\n";
-    ret += "<span title='"+ note +"'>" + name + "</span>\n";
+    ret += "<div id=X" + id + " class='pp-container' onclick='FocusOn(" + id + ",event)'>\n";
+    ret += "<span title='" + note + "'>" + name + "</span>\n";
 
     if (arguments.length > 2) {
       ret += "&lt;";
       var comma = false;
       for (var i = 2; i < arguments.length; i += 2) {
-	if (comma) ret += ",";
-	comma = true;
-	var arg = arguments[i];
-	var note = arguments[i+1];
-	if (typeof(arg) == "number") {
-	  ret += "<span title='"+note+"'>"+arg+"</span>";
-	} else {
-	  ret += "<span>/* "+note+" */</span><br>\n";
-	  ret += arg.pp();
-	}
+        if (comma) ret += ",";
+        comma = true;
+        var arg = arguments[i];
+        var note = arguments[i+1];
+        if (typeof(arg) == "number") {
+          ret += "<span title='"+note+"'>"+arg+"</span>";
+        } else {
+          ret += "<span>/* "+note+" */</span><br>\n";
+          ret += arg.pp();
+        }
       }
       ret += "&gt;";
     }
@@ -1727,12 +1932,12 @@ class STYLE {
         console.log("SET RIGHT SIDE NON-MATCH");
         return;
       }
-      
+
       var l_arg = this[this.argdefs[i].name];
       var r_arg = right[this.argdefs[i].name];
       if (typeof(l_arg) == "object" && typeof(r_arg) == "object") {
         l_arg.set_right_side(r_arg);
-      }	
+      }
     }
   }
 
@@ -1752,9 +1957,9 @@ class STYLE {
       var container = this.get_container();
       if (container) {
         if (this.IS_RUNNING()) {
-          container.style["border-color"] = 'yellow';
+          container.classList.add('running');
         } else {
-          container.style["border-color"] = 'gray';
+          container.classList.remove('running');
         }
       }
     }
@@ -1787,7 +1992,7 @@ class MACRO extends STYLE {
   IS_RUNNING() {
     if (this.expansion.IS_RUNNING)
       return this.expansion.IS_RUNNING();
-    return false;      
+    return false;
   }
   bend(t, len, scale) {
     if (this.expansion.bend)
@@ -1887,18 +2092,18 @@ class EnumBuilder {
           for (var i = 0; i < v.length; i++) {
             var V = parseInt(v[i]);
             var N = this.constructor.value_to_name[V];
-  	    ret += "<option value="+V;
+            ret += "<option value="+V;
             if (this.value == V) ret+=" selected";
-	    ret += ">"+N+"</option>";
-	  }
+            ret += ">"+N+"</option>";
+          }
           ret += "</select>";
-	  return ret;
-	}
+          return ret;
+        }
 
 
         var ret = this.gencomment() + this.value;
         if (this.constructor.value_to_name[this.value]) {
-	  ret = this.constructor.prefix + this.constructor.value_to_name[this.value];
+          ret = this.constructor.prefix + this.constructor.value_to_name[this.value];
         }
         return this.PPshort(ret, this.getType());
       }
@@ -1910,7 +2115,7 @@ class EnumBuilder {
 
     function ENUM(value) { return new ENUMClass(value); }
     window[this.name] = ENUM;
-    
+
     var v = Object.keys(this.value_to_name);
     for (var i = 0; i < v.length; i++) {
       var V = parseInt(v[i]);
@@ -2098,19 +2303,19 @@ class CONFIG extends STYLE {
       var arg = arguments[i];
       var note = arguments[i+1];
       if (typeof(arg) == "number") {
-	arg = "" + arg;
+        arg = "" + arg;
       } else {
-	arg = arg.pp();
+        arg = arg.pp();
       }
       var comment = arg.COMMENT;
       if (arg.indexOf("<br>") == -1 && arg.indexOf("<div") == -1 && !comment) {
-	ret += arg+" /* "+note+" */\n";
+        ret += arg+" /* "+note+" */\n";
       } else {
-	ret += "/* "+note+" */<br>\n";
-	if (comment) {
-	  ret += "/* "+comment+" */<br>\n";
+        ret += "/* "+note+" */<br>\n";
+        if (comment) {
+          ret += "/* "+comment+" */<br>\n";
         }
-	ret += arg;
+        ret += arg;
       }
     }
     ret += "</div>&gt;\n";
@@ -2188,9 +2393,9 @@ class RgbClass extends STYLE {
   pp() {
     if (this.name) return this.PPshort(this.name,"Color");
     return this.PPshort("Rgb",  "RGB Color",
-			Math.round(this.r*255), "Red component",
-			Math.round(this.g*255), "Green component",
-			Math.round(this.b*255), "Blue component");
+                        Math.round(this.r*255), "Red component",
+                        Math.round(this.g*255), "Green component",
+                        Math.round(this.b*255), "Blue component");
   }
   mix(other, blend) {
     var ret = new RgbClass(0,0,0);
@@ -2216,7 +2421,7 @@ class RgbClass extends STYLE {
     ret.a = this.a * (1.0 - other.a) + other.a;
     return ret;
   }
-  
+
   // angle = 0 - 98304 (32768 * 3) (non-inclusive)
   rotate(angle) {
     var H;
@@ -2280,9 +2485,9 @@ class Rgb16Class extends RgbClass {
   pp() {
     if (this.name) return this.PPshort(this.name,"Color");
     return this.PPshort("Rgb16",  "RGB Color",
-			Math.round(this.r*65535), "Red component",
-			Math.round(this.g*65535), "Green component",
-			Math.round(this.b*65535), "Blue component");
+                        Math.round(this.r*65535), "Red component",
+                        Math.round(this.g*65535), "Green component",
+                        Math.round(this.b*65535), "Blue component");
   }
 };
 
@@ -2368,7 +2573,7 @@ function DownLayer(id, arg, event) {
   var layer = style_ids[id];
   var new_layer = new LayersClass( [layer.BASE].concat(layer.LAYERS.slice(0, arg),
                                     [layer.LAYERS[arg+1], layer.LAYERS[arg]],
-				    layer.LAYERS.slice(arg+2)) );
+                                    layer.LAYERS.slice(arg+2)) );
   ReplaceNode(layer, new_layer);
 }
 
@@ -2496,14 +2701,53 @@ function mapcolor(x) {
   x = Math.pow(x, 1.0/2.2);
   return Math.round(x * 255);
 }
+
+function rgbToHsl(r, g, b) {
+  r /= 255, g /= 255, b /= 255;
+
+  var max = Math.max(r, g, b);
+  var min = Math.min(r, g, b);
+  var h, s, l = (max + min) / 2;
+
+  if (max == min) {
+    h = s = 0; // achromatic
+  } else {
+    var d = max - min;
+    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+
+    switch (max) {
+      case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+      case g: h = (b - r) / d + 2; break;
+      case b: h = (r - g) / d + 4; break;
+    }
+
+    h /= 6;
+  }
+
+  return [ h, s, l ];
+}
+
+
 function mkcolorbutton(name, r, g, b) {
   r = mapcolor(r);
   g = mapcolor(g);
   b = mapcolor(b);
-  var color = "rgb("+r+","+g+","+b+")";
-  if (r == 0 && g == 0 && b == 0) color = "white";
-  return "<input type=button style='border: 1px solid black;padding:8px;color:black;background:"+color+"' class=btn onclick='SetTo(\""+name+"\")' value='"+enc(name)+"'>\n";
+  var hsl = rgbToHsl(r, g, b);
+  console.log("mkcolorbutton:name="+name+"  rgb="+r+","+g+","+b+"    hsl="+hsl[0]+","+hsl[1]+","+hsl[2]+"  ");
+  var sortString;
+  if (hsl[1] == 0.0) {
+    sortString = "C:"+hsl[2];
+  } else if (hsl[1] < 0.3 || hsl[2] > 0.8 || hsl[2] < 0.2) {
+    sortString = "B:"+hsl[0];
+  } else {
+    sortString = "A:"+hsl[0];
+  }
+  var bgColor = "rgb("+r+","+g+","+b+")";
+  if (r == 0 && g == 0 && b == 0) bgColor = "black"
+  var textColor = (name === "Black" || name === "Blue") ? "white" : "black";
+  return "<input srt='"+sortString+"' type=button style='border: 1px solid black;padding:8px;color:"+textColor+";background:"+bgColor+"' class=btn onclick='SetTo(\""+name+"\")' value='"+enc(name)+"'>\n";
 }
+
 function AddColor(name, r, g, b) {
   colorNames[r+","+g+","+b] = name;
   qlinks.push(mkcolorbutton(name, r, g, b));
@@ -2845,8 +3089,8 @@ class Range {
 
 class ColorCycleClass extends STYLE {
   constructor(COLOR, percentage, rpm,
-	      ON_COLOR, on_percentage, on_rpm,
-	      fade_time_millis) {
+              ON_COLOR, on_percentage, on_rpm,
+              fade_time_millis) {
     super();
     this.COLOR = ColorArg(COLOR);
     this.percentage = IntArg(percentage);
@@ -2892,29 +3136,29 @@ class ColorCycleClass extends STYLE {
   }
   pp() {
     return this.PP("ColorCycle", "Rotating beam",
-		   this.COLOR, "beam color",
-		   this.percentage, "percentage of blade lit",
-		   this.rpm, "rotation speed",
-		   this.ON_COLOR, "beam color when on",
-		   this.on_percentage, "percentage of blade lit when on",
-		   this.on_rpm, "rotation speed when on",
-		   this.fade_time_millis, "time to transition to/from on state");
+                   this.COLOR, "beam color",
+                   this.percentage, "percentage of blade lit",
+                   this.rpm, "rotation speed",
+                   this.ON_COLOR, "beam color when on",
+                   this.on_percentage, "percentage of blade lit when on",
+                   this.on_rpm, "rotation speed when on",
+                   this.fade_time_millis, "time to transition to/from on state");
   }
 };
 
 function ColorCycle(COLOR, percentage, rpm,
-	       ON_COLOR, on_percentage, on_rpm,
-	       fade_time_millis) {
+               ON_COLOR, on_percentage, on_rpm,
+               fade_time_millis) {
   return new ColorCycleClass(COLOR, percentage, rpm,
-			     ON_COLOR, on_percentage, on_rpm,
-			     fade_time_millis);
+                             ON_COLOR, on_percentage, on_rpm,
+                             fade_time_millis);
 }
 
 
 class CylonClass extends STYLE {
   constructor(COLOR, percentage, rpm,
-	      ON_COLOR, on_percentage, on_rpm,
-	      fade_time_millis) {
+              ON_COLOR, on_percentage, on_rpm,
+              fade_time_millis) {
     super();
     this.COLOR = ColorArg(COLOR);
     this.percentage = IntArg(percentage);
@@ -2957,22 +3201,22 @@ class CylonClass extends STYLE {
   }
   pp() {
     return this.PP("Cylon", "Rotating beam",
-		   this.COLOR, "beam color",
-		   this.percentage, "percentage of blade lit",
-		   this.rpm, "rotation speed",
-		   this.ON_COLOR, "beam color when on",
-		   this.on_percentage, "percentage of blade lit when on",
-		   this.on_rpm, "rotation speed when on",
-		   this.fade_time_millis, "time to transition to/from on state");
+                   this.COLOR, "beam color",
+                   this.percentage, "percentage of blade lit",
+                   this.rpm, "rotation speed",
+                   this.ON_COLOR, "beam color when on",
+                   this.on_percentage, "percentage of blade lit when on",
+                   this.on_rpm, "rotation speed when on",
+                   this.fade_time_millis, "time to transition to/from on state");
   }
 };
 
 function Cylon(COLOR, percentage, rpm,
-	       ON_COLOR, on_percentage, on_rpm,
-	       fade_time_millis) {
+               ON_COLOR, on_percentage, on_rpm,
+               fade_time_millis) {
   return new CylonClass(COLOR, percentage, rpm,
-			ON_COLOR, on_percentage, on_rpm,
-			fade_time_millis);
+                        ON_COLOR, on_percentage, on_rpm,
+                        fade_time_millis);
 }
 
 class OnSparkFClass extends FUNCTION {
@@ -3123,13 +3367,13 @@ class SparkleFClass extends FUNCTION {
       var fifo = 0
       var N = blade.num_leds();
       for (var i = 2; i <= N + 2; i++) {
-	var x = ((this.sparks[i-1] + this.sparks[i+1]) * 200 + this.sparks[i] * 570) / 1024;
-	this.sparks[i-1] = fifo;
-	fifo = x;
+        var x = ((this.sparks[i-1] + this.sparks[i+1]) * 200 + this.sparks[i] * 570) / 1024;
+        this.sparks[i-1] = fifo;
+        fifo = x;
       }
       this.sparks[N] = fifo;
       if (random(1000) < this.SPARK_CHANCE_PROMILLE) {
-	this.sparks[random(blade.num_leds()) + 2] += this.SPARK_INTENSITY;
+        this.sparks[random(blade.num_leds()) + 2] += this.SPARK_INTENSITY;
       }
     }
   }
@@ -3188,7 +3432,7 @@ class StrobeFClass extends FUNCTION {
     if (m - this.strobe_start_ > timeout) {
       this.strobe_start_ += timeout;
       if (m - this.strobe_start_ > strobe_millis + (1000 / strobe_frequency))
-	this.strobe_start_ = m;
+        this.strobe_start_ = m;
       this.strobe_ = !this.strobe_;
     }
   }
@@ -3313,13 +3557,13 @@ class IgnitionDelayXClass extends STYLE {
     this.blade = blade;
     if (blade.is_on()) {
       if (!this.waiting) {
-	this.waiting = true;
-	this.wait_start_time = millis();
+        this.waiting = true;
+        this.wait_start_time = millis();
       }
       var waited = millis() - this.wait_start_time;
       if (waited > delay_millis) {
-	this.is_on_ = true;
-	this.wait_start_time = millis() - delay_millis - 1;
+        this.is_on_ = true;
+        this.wait_start_time = millis() - delay_millis - 1;
       }
     } else {
       this.waiting = false;
@@ -3368,13 +3612,13 @@ class RetractionDelayXClass extends STYLE {
     this.blade = blade;
     if (!blade.is_on()) {
       if (!this.waiting) {
-	this.waiting = true;
-	this.wait_start_time = millis();
+        this.waiting = true;
+        this.wait_start_time = millis();
       }
       var waited = millis() - this.wait_start_time;
       if (waited > delay_millis) {
-	this.is_on_ = false;
-	this.wait_start_time = millis() - delay_millis - 1;
+        this.is_on_ = false;
+        this.wait_start_time = millis() - delay_millis - 1;
       }
     } else {
       this.waiting = false;
@@ -3420,7 +3664,7 @@ class RandomBlinkFClass extends FUNCTION {
       }
     }
   }
-  
+
   getInteger(led) {
     return this.state[led] ? 32768 : 0;
   }
@@ -3548,7 +3792,7 @@ class ColorSequenceClass extends STYLE {
     if (now - this.last_micros > millis_per_color * 1000) {
       if (now - this.last_micros > millis_per_color * 10000) {
         this.n = 0;
-	this.last_micros = now;
+        this.last_micros = now;
       } else {
         this.n = (this.n + 1) % this.COLORS.length;
         this.last_micros += millis_per_color * 1000;
@@ -3769,7 +4013,7 @@ class RemapClass extends STYLE {
     led = clamp(led >> 15, 0, this.num_leds);
     return this.COLOR.getColor(led).mix(
         this.COLOR.getColor(min(led + 1, this.num_leds - 1)),
-	fraction / 32768);
+        fraction / 32768);
   }
 }
 
@@ -3952,15 +4196,15 @@ class StyleFireClass extends STYLE {
       conf = this.CLASH;
     } else if (this.On(blade)) {
       if (STATE_LOCKUP == 0) {
-	conf = this.NORM;
+        conf = this.NORM;
       } else {
-	conf = this.LOCK;
+        conf = this.LOCK;
       }
     }
 
     for (var i = 0; i < this.SPEED; i++) {
       this.heat[num_leds + i] = conf.intensity_base +
-	random(random(random(conf.intensity_rand)));
+        random(random(random(conf.intensity_rand)));
     }
     for (var i = 0; i < num_leds; i++) {
       var x = (this.heat[i + this.SPEED-1] * 3 + this.heat[i + this.SPEED] * 10 + this.heat[i + this.SPEED +1] * 3) >> 4;
@@ -4059,9 +4303,9 @@ function AddPreon() {
 }
 
 var blast_hump = [ 255,255,252,247,240,232,222,211,
-		   199,186,173,159,145,132,119,106,
-		   94,82,72,62,53,45,38,32,
-		   26,22,18,14,11,9,7,5,0 ];
+                   199,186,173,159,145,132,119,106,
+                   94,82,72,62,53,45,38,32,
+                   26,22,18,14,11,9,7,5,0 ];
 
 class BlastFClass extends FUNCTION {
   constructor(FADEOUT_MS, WAVE_SIZE, WAVE_MS, EFFECT_ARG) {
@@ -4083,11 +4327,11 @@ class BlastFClass extends FUNCTION {
       var T = (this.T - this.effects_[i].start_micros);
       var M = 1000 - T / this.FADEOUT_MS;
       if (M > 0) {
-	var dist = Math.abs(this.effects_[i].location - led / this.num_leds_);
-	var N = Math.floor(Math.abs(dist - T / (this.WAVE_MS * 1000.0)) * this.WAVE_SIZE);
-	if (N < 32) {
-	  b += blast_hump[N] * M / 1000.0 / 255.0;
-	}
+        var dist = Math.abs(this.effects_[i].location - led / this.num_leds_);
+        var N = Math.floor(Math.abs(dist - T / (this.WAVE_MS * 1000.0)) * this.WAVE_SIZE);
+        if (N < 32) {
+          b += blast_hump[N] * M / 1000.0 / 255.0;
+        }
       }
     }
     return clamp(b * 32768, 0, 32768);
@@ -4155,7 +4399,7 @@ class BlastFadeoutFClass extends FUNCTION {
       var T = (this.T - this.effects_[i].start_micros);
       var M = 1000 - T / this.FADEOUT_MS;
       if (M > 0) {
-	b += M / 1000.0;
+        b += M / 1000.0;
       }
     }
     return clamp(b * 32768.0, 0, 32768.0);
@@ -4216,9 +4460,9 @@ class OriginalBlastFClass extends FUNCTION {
       var T = (this.T - this.effects_[i].start_micros);
       var t = 0.5 + T / 200000.0;
       if (x == 0.0) {
-	b += 1.0 / (t * t);
+        b += 1.0 / (t * t);
       } else {
-	b += sin(x / (t*t)) / x;
+        b += sin(x / (t*t)) / x;
       }
     }
     return min(b, 1.0) * 32768;
@@ -4273,9 +4517,9 @@ class BlinkingFClass extends FUNCTION {
     if (pulse_progress_micros > pulse_millis * 1000) {
       // Time to start a new pulse
       if (pulse_progress_micros < pulse_millis * 2000) {
-	this.pulse_start_micros_ += pulse_millis * 1000;
+        this.pulse_start_micros_ += pulse_millis * 1000;
       } else {
-	this.pulse_start_micros_ = now;
+        this.pulse_start_micros_ = now;
       }
       pulse_progress_micros = now - this.pulse_start_micros_;
     }
@@ -4437,7 +4681,7 @@ class LocalizedClashLClass extends STYLE {
       }
     }
     return ret;
-  } 
+  }
   IS_RUNNING() {
     return this.clash;
   }
@@ -4480,7 +4724,7 @@ class LockupLClass extends STYLE {
     this.add_arg("LB_SHAPE", "FUNCTION", "Lightning block shape",
             LayerFunctions(Bump(Scale(SlowNoise(Int(2000)),Int(3000),Int(16000)),
                                 Scale(BrownNoiseF(Int(10)),Int(14000),Int(8000))),
-	                   Bump(Scale(SlowNoise(Int(2300)),Int(26000),Int(8000)),
+                           Bump(Scale(SlowNoise(Int(2300)),Int(26000),Int(8000)),
                                 Scale(NoisySoundLevel(),Int(5000),Int(10000))),
                            Bump(Scale(SlowNoise(Int(2300)),Int(20000),Int(30000)),
                                 Scale(IsLessThan(SlowNoise(Int(1500)),Int(8000)),Scale(NoisySoundLevel(),Int(5000),Int(0)),Int(0)))));
@@ -4561,29 +4805,29 @@ class LockupTrLClass extends STYLE {
     switch (this.active) {
        case "inactive":
           if (STATE_LOCKUP == this.LOCKUP_TYPE) {
-	    if (this.CONDITION.getInteger(0)) {
-	      this.active = "active";
-	      this.BEGIN_TR.begin();
-	      this.begin_active = true;
-	    } else {
-	      this.active = "skipped";
-	    }
-	  }
-	  break;
+            if (this.CONDITION.getInteger(0)) {
+              this.active = "active";
+              this.BEGIN_TR.begin();
+              this.begin_active = true;
+            } else {
+              this.active = "skipped";
+            }
+          }
+          break;
        case "active":
          if (STATE_LOCKUP != this.LOCKUP_TYPE) {
            this.END_TR.begin();
            this.end_active = true;
            this.active = "inactive";
-	 }
-	 break;
+         }
+         break;
        case "skipped":
          if (STATE_LOCKUP != this.LOCKUP_TYPE) {
            this.active = "inactive";
-	 }
-	 break;
+         }
+         break;
     }
-         
+
 
     if (this.begin_active) {
       this.BEGIN_TR.run(blade);
@@ -4758,15 +5002,15 @@ class OneshotEffectDetector {
     if (this.type_ ==  EFFECT_CLASH && !(current_style.__handled_types[EFFECT_STAB])) {
       mask[EFFECT_STAB] = 1;
     }
-    
+
     var effects = blade.GetEffects();
     for (var i = effects.length -1 ; i >=0 ; i--) {
       if (mask[effects[i].type]) {
         if (effects[i].start_micros == this.last_detected_)
-	  return 0;
-	this.last_detected_ = effects[i].start_micros;
+          return 0;
+        this.last_detected_ = effects[i].start_micros;
         last_detected_blade_effect = effects[i];
-	return effects[i];
+        return effects[i];
       }
     }
     return 0;
@@ -4778,7 +5022,7 @@ class OneshotEffectDetector {
     for (var i = effects.length -1 ; i >=0 ; i--)
       if (mask[effects[i].type])
         if (effects[i].start_micros == this.last_detected_)
-	  return effects[i];
+          return effects[i];
     return 0;
   }
 };
@@ -4844,7 +5088,7 @@ class StyleRainbowPtrClass extends MACRO {
     this.add_arg("IN_MS", "INT", "retraction length in milliseconds");
     this.add_arg("CLASH_COLOR", "COLOR", "Clash color", WHITE.DOCOPY());
     this.add_arg("LOCKUP_FLICKER_COLOR", "COLOR", "lockup flicker color", WHITE.DOCOPY());
-    
+
     var tmp = AudioFlicker(Rainbow(), this.LOCKUP_FLICKER_COLOR);
     tmp = Lockup(Rainbow(), tmp);
     tmp = SimpleClash(tmp, this.CLASH_COLOR);
@@ -4865,7 +5109,7 @@ class StyleStrobePtrClass extends MACRO {
     this.add_arg("FREQUENCY", "INT", "frequency");
     this.add_arg("OUT_MS", "INT", "extension length in milliseconds");
     this.add_arg("IN_MS", "INT", "retraction length in milliseconds");
-    
+
     var strobe = Strobe(BLACK.DOCOPY(), this.STROBE_COLOR, this.FREQUENCY, 1);
     var fast_strobe = Strobe(BLACK.DOCOPY(), this.STROBE_COLOR.DOCOPY(), this.FREQUENCY * 3, 1);
     var tmp = Lockup(strobe, fast_strobe);
@@ -4880,11 +5124,11 @@ function StyleStrobePtr(strobe_color, clash_color, frequency, out_ms, in_ms) {
 
 class StyleFirePtrClass extends MACRO {
   constructor(COLOR1, COLOR2,
-		      BLADE_NUM, DELAY, SPEED,
-		      NORM_BASE, NORM_RAND, NORM_COOL,
-		      CLSH_BASE, CLSH_RAND, CLSH_COOL,
-		      LOCK_BASE, LOCK_RAND, LOCK_COOL,
-		      OFF_BASE, OFF_RAND, OFF_COOL) {
+                      BLADE_NUM, DELAY, SPEED,
+                      NORM_BASE, NORM_RAND, NORM_COOL,
+                      CLSH_BASE, CLSH_RAND, CLSH_COOL,
+                      LOCK_BASE, LOCK_RAND, LOCK_COOL,
+                      OFF_BASE, OFF_RAND, OFF_COOL) {
     super("Fire Blade", arguments);
     this.add_arg("COLOR1", "COLOR", "Warm color.");
     this.add_arg("COLOR2", "COLOR", "Hot color.");
@@ -4917,11 +5161,11 @@ class StyleFirePtrClass extends MACRO {
 };
 
 function StyleFirePtr(COLOR1, COLOR2,
-		      BLADE_NUM, DELAY, SPEED,
-		      NORM_BASE, NORM_RAND, NORM_COOL,
-		      CLSH_BASE, CLSH_RAND, CLSH_COOL,
-		      LOCK_BASE, LOCK_RAND, LOCK_COOL,
-		      OFF_BASE, OFF_RAND, OFF_COOL) {
+                      BLADE_NUM, DELAY, SPEED,
+                      NORM_BASE, NORM_RAND, NORM_COOL,
+                      CLSH_BASE, CLSH_RAND, CLSH_COOL,
+                      LOCK_BASE, LOCK_RAND, LOCK_COOL,
+                      OFF_BASE, OFF_RAND, OFF_COOL) {
   return new StyleFirePtrClass(COLOR1, COLOR2,
       BLADE_NUM, DELAY, SPEED,
       NORM_BASE, NORM_RAND, NORM_COOL,
@@ -5017,12 +5261,12 @@ class InOutSparkTipClass extends STYLE {
     this.last_micros_ = now;
     if (blade.is_on()) {
       if (this.extension == 0.0) {
-	// We might have been off for a while, so delta might
-	// be insanely high.
-	this.extension = 0.00001;
+        // We might have been off for a while, so delta might
+        // be insanely high.
+        this.extension = 0.00001;
       } else {
-	this.extension += delta / (this.OUT_MILLIS * 1000.0);
-	this.extension = Math.min(this.extension, 1.0);
+        this.extension += delta / (this.OUT_MILLIS * 1000.0);
+        this.extension = Math.min(this.extension, 1.0);
       }
     } else {
       this.extension -= delta / (this.IN_MILLIS * 1000.0);
@@ -5140,7 +5384,7 @@ class IntSelectClass extends FUNCTION {
 function IntSelect(ARGS) {
   return new IntSelectClass(Array.from(arguments));
 }
-	       
+
 class TransitionLoopLClass extends STYLE {
   constructor(TRANSITION) {
     super("Continiously loop a transition",arguments);
@@ -5196,9 +5440,9 @@ class MultiTransitionEffectLClass extends STYLE {
     for (var i = 0; i < this.N; i++) {
       if (this.running[i]) {
         this.TRANSITIONS[i].run(blade);
-	if (this.TRANSITIONS[i].done()) {
-	  this.running[i] = false;
-	}
+        if (this.TRANSITIONS[i].done()) {
+          this.running[i] = false;
+        }
       }
     }
   }
@@ -5358,10 +5602,10 @@ class InOutTrLClass extends STYLE {
       this.on_ = blade.is_on();
       if (this.on_) {
         this.OUT_TR.begin();
-	this.out_active_ = true;
+        this.out_active_ = true;
       } else {
         this.IN_TR.begin();
-	this.in_active_ = true;
+        this.in_active_ = true;
       }
     }
 
@@ -5510,7 +5754,7 @@ class BendTimePowXClass extends TIME_FUNCTION {
 }
 
 function BendTimePowX(MILLIS, BEND_FUNCTION) {
-  return new BendTimePowXClass(MILLIS, BEND_FUNCTION);    
+  return new BendTimePowXClass(MILLIS, BEND_FUNCTION);
 }
 
 class ReverseTimeXClass extends TIME_FUNCTION {
@@ -5588,7 +5832,7 @@ class TrInstantClass extends TRANSITION {
   run(blade) {}
   begin() {}
   done() { return true; }
-  getColor(A, B, led) { return B; }  
+  getColor(A, B, led) { return B; }
 };
 
 function TrInstant() { return new TrInstantClass(); }
@@ -5802,7 +6046,7 @@ class TrWipeInXClass extends TRANSITION_BASE {
     this.num_leds_ = blade.num_leds();
     this.fade_ = new Range(this.num_leds_-
                            this.update(this.num_leds_),
-			   this.num_leds_);
+                           this.num_leds_);
   }
   getColor(A, B, led) {
     var mix = this.fade_.Intersect(new Range(led, (led + 1))).Size();
@@ -6197,7 +6441,7 @@ class TrConcatClass extends TRANSITION {
     return this.ARGS[this.pos_].getColor(A, B, led);
   }
 };
-  
+
 function TrConcat(ARGS) {
   return new TrConcatClass(Array.from(arguments));
 }
@@ -6327,8 +6571,8 @@ class TrExtendXClass extends TRANSITION {
   run(blade) {
     this.TRANSITION.run(blade);
     if (!this.extending && this.TRANSITION.done()) {
-       	this.extending = true;
-	this.millis.begin();
+        this.extending = true;
+        this.millis.begin();
     }
     if (this.extending) {
        this.millis.run(blade);
@@ -6582,7 +6826,7 @@ class TrLoopUntilClass extends TRANSITION {
     if (!this.pulsed) {
       if (this.PULSE.getInteger(0)) {
         this.OUT.begin();
-	this.pulsed = true;
+        this.pulsed = true;
       }
     }
     if (this.pulsed) {
@@ -6630,7 +6874,7 @@ class VolumeLevelClass extends FUNCTION {
 function VolumeLevel() {
   return new VolumeLevelClass();
 }
-	
+
 class BumpClass extends FUNCTION {
   constructor() {
     super("Function returning a bump shape", arguments);
@@ -6732,7 +6976,7 @@ class InOutFuncXClass extends FUNCTION {
         this.extension = 0.00001;
       } else {
         this.extension += delta / (this.OUT_MILLIS.getInteger(0) * 1000.0);
-	this.extension = Math.min(this.extension, 1.0);
+        this.extension = Math.min(this.extension, 1.0);
       }
     } else {
       this.extension -= delta / (this.IN_MILLIS.getInteger(0) * 1000.0);
@@ -6954,19 +7198,19 @@ class TriggerClass extends FUNCTION {
         case TRIGGER_DELAY:
           this.value = 0;
           return;
-	      case TRIGGER_ATTACK:
+        case TRIGGER_ATTACK:
           this.value = t * 32768.0 / micros_for_state;
-	        return;
+          return;
         case TRIGGER_SUSTAIN:
           this.value = 32768;
-	      return;
+          return;
         case TRIGGER_RELEASE:
-    	    this.value = 32768 - t * 32768 / micros_for_state;
-    	    return;
+          this.value = 32768 - t * 32768 / micros_for_state;
+          return;
         case TRIGGER_OFF:
-    	    this.value = 0;
-    	    return;
-	}
+          this.value = 0;
+          return;
+        }
       }
       if (this.TRIGGER_STATE >= 4) throw "Weird state?";
       this.trigger_state++;
@@ -7213,7 +7457,7 @@ class LayerFunctionsClass extends FUNCTION {
     super("Mix functions", ARGS);
     this.LAYERS = Array.from(ARGS);
     for (var i = 1; i < this.LAYERS.length + 1; i++)
-      this.add_arg("FUNCTION" + i, "FUNCTION", "COLOR " + i);
+      this.add_arg("FUNCTION" + i, "FUNCTION", "FUNCTION " + i);
   }
   getInteger(led) {
     var ret = 0;
@@ -7763,9 +8007,9 @@ class ResponsiveLockupLClass extends MACRO {
     this.add_arg("BOTTOM", "FUNCTION", "lowermost lockup limit", Int(6000));
     this.add_arg("SIZE", "FUNCTION", "lockup size", Scale(SwingSpeed(100), Int(9000), Int(14000)));
     this.SetExpansion(LockupTrL(AlphaL(COLOR, Bump(Scale(BladeAngle(), this.TOP, this.BOTTOM), this.SIZE)),
-    				       this.TR1,
-    				       this.TR2,
-				       LOCKUP_TYPE(LOCKUP_NORMAL)));;
+                                       this.TR1,
+                                       this.TR2,
+                                       LOCKUP_TYPE(LOCKUP_NORMAL)));;
   }
   argify(state) {
     state.color_argument = LOCKUP_COLOR_ARG;
@@ -7788,9 +8032,9 @@ class ResponsiveDragLClass extends MACRO {
     this.add_arg("SIZE1", "FUNCTION", "lower twist limit", Int(2000));
     this.add_arg("SIZE2", "FUNCTION", "upper twist limit", Int(10000));
     this.SetExpansion(LockupTrL(AlphaL(COLOR, SmoothStep(Int(32000), Scale(TwistAngle(), this.SIZE1, this.SIZE2))),
-    				       this.TR1,
-    				       this.TR2,
-				       LOCKUP_TYPE(LOCKUP_DRAG)));
+                                       this.TR1,
+                                       this.TR2,
+                                       LOCKUP_TYPE(LOCKUP_DRAG)));
   }
   argify(state) {
     state.color_argument = DRAG_COLOR_ARG;
@@ -7813,9 +8057,9 @@ class ResponsiveMeltLClass extends MACRO {
     this.add_arg("SIZE1", "FUNCTION", "lower twist limit", Int(4000));
     this.add_arg("SIZE2", "FUNCTION", "upper twist limit", Int(10000));
     this.SetExpansion(LockupTrL(AlphaL(this.COLOR, SmoothStep(Int(30000), Scale(TwistAngle(), this.SIZE1, this.SIZE2))),
-    				       this.TR1,
-    				       this.TR2,
-				       LOCKUP_TYPE(LOCKUP_MELT)));
+                                       this.TR1,
+                                       this.TR2,
+                                       LOCKUP_TYPE(LOCKUP_MELT)));
   }
 };
 
@@ -7866,8 +8110,8 @@ class ResponsiveClashLClass extends MACRO {
     this.add_arg("SIZE", "FUNCTION", "lockup size", Int(10000));
     this.SetExpansion(TransitionEffectL(TrConcat(this.TR1,
                                                  AlphaL(COLOR, Bump(Scale(BladeAngle(), this.TOP, this.BOTTOM), this.SIZE)),
-						 this.TR2),
-				        EFFECT(EFFECT_CLASH)));
+                                                 this.TR2),
+                                        EFFECT(EFFECT_CLASH)));
   }
   argify(state) {
     state.color_argument = CLASH_COLOR_ARG;
@@ -7948,9 +8192,9 @@ class ResponsiveBlastFadeLClass extends MACRO {
     this.add_arg("EFFECT", "EFFECT", "effect type", EFFECT(EFFECT_BLAST));
     this.SetExpansion(
         MultiTransitionEffectL(
-	    TrConcat(TrInstant(),
-	             AlphaL(this.COLOR, Bump(Scale(BladeAngle(), this.TOP, this.BOTTOM), this.SIZE)),
-		     TrFadeX(this.FADE)),
+            TrConcat(TrInstant(),
+                     AlphaL(this.COLOR, Bump(Scale(BladeAngle(), this.TOP, this.BOTTOM), this.SIZE)),
+                     TrFadeX(this.FADE)),
             this.EFFECT));
 
   }
@@ -7977,8 +8221,8 @@ class ResponsiveStabLClass extends MACRO {
     this.SetExpansion(
        TransitionEffectL(TrConcat(this.TR1,
                                   AlphaL(COLOR, SmoothStep(Int(32000), Scale(BladeAngle(), this.SIZE1, this.SIZE2))),
-				  this.TR2),
-		         EFFECT(EFFECT_STAB)));
+                                  this.TR2),
+                         EFFECT(EFFECT_STAB)));
 
   }
   argify(state) {
@@ -8120,7 +8364,7 @@ class HoldPeakFClass extends FUNCTION {
       this.last_peak = millis();
     }
   }
-  
+
   getInteger(led) {
     return this.value;
   }
@@ -8592,17 +8836,17 @@ class Parser {
       if (this.peek() == ' ' || this.peek() == '\t' || this.peek() == '\n' || this.peek() == '\r') { this.pos++; continue; }
       if (this.peek() == '/')  {
         if (this.peek2() == '*') {
-	  this.pos += 2;
-	  while (this.pos < this.str.length && !(this.peek() == '*' && this.peek2() == '/')) this.pos++;
-	  this.pos += 2;
-	  continue;
-	}
+          this.pos += 2;
+          while (this.pos < this.str.length && !(this.peek() == '*' && this.peek2() == '/')) this.pos++;
+          this.pos += 2;
+          continue;
+        }
         if (this.peek2() == '/') {
-	  this.pos += 2;
-	  while (this.pos < this.str.length && this.peek() != '\n') this.pos++;
-	  this.pos ++;
-	  continue;
-	}
+          this.pos += 2;
+          while (this.pos < this.str.length && this.peek() != '\n') this.pos++;
+          this.pos ++;
+          continue;
+        }
       }
       return this.str.substr(start_pos, this.pos - start_pos); // trim?
     }
@@ -8615,7 +8859,7 @@ class Parser {
        console.trace();
     }
   }
-  
+
   startswithnewline(str) {
     var tmp = str.trimStart();
     var start = str.substr(0, str.length - tmp.length);
@@ -8652,12 +8896,12 @@ class Parser {
     while (true) {
       var c = this.peek();
       if ((c >= 'a' && c <= 'z') ||
-	  (c >= 'A' && c <= 'Z') ||
-	  (c >= '0' && c <= '9') || c == '_' || c == ':') {
-	ret += c;
-	this.pos++;
+          (c >= 'A' && c <= 'Z') ||
+          (c >= '0' && c <= '9') || c == '_' || c == ':') {
+        ret += c;
+        this.pos++;
       } else {
-	return ret;
+        return ret;
       }
     }
   }
@@ -8702,21 +8946,21 @@ class Parser {
       if (this.peek() != '>') {
         this.pos = POS; // backtrack for comments
         while (true) {
-	  var v = this.parse_internal();
+          var v = this.parse_internal();
           args.push(v);
           this.skipspace2();
           if (this.peek() != ',') break;
           this.pos++;
-	  POS = this.pos
-	  var comment = this.skipspace2();
-	  if (this.startswithnewline(comment)) {
-	    // Comment belongs to next value.
-	    // rewind and let parse_unary do it.
-	    this.pos = POS;
-	  } else {
-	    v.addcomment(this.stripcomment(comment));
-	    if (v.COMMENT) console.log("SETCOMMENT:" + v.COMMENT);
-	  }
+          POS = this.pos
+          var comment = this.skipspace2();
+          if (this.startswithnewline(comment)) {
+            // Comment belongs to next value.
+            // rewind and let parse_unary do it.
+            this.pos = POS;
+          } else {
+            v.addcomment(this.stripcomment(comment));
+            if (v.COMMENT) console.log("SETCOMMENT:" + v.COMMENT);
+          }
         }
       }
       if (this.peek() != '>') {
@@ -8726,14 +8970,14 @@ class Parser {
       if (this.peek() == '(') {
         this.pos++;
         argstring = this.parse_optional_string();
-	if (this.peek() != ')') throw "Missing )";
-	this.pos++;
+        if (this.peek() != ')') throw "Missing )";
+        this.pos++;
       }
     }
     var ret;
     if (this.identifiers[id]) {
       if (args != 0) {
-	throw "Unexpected arguments";
+        throw "Unexpected arguments";
       }
       ret = this.identifiers[id]();
     } else if (this.classes[id]) {
@@ -8743,17 +8987,17 @@ class Parser {
       if (args == 0) args = [null];
       // var ret = new (Function.prototype.bind.apply(this.classes[id], args));
       try {
-	ret = classes[id].apply(args[0], args.slice(1));
+        ret = classes[id].apply(args[0], args.slice(1));
       } catch(e) {
-	if (typeof(e) == "string")
-	  e = new MyError(id +": " + e);
-	if (typeof(e) == "object" && e.constructor == MyError)
-	  e.desc = id + ": " + e.desc;
-	if (typeof(e) == "object" && e.constructor == MyError && e.end_pos == -1) {
-	  e.setBegin(start_of_atom);
-	  e.setEnd(this.pos);
-	}
-	throw e;
+        if (typeof(e) == "string")
+          e = new MyError(id +": " + e);
+        if (typeof(e) == "object" && e.constructor == MyError)
+          e.desc = id + ": " + e.desc;
+        if (typeof(e) == "object" && e.constructor == MyError && e.end_pos == -1) {
+          e.setBegin(start_of_atom);
+          e.setEnd(this.pos);
+        }
+        throw e;
       }
       // console.log(ret);
       if (argstring) {
@@ -8832,6 +9076,44 @@ var framesPerUpdate = 0;
 var use_graflex = true;
 var bad_fps = 0;
 
+</script>
+<div id="popup_window" class="popup-window">
+  <p id="popup_message"></p>
+  <button title="OK" onclick="dismissPopupMessage()">OK</button>
+  <br>
+  <label title="Don't show this again. Click 'Restore Defaults' in Settings to re-enable.">
+    <input type="checkbox" id="dont_show_again" name="dontshow" onclick="DontShowAgain()">
+    <span>Don't show this again</span>
+  </label>
+</div>
+<div id="overlay" class="overlay"></div>
+
+<script>
+  var popupIdentifier;
+  var popupWindow = FIND("popup_window");
+  var overlay = FIND("overlay");
+
+  function showPopupMessage(message, currentPopup) {
+    popupIdentifier = currentPopup;
+    if (localStorage.getItem(popupIdentifier) === "false") {
+      console.log(popupIdentifier + " is disabled.");
+    } else {
+      FIND("popup_message").innerHTML = message;
+      popupWindow.classList.add("show");
+      overlay.classList.add("show");
+    }
+  }
+
+  function dismissPopupMessage() {
+    popupWindow.classList.remove("show");
+    overlay.classList.remove("show");
+  }
+
+  function DontShowAgain() {
+    localStorage.setItem(popupIdentifier, "false");
+  console.log("Saving " + popupIdentifier + " false");
+  }
+
 function drawScene() {
   last_micros = current_micros;
   current_micros = actual_millis() * 1000;
@@ -8841,6 +9123,7 @@ function drawScene() {
      if (bad_fps) bad_fps --;
   }
   if (bad_fps > 10 && use_graflex) {
+    showPopupMessage("Struggling to render hilt model.<br>Switching to simpler design.<br>To re-enable Graflex model, go to Settings.", "graflexPopup");
     use_graflex = false;
     compile();
   }
@@ -8889,7 +9172,7 @@ function drawScene() {
   // TODO: Generate mipmaps, then adjust level based on distance from blade
   gl.texImage2D(
       gl.TEXTURE_2D,
-      0,	// level
+      0,        // level
       gl.RGBA,  // internalFormat
       num_leds, 2,   // width, height
       0,        // border
@@ -8915,7 +9198,7 @@ function drawScene() {
     var rotation = default_move_matrix();
     rotation = rotation.mult(Matrix.mkyrot(u_value));
     rotation = rotation.mult(Matrix.mkzrot(u_value / 7.777));
-    
+
   } else {
     if (0) {
       OLD_MOVE_MATRIX = default_move_matrix();
@@ -8924,7 +9207,7 @@ function drawScene() {
     }
     rotate_start = new Date().getTime();
   }
-  gl.uniform1f(gl.getUniformLocation(shaderProgram, "u_time"), 
+  gl.uniform1f(gl.getUniformLocation(shaderProgram, "u_time"),
                (new Date().getTime() - start) / 1000.0);
   gl.uniform1f(gl.getUniformLocation(shaderProgram, "u_width"), width);
   gl.uniform1f(gl.getUniformLocation(shaderProgram, "u_height"), height);
@@ -8965,9 +9248,9 @@ function ReplaceCurrentFocus(str) {
   var old_focus = current_focus;
   current_focus = 0;
   focus_catcher = 0;
-    
+
   var parser = new Parser(str, classes, identifiers);
-  try {  
+  try {
       style_tree = parser.parse();
   }
   catch(e) {
@@ -8997,7 +9280,7 @@ function ReplaceCurrentFocus(str) {
       console.log("Lost focus when parsing " + str);
       console.log(focus_trace);
     } else {
-      container.style.backgroundColor = 'lightblue';
+    container.classList.add("selected-area-container");
     }
   } else {
     console.log("No focus catcher found!!");
@@ -9013,7 +9296,7 @@ function ReplaceCurrentFocus(str) {
     type = current_style.getType();
     classname = current_style.constructor.name;
   }
-  
+
   AddHistory(current_focus_url, current_style.getType());
   console.log("TYPE = " + type);
   // FIND("color_links").className = type == "COLOR" ? "normal" : "grayout";
@@ -9041,17 +9324,17 @@ function ReplaceCurrentFocus(str) {
         if (rule.cssText.toLowerCase().includes("magic_class_" + type.toLowerCase())) {
           rule.style.background = "lightblue";
           rule.style.color = "black";
-	} else {
+        } else {
           rule.style.background = "lightgray";
           rule.style.color = "darkgray";
-	}
+        }
       }
       if (rule.cssText.toLowerCase().includes("magic_invisible_class_") ) {
         if (rule.cssText.toLowerCase().includes("magic_invisible_class_" + type.toLowerCase())) {
           rule.style.display = 'inline';
-	} else {
+        } else {
           rule.style.display = 'none';
-	}
+        }
       }
     }
   }
@@ -9063,8 +9346,8 @@ function Run() {
   var err = FIND("error_message");
   var str = sty.value;
   var parser = new Parser(str,
-			  classes,
-			  identifiers);
+                          classes,
+                          identifiers);
   err.innerHTML = "";
   try {
     current_style = parser.parse();
@@ -9075,33 +9358,33 @@ function Run() {
     console.log(typeof(e));
     if (typeof(e) == "string") {
 
-	err.innerHTML = e;
-	sty.focus();
-	sty.setSelectionRange(parser.pos, parser.pos);
+        err.innerHTML = e;
+        sty.focus();
+        sty.setSelectionRange(parser.pos, parser.pos);
 
-	parser = new Parser("BLACK",
-			    classes,
-			    identifiers);
-	current_style = parser.parse();
-	compile();
-	return;
+        parser = new Parser("BLACK",
+                            classes,
+                            identifiers);
+        current_style = parser.parse();
+        compile();
+        return;
       } else if (typeof(e) == "object" && e.constructor == MyError) {
-	err.innerHTML = e.desc;
-	sty.focus();
-	if (e.begin_pos > -1) {
+        err.innerHTML = e.desc;
+        sty.focus();
+        if (e.begin_pos > -1) {
           sty.setSelectionRange(e.begin_pos, e.end_pos);
-	} else {
+        } else {
           sty.setSelectionRange(parser.pos, parser.pos);
-	}
+        }
 
-	parser = new Parser("BLACK",
-			    classes,
-			    identifiers);
-	current_style = parser.parse();
-	compile();
-	return;
+        parser = new Parser("BLACK",
+                            classes,
+                            identifiers);
+        current_style = parser.parse();
+        compile();
+        return;
       } else {
-	throw e;
+        throw e;
       }
   }
   ReplaceCurrentFocus(str);
@@ -9199,7 +9482,7 @@ function SetTo(str) {
   window.history.replaceState(old, "Style Editor", window.location.href);
   window.history.pushState(str, "Style Editor", url);
   window.onpopstate = PopState;
-			   
+
   FIND("style").value = str;
   Run();
 }
@@ -9251,17 +9534,6 @@ function ClickPower() {
   blade.addEffect(STATE_ON ? EFFECT_IGNITION : EFFECT_RETRACTION, Math.random() * 0.7 + 0.2);
 }
 
-function UpdateLockupButtons() {
-  var button = FIND("LOCKUP_BUTTON");
-  button.style.backgroundColor = STATE_LOCKUP == LOCKUP_NORMAL ? "lightblue" : "";
-  var button = FIND("DRAG_BUTTON");
-  button.style.backgroundColor = STATE_LOCKUP == LOCKUP_DRAG ? "lightblue" : "";
-  var button = FIND("MELT_BUTTON");
-  button.style.backgroundColor = STATE_LOCKUP == LOCKUP_MELT ? "lightblue" : "";
-  var button = FIND("LB_BUTTON");
-  button.style.backgroundColor = STATE_LOCKUP == LOCKUP_LIGHTNING_BLOCK ? "lightblue" : "";
-}
-
 var lockups_to_event = {};
 lockups_to_event[LOCKUP_NORMAL] = [ EFFECT_LOCKUP_BEGIN, EFFECT_LOCKUP_END ];
 lockups_to_event[LOCKUP_DRAG] = [ EFFECT_DRAG_BEGIN, EFFECT_DRAG_END ];
@@ -9280,24 +9552,20 @@ function OnLockupChange() {
 
 function ClickLockup() {
   STATE_LOCKUP = STATE_LOCKUP == LOCKUP_NORMAL ? 0 : LOCKUP_NORMAL;
-  UpdateLockupButtons();
   blade.addEffect(STATE_LOCKUP ? EFFECT_LOCKUP_BEGIN : EFFECT_LOCKUP_END, Math.random() * 0.7 + 0.2);
 }
 
 function ClickDrag() {
   STATE_LOCKUP = STATE_LOCKUP == LOCKUP_DRAG ? 0 : LOCKUP_DRAG;
-  UpdateLockupButtons();
   blade.addEffect(STATE_LOCKUP ? EFFECT_DRAG_BEGIN : EFFECT_DRAG_END, 1.0);
 }
 
 function ClickLB() {
   STATE_LOCKUP = STATE_LOCKUP == LOCKUP_LIGHTNING_BLOCK ? 0 : LOCKUP_LIGHTNING_BLOCK;
-  UpdateLockupButtons();
 }
 
 function ClickMelt() {
   STATE_LOCKUP = STATE_LOCKUP == LOCKUP_MELT ? 0 : LOCKUP_MELT;
-  UpdateLockupButtons();
 }
 
 function ClickInhilt() {
@@ -9374,8 +9642,8 @@ function startAdjustingValue(adjustment, inputId) {
       var ease = Math.pow(progress, 2);
       var value = Math.round(adjustment * ease);
       adjustmentValue(value, inputId);
-    }, 1000 / 60); // 60 FPS for more responsive input
-  }, 500);
+    }, 1000 / 60); // 60 FPS for more responsive input.
+  }, 500); // delay until hold down button acceleration starts.
 }
 
 function adjustmentValue(adjustment, inputId) {
@@ -9479,7 +9747,7 @@ function DoArgify() {
 
 function AddTab(tab, name, contents) {
   FIND("TABLINKS").innerHTML += "<button id="+tab+"_tab class=tablinks onclick=\"ActivateTab('"+tab+"')\">" + name + "</button>";
-  FIND("TABBODIES").innerHTML += "<div id="+tab+"_tabcontent class=tabcontent></div>";
+  FIND("TABBODIES").innerHTML += "<div id=" + tab + "_tabcontent class='tabcontent " + tab + "-tabcontent'></div>";
   if (contents) {
     AddTabContent(tab, contents);
   }
@@ -9520,7 +9788,7 @@ function ActivateTab(tab) {
   <table>
   <tr>
     <td class="page-left">
-      <canvas 
+      <canvas
         id="canvas_id"  class="canvas-style"
         title="Blade Preview. Move mouse to swing. Click to Clash or Do Selected Effect (and to dismiss this Tooltip.)  Goto settings to change hilt model or toggle Still mode (no swing on mouse move.)"
         onmousemove='mouse_move(event)' onmouseleave='mouse_leave(event)'
@@ -9581,7 +9849,7 @@ function ActivateTab(tab) {
         type=button id="do_selected" value="Do Selected Effect"
         title="Press this to trigger the EFFECT selected in the More Effects menu.">
     </span>
-    
+
   <script>
          // Get the menu and button elements
         const menu = FIND('more_effects_menu');
@@ -9694,31 +9962,31 @@ function ActivateTab(tab) {
       </script>
 
       <span class="variant-alt-container">
-        <span class="variant-label">Variant:</span>
         <span class="variant-alt-controls">
-          <input
-            id="VARIANT_MINUS" name=varminus type=button value="<" 
-            title="Decreases the Variant value. Hold to increase speed of the changing value."
-            onmousedown="startAdjustingValue(-1, 'VARIANT_SLIDER')"
-            onmouseup="stopAdjustingValue()"
-            onmouseleave="stopAdjustingValue()" >
+          <span class="variant-label">Variant:</span>
           <input
             id="VARIANT_SLIDER" name=varslider type=range class="variant-slider"
             title="Slide to adjust the Variant value."
             min="0" max="32768" step="1" value="0"
             oninput="updateVariantValue(this.value)" >
           <input
+            id="VARIANT_MINUS" name=varminus type=button value="<"
+            title="Decreases the Variant value. Hold to increase speed of the changing value."
+            onmousedown="startAdjustingValue(-1, 'VARIANT_SLIDER')"
+            onmouseup="stopAdjustingValue()"
+            onmouseleave="stopAdjustingValue()" >
+          <input
             id="VARIANT_VALUE" name=varvalue type=input size="6" value="0"
             title="The current Variant value. You can also type in this field for direct entry of a value."
             oninput="updateVariantValue(this.value)" >
-          <input 
+          <input
             id="VARIANT_PLUS" name=varplus type=button value=">"
             title="Increases the Variant value. Hold to increase speed of the changing value."
             onmousedown="startAdjustingValue(1, 'VARIANT_SLIDER')"
             onmouseup="stopAdjustingValue()"
             onmouseleave="stopAdjustingValue()" >
         <span class="alt-label">Alt:</span>
-          <input 
+          <input
             id="ALT_MINUS" name=altminus type=button value="<"
             title="Decreases the Alt value."
             onclick="IncreaseAlt(-1)" >
@@ -9735,35 +10003,38 @@ function ActivateTab(tab) {
 
       <span id="error_message" class="error-message"></span>
 
-      <br>
-        <pre><textarea 
+        <pre><textarea
           rows=10 cols=80 id=style wrap="off" class="textbox"
           title="Style and value editing area. Edits in here are committed by clicking the Submit button below." >
         </textarea></pre>
-        <span class="middle-btn-container">
-          <input
-            type=button name=run value="Submit"
-            title="Submit what is currently in the text box above."
-            onclick='Run()'>
+
+        <span>
+          <button 
+            class="submit-button" title="Submit what is currently in the text box above."
+            onclick="Run()">
+            <i class="fa-solid fa-right-from-bracket"></i> Submit</button>
           <button 
             title="Adds StylePtr&lt;&gt;() wrapper and copies the style to the clipboard."
-            onclick="Copy()">Copy</button>
-          <input
-            type=button id="expand_button" name=expand value="Expand"
+            onclick="Copy()">
+            <i class="fa-solid fa-copy"></i> Copy</button>
+          <button 
+            id="expand_button"
             title="Reveals the &quot;under the hood&quot; code that the shorthand macro uses. This allows access to otherwise omitted arguments, and is only an active button when applicable."
             onclick="DoExpand()">
-          <input
-            type=button id="layerize_button" name=layerize value="Layerize"
+            <i class="fa-solid fa-up-right-and-down-left-from-center"></i> Expand</button>
+          <button 
+            id="layerize_button"
             title="Transforms nested version style code and breaks it out into more contemporary Layers format."
-            onclick="DoLayerize()" >
-          <input
-            type=button id="argify_button" name=argify value="Argify"
+            onclick="DoLayerize()">
+            <i class="fa-solid fa-layer-group"></i> Layerize</button>
+          <button
             title="Converts arguments to their ARG version counterparts for use with ProffieOS Workbench or Edit Mode. See the &quot;ArgString&quot; tab below."
-            onclick="DoArgify()" >
-          <input
-            type=button id="ROTATE_BUTTON" name=rotate value="Rotate"
-            title="Toggles animation of the preview blade above."
-            onclick="ClickRotate()" >
+            onclick="DoArgify()">
+            <i class="fa-solid fa-list"></i> Argify</button>
+          <button
+            id="ROTATE_BUTTON" title="Toggles animation of the preview blade above."
+            onclick="ClickRotate()">
+            <i class="fa-solid fa-arrows-rotate"></i> Rotate</button>
           <input
             type=button id=INHILT_BUTTON name=inhilt  value="Inhilt"
             title="Simulates In-Hilt LED blades, (no addressable pixel effects)."
@@ -9784,37 +10055,39 @@ function ActivateTab(tab) {
       <div id=TABBODIES class=tabcontainer></div>
     </div>
 
-
-<!--
-    <div id=effect_links  class=MAGIC_CLASS_COLOR></div>
-    <div id=color_links class=MAGIC_CLASS_COLOR></div>
-    <div id=transition_links class=MAGIC_INVISIBLE_CLASS_TRANSITION></div>
-    <div id=function_links  class=MAGIC_INVISIBLE_CLASS_FUNCTION></div>
-    <div id=effect_type_links  class=MAGIC_INVISIBLE_CLASS_EFFECT></div>
-    <div id=template_links  class=MAGIC_CLASS_COLOR></div>
-    <b>History:</b><div id=history_links></div>
--->
-
     <div>
       <font face="helvetica,arial" size=-1>
       This page has been accessed <accessed type=comma_grouped> times since
- 	<accessed since part=month type=string>
+        <accessed since part=month type=string>
          <accessed since part=date type=ordered>,
          <accessed since part=year>.<br>
       Last modified:
- 	<modified part=month type=string>
+        <modified part=month type=string>
          <modified part=date type=ordered>,
          <modified part=year>
       </font>
     </div>
-  </td>
-  <td valign=top>
-    <div style="width: 100%; height: 99vh; overflow-y: scroll;">
-      <b>Structured view, click to edit</b>
-      <div id=pp></div>
+
+    <div class="footer-container">
+      <span class="footer-title">ProffieOS Style Editor</span>
+      <span class="footer-links">
+        <span class="other-sites">Other sites: </span>
+        <a href="https://crucible.hubbe.net/" target="_blank"><img src="https://crucible.hubbe.net/uploads/default/optimized/1X/2237f551ca8f4f69ac478df5c64aee1c951c33f5_2_180x180.png" alt="Crucible logo"></a>
+        <a href="https://pod.hubbe.net/" target="_blank"><img src="https://pod.hubbe.net/images/favicon.png" alt="Pod logo"></a>
+        <a href="https://fredrik.hubbe.net/lightsaber/" target="_blank"><img src="https://fredrik.hubbe.net/favicon.ico" alt="Lightsaber logo"></a>
+        <a href="https://www.fett263.com/" target="_blank"><img src="https://www.fett263.com//favicon.ico" alt="Fett263 logo"></a>
+        <a href="https://www.facebook.com/groups/opensourcesabers/" target="_blank"><img src="https://www.facebook.com/favicon.ico" alt="Facebook logo"></a>
+      </span>
     </div>
-  </td>
-  </tr>
-</table>
-</body>
+
+    </td>
+    <td class="page-right">
+      <div id="structured_view" class="structured-view">
+        <span class="structured-view-label">Structured view, click to edit.</span>
+        <div id="pp" class="pp"></div>
+      </div>
+    </td>
+    </tr>
+  </table>
+  </body>
 </html>
