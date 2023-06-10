@@ -9613,6 +9613,14 @@ function Alt() {
   return parseInt(FIND("ALT").value);
 }
 
+function updateAltValue(newValue) {
+  if (newValue > num_alternatives) {
+    newValue = num_alternatives;
+  }
+  FIND("ALT").value = newValue;
+  console.log("Updated Alt: " + newValue);
+}
+
 function IncreaseAlt(n) {
   var v = Alt() + n;
   if (v < 0) v += num_alternatives;
