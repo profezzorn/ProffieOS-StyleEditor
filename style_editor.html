@@ -7640,12 +7640,15 @@ class SyncAltToVarianceFClass extends FUNCTION {
       console.log("SYNC FIRST");
       FIND("ALT").value = VAR;
     } else if (VAR != this.last_) {
-      console.log("SYNC ALT");
+      if (isNaN(VAR)) VAR = 0;
+      console.log("SYNC ALT: " + VAR);
       FIND("ALT").value = VAR;
       blade.addEffect(EFFECT_ALT_SOUND, 0.0);
     } else {
       console.log("SYNC VAR");
       VAR = Alt();
+      if (isNaN(VAR)) VAR = 0;
+      console.log("SYNC VAR: " + VAR);
       FIND("VARIANT_VALUE").value = VAR;
     }
     this.last_ = VAR;
