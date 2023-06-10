@@ -1260,7 +1260,11 @@ function SafeguardInputs(e) {
   if (e.target.value == "") {
     console.log("SafeguardInputs() run to avoid null value");
     var changeEvent = new Event('change');
-    e.target.value = 0; e.target.dispatchEvent(changeEvent);
+    e.target.value = 0;
+    if (e.target.id === "VARIANT_VALUE") {
+      FIND("VARIANT_SLIDER").value = 0;
+    }
+    e.target.dispatchEvent(changeEvent);
   }
 }
 
