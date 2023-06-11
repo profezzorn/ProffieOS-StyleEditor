@@ -6,7 +6,61 @@
   <!-- This should show up in search engine results. -->
   <meta name="description" content="ProffieOS Style Editor: Customize your Proffieboard saber blade animations with this browser based tool.">
   <title>ProffieOS Style Editor</title>
+
 <style>
+/*
+ * Font Awesome Free 6.4.0 by @fontawesome - https://fontawesome.com
+ * License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License)
+ * Copyright 2023 Fonticons, Inc.
+ */
+
+.fas,
+.fa-solid {
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-font-smoothing: antialiased;
+  display: var(--fa-display, inline-block);
+  font-style: normal;
+  font-variant: normal;
+  line-height: 1;
+  text-rendering: auto; }
+
+.fas,
+.fa-solid {
+  font-family: 'Font Awesome 6 Free'; }
+
+.fa-right-from-bracket::before {
+  content: "\f2f5"; }
+
+.fa-copy::before {
+  content: "\f0c5"; }
+
+.fa-up-right-and-down-left-from-center::before {
+  content: "\f424"; }
+
+.fa-layer-group::before {
+  content: "\f5fd"; }
+
+.fa-list::before {
+  content: "\f03a"; }
+
+.fa-arrows-rotate::before {
+  content: "\f021"; }
+
+.fa-save::before {
+  content: "\f0c7"; }
+
+.fa-cog::before {
+  content: "\f013"; }
+
+.fa-solid {
+  font-weight: 900; }
+
+@font-face {
+  font-family: 'Font Awesome 6 Free';
+  font-style: normal;
+  font-weight: 900;
+  font-display: block;
+  src: url("fontawesome-free-6.4.0-web/webfonts/fa-solid-900.woff2") format("woff2"), url("fontawesome-free-6.4.0-web/webfonts/fa-solid-900.ttf") format("truetype"); }
 
 /* Make page elements like buttons and whitespace non-selectable with drag box */
 /* {
@@ -74,7 +128,21 @@ select {
 select:hover {
   background-color: #ddd;
 }
-
+/* Settings Panel buttons
+need to be here to not override Other Buttons below */
+.settings-panel button {
+  background-color: #f44336;
+  color: black;
+  margin-left: 46px;
+  border: 1px solid black;
+}
+.settings-panel button.close-settings {
+  position: absolute;
+  top: 0px;
+  left: -40px;
+  padding: 0px 4px;
+  font-weight: bold;
+}
 /* Other buttons */
 button,
 input[type="button"] {
@@ -83,29 +151,49 @@ input[type="button"] {
   color: black;
   border-radius: 2px;
   padding: 3px;
-  margin-bottom: 3px;
+  margin-block: 5px;
   font-size: 14px;
   border: 1px solid #bbb;
   font-weight: normal;
+  transition: box-shadow 0.1s ease;
 }
 button:hover,
 input[type="button"]:hover {
-  border: 2px solid dodgerblue;
-  padding: 2px;
+  box-shadow: 0 0 2px 1px dodgerblue;
 }
 button:active,
 input[type="button"]:active {
   background-color: dodgerblue;
 }
+button.submit-button {
+  background-color: limegreen;
+  border: 1px solid green;
+}
+button.submit-button:active {
+  background-color: dodgerblue;
+}
+/*Keep from browser takeover of number inputs */
+input[type='number'] {
+  width: 60px;
+  height: 22px;
+}
+input[type='number']::-webkit-inner-spin-button,
+input[type='number']::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type='number'] {
+  -moz-appearance: textfield;
+}
 /* Power and Rotate latching buttons */
 .page-left .button-latched,
 .page-left .button-latched:hover {
-  background-color: dodgerblue;
+  background-color: #A1D1F3;
 }
 
 /* Variant and Alt adjusters */
 .variant-alt-container {
-  background: #6ADA;
+  background: #A1D1F3;
   border: 1px solid black;
   border-radius: 4px;
   display: inline-block;
@@ -158,7 +246,7 @@ input[type="button"]:active {
   margin-right: 3px;
 }
 .error-message {
-  color: red;
+  color: red; 
   font-weight: bold;
 }
 /* Blade Style text box */
@@ -274,21 +362,6 @@ span.MAGIC_CLASS_EFFECT input[type=button].btn {
   border-bottom: 2px solid #888;
   padding-bottom: 5px;
 }
-.settings-panel button{
-  background-color: #6ADA;
-  color: black;
-  margin-left: 46px;
-  border: 1px solid black;
-}
-.settings-panel button.close-settings {
-  background-color: #f44336;
-  position: absolute;
-  top: 0px;
-  left: -40px;
-  padding: 0px 4px;
-  font-weight: bold;
-}
-
 /* Style the tab */
 .tab {
   overflow: hidden;
@@ -314,7 +387,7 @@ span.MAGIC_CLASS_EFFECT input[type=button].btn {
 
 /* Create an active/current tablink class */
 .tab button.active {
-  background-color: #ccc;
+  background-color: #A1D1F3;
 }
 
 /* Style the tab content */
@@ -324,12 +397,61 @@ span.MAGIC_CLASS_EFFECT input[type=button].btn {
   border: 1px solid #ccc;
   border-top: none;
 }
+.tabcontent .btn {
+  border-radius: 5px;
+}
+.rgb-tabcontent {
+  color: black;
+}
+.custom-color {
+  background: #ccc;
+  text-align: center;
+  position: relative;
+}
+.rgb-tabcontent .btn {
+  border-radius: 16px;
+  width: 125px;
+}
+.rgb-tabcontent .custom-color .color-picker {
+  width: 100px;
+}
+
 .structured-view {
   position: sticky;
   top: 0;
   width: 100%;
   height: 100vh;
   overflow-y: scroll;
+}
+.structured-view-label {
+  display: block;
+  font-size: 110%;
+  padding-top: 9px;
+  padding-bottom: 5px;
+}
+.structured-view .selected-area-container {
+  background-color: lightblue;
+}
+/* Fat font in Structured View */
+.pp span {
+  padding-left: 6px;
+  font-weight: 600;
+}
+/* Structured View style arguments borders */
+.pp-container {
+  border-color: gray;
+  border-style: solid;
+  border-width: 1px;
+  padding: 2px;
+}
+.pp-content {
+  margin-left: 1em;
+}
+/* Chartreuse highlighted borders */
+.running {
+  border-color: chartreuse;
+  border-width: 3px;
+  padding: 0px;
 }
 /* Structured View Layer buttons
 Add, Delete, Move Up, Move Down */
@@ -1198,6 +1320,15 @@ void main() {
 </script>
 
 <script>
+
+function SafeguardInputs(e) {
+  if (e.target.value == "") {
+    console.log("SafeguardInputs() run to avoid null value");
+    var changeEvent = new Event('change');
+    e.target.value = 0; e.target.dispatchEvent(changeEvent);
+  }
+}
+
 var gl = null;
 var shaderProgram = null;
 var t = 0.0;
@@ -1209,8 +1340,10 @@ var height;
 function initGL() {
   AddTab("color", "Styles",effect_links.sort().join(""))
   AddTab("rgb", "Colors",
-    "<input type=color id=COLOR value='#ff0000' onclick='ClickColor()' />" +
-    qlinks.sort().join(""));
+    qlinks.sort().join("") +
+    "<div class='custom-color'>" +
+    "<label for='COLOR'>Custom color </label>" +
+    "<input type='color' id='COLOR' value='#ff0000' class='color-picker' onclick='ClickColor()' /></div>");
   AddTab("layer", "Layers", layer_links.sort().join(""));
   AddTab("function", "Functions", function_links.sort().join(""));
   AddTab("transition", "Transitions", transition_links.sort().join(""));
@@ -1226,7 +1359,7 @@ function initGL() {
 
   // Add arg string.
   var A = "";
-  A += "Arg string: <input id=ARGSTR name=arg type=input size=80 value='builtin 0 1' onchange='ArgStringChanged()' /><br><table>";
+  A += "Arg string: <input id=ARGSTR name=arg type=text size=80 value='builtin 0 1' onchange='ArgStringChanged()' /><br><table>";
   var v = Object.keys(ArgumentName_ENUM_BUILDER.value_to_name);
   for (var i = 0; i < v.length; i++) {
     var V = parseInt(v[i]);
@@ -1236,7 +1369,7 @@ function initGL() {
        A += "<input type=color id=ARGSTR_"+N+" onclick='ClickArgColor("+N+")' onchange='ClickArgColor("+N+")' >";
     } else {
        A += "<input type=button value='<'  onclick='IncreaseArg("+N+",-1)' >";
-       A += "<input id=ARGSTR_"+N+" type=input size=6 value=0 onchange='ArgChanged("+N+")' >";
+       A += "<input id=ARGSTR_"+N+" type='number' size=6 value=0 onchange='ArgChanged("+N+")' onfocusout='SafeguardInputs(event)' >";
        A += "<input type=button value='>'  onclick='IncreaseArg("+N+",1)' >";
     }
     A += "</td></tr>\n";
@@ -1770,9 +1903,9 @@ class STYLE {
       ret += "/* "+this.COMMENT.split("\n").join("<br>")+" */<br>";
       console.log("RET = " + ret);
     }
-    ret += "<div id=X"+id+" style='border-style:solid;border-width:1px;border-color:gray;' onclick='FocusOn("+id+",event)'>\n";
-    ret += "<span title='"+ note +"'>" + name + "</span>&lt;\n";
-    ret += "<div style='margin-left:1em'>\n";
+    ret += "<div id=X" + id + " class='pp-container' onclick='FocusOn(" + id + ",event)'>\n";
+    ret += "<span title='" + note + "'>" + name + "</span>&lt;\n";
+    ret += "<div class='pp-content'>\n";
     var comma = false;
     for (var i = 2; i < arguments.length; i += 2) {
       if (comma) ret += ",<br>";
@@ -1807,8 +1940,8 @@ class STYLE {
     }
     var id = this.get_id();
     var ret = this.gencomment();
-    ret += "<div id=X"+id+" style='border-style:solid;border-width:1px;border-color:gray;' onclick='FocusOn("+id+",event)'>\n";
-    ret += "<span title='"+ note +"'>" + name + "</span>\n";
+    ret += "<div id=X" + id + " class='pp-container' onclick='FocusOn(" + id + ",event)'>\n";
+    ret += "<span title='" + note + "'>" + name + "</span>\n";
 
     if (arguments.length > 2) {
       ret += "&lt;";
@@ -1911,9 +2044,9 @@ class STYLE {
       var container = this.get_container();
       if (container) {
         if (this.IS_RUNNING()) {
-          container.style["border-color"] = 'yellow';
+          container.classList.add('running');
         } else {
-          container.style["border-color"] = 'gray';
+          container.classList.remove('running');
         }
       }
     }
@@ -2696,10 +2829,12 @@ function mkcolorbutton(name, r, g, b) {
   } else {
     sortString = "A:"+hsl[0];
   }
-  var color = "rgb("+r+","+g+","+b+")";
-  if (r == 0 && g == 0 && b == 0) color = "white";
-  return "<input srt='"+sortString+"' type=button style='border: 1px solid black;padding:8px;color:black;background:"+color+"' class=btn onclick='SetTo(\""+name+"\")' value='"+enc(name)+"'>\n";
+  var bgColor = "rgb("+r+","+g+","+b+")";
+  if (r == 0 && g == 0 && b == 0) bgColor = "black"
+  var textColor = (name === "Black" || name === "Blue") ? "white" : "black";
+  return "<input srt='"+sortString+"' type=button style='border: 1px solid black;padding:8px;color:"+textColor+";background:"+bgColor+"' class=btn onclick='SetTo(\""+name+"\")' value='"+enc(name)+"'>\n";
 }
+
 function AddColor(name, r, g, b) {
   colorNames[r+","+g+","+b] = name;
   qlinks.push(mkcolorbutton(name, r, g, b));
@@ -7150,18 +7285,18 @@ class TriggerClass extends FUNCTION {
         case TRIGGER_DELAY:
           this.value = 0;
           return;
-              case TRIGGER_ATTACK:
+        case TRIGGER_ATTACK:
           this.value = t * 32768.0 / micros_for_state;
-                return;
+          return;
         case TRIGGER_SUSTAIN:
           this.value = 32768;
-              return;
+          return;
         case TRIGGER_RELEASE:
-            this.value = 32768 - t * 32768 / micros_for_state;
-            return;
+          this.value = 32768 - t * 32768 / micros_for_state;
+          return;
         case TRIGGER_OFF:
-            this.value = 0;
-            return;
+          this.value = 0;
+          return;
         }
       }
       if (this.TRIGGER_STATE >= 4) throw "Weird state?";
@@ -9232,7 +9367,7 @@ function ReplaceCurrentFocus(str) {
       console.log("Lost focus when parsing " + str);
       console.log(focus_trace);
     } else {
-      container.style.backgroundColor = 'lightblue';
+    container.classList.add("selected-area-container");
     }
   } else {
     console.log("No focus catcher found!!");
@@ -9399,6 +9534,7 @@ function ArgChanged(ARG) {
   var N = ArgumentName_ENUM_BUILDER.value_to_name[ARG];
   var tag = FIND("ARGSTR_"+N);
   setARG(ARG, tag.value);
+  console.log("Updated " + N + " : " + tag.value)
 }
 
 function IncreaseArg(ARG, I) {
@@ -9406,6 +9542,7 @@ function IncreaseArg(ARG, I) {
   var tag = FIND("ARGSTR_"+N);
   tag.value = parseInt(tag.value) + I;
   setARG(ARG, tag.value);
+  console.log("Updated " + N + " : " + tag.value)
 }
 
 function ClickArgColor(ARG) {
@@ -9543,6 +9680,7 @@ function IncreaseAlt(n) {
   if (v < 0) v += num_alternatives;
   if (v > num_alternatives) v -= num_alternatives;
   FIND("ALT").value = v;
+  console.log("Updated Alt: " + v)
 }
 
 function Variant() {
@@ -9682,7 +9820,7 @@ function DoArgify() {
 
 function AddTab(tab, name, contents) {
   FIND("TABLINKS").innerHTML += "<button id="+tab+"_tab class=tablinks onclick=\"ActivateTab('"+tab+"')\">" + name + "</button>";
-  FIND("TABBODIES").innerHTML += "<div id="+tab+"_tabcontent class=tabcontent></div>";
+  FIND("TABBODIES").innerHTML += "<div id=" + tab + "_tabcontent class='tabcontent " + tab + "-tabcontent'></div>";
   if (contents) {
     AddTabContent(tab, contents);
   }
@@ -9911,10 +10049,10 @@ function ActivateTab(tab) {
             onmouseup="stopAdjustingValue()"
             onmouseleave="stopAdjustingValue()" >
           <input
-            id="VARIANT_VALUE" name=varvalue type=input size="6" value="0"
+            id="VARIANT_VALUE" name=varvalue type='number' value="0"
             title="The current Variant value. You can also type in this field for direct entry of a value."
-            oninput="updateVariantValue(this.value)" >
-          <input
+            oninput="updateVariantValue(this.value)"
+            onfocusout="SafeguardInputs(event)" >          <input
             id="VARIANT_PLUS" name=varplus type=button value=">"
             title="Increases the Variant value. Hold to increase speed of the changing value."
             onmousedown="startAdjustingValue(1, 'VARIANT_SLIDER')"
@@ -9926,8 +10064,10 @@ function ActivateTab(tab) {
             title="Decreases the Alt value."
             onclick="IncreaseAlt(-1)" >
           <input
-            id="ALT" name=alt type=input size="3" value="0"
-            title="The current Alt value. You can also type in this field for direct entry of a value." >
+            id="ALT" name=alt type='number' value="0"
+            title="The current Alt value. You can also type in this field for direct entry of a value."
+            oninput="updateAltValue(this.value)"
+            onfocusout="SafeguardInputs(event)" >
           <input
             id="ALT_PLUS" name=altplus type=button value=">"
             title="Increases the Alt value."
@@ -9942,36 +10082,40 @@ function ActivateTab(tab) {
           rows=10 cols=80 id=style wrap="off" class="textbox"
           title="Style and value editing area. Edits in here are committed by clicking the Submit button below." >
         </textarea></pre>
-        <span class="middle-btn-container">
-          <input
-            type=button name=run value="Submit"
-            title="Submit what is currently in the text box above."
-            onclick='Run()'>
-          <input
-            type=button name=copy value="Copy"
+
+        <span>
+          <button 
+            class="submit-button" title="Submit what is currently in the text box above."
+            onclick="Run()">
+            <i class="fa-solid fa-right-from-bracket"></i> Submit</button>
+          <button 
             title="Adds StylePtr&lt;&gt;() wrapper and copies the style to the clipboard."
-            onclick='Copy()'>
-          <input
-            type=button id="expand_button" name=expand value="Expand"
+            onclick="Copy()">
+            <i class="fa-solid fa-copy"></i> Copy</button>
+          <button 
+            id="expand_button"
             title="Reveals the &quot;under the hood&quot; code that the shorthand macro uses. This allows access to otherwise omitted arguments, and is only an active button when applicable."
             onclick="DoExpand()">
-          <input
-            type=button id="layerize_button" name=layerize value="Layerize"
+            <i class="fa-solid fa-up-right-and-down-left-from-center"></i> Expand</button>
+          <button 
+            id="layerize_button"
             title="Transforms nested version style code and breaks it out into more contemporary Layers format."
-            onclick="DoLayerize()" >
-          <input
-            type=button id="argify_button" name=argify value="Argify"
+            onclick="DoLayerize()">
+            <i class="fa-solid fa-layer-group"></i> Layerize</button>
+          <button
             title="Converts arguments to their ARG version counterparts for use with ProffieOS Workbench or Edit Mode. See the &quot;ArgString&quot; tab below."
-            onclick="DoArgify()" >
-          <input
-            type=button id="ROTATE_BUTTON" name=rotate value="Rotate"
-            title="Toggles animation of the preview blade above."
-            onclick="ClickRotate()" >
+            onclick="DoArgify()">
+            <i class="fa-solid fa-list"></i> Argify</button>
+          <button
+            id="ROTATE_BUTTON" title="Toggles animation of the preview blade above."
+            onclick="ClickRotate()">
+            <i class="fa-solid fa-arrows-rotate"></i> Rotate</button>
           <button 
             id="SETTINGS_BUTTON" class="icon-button" title="Settings"
             onclick="toggleSettingsPanel()">
             <i class="fa-solid fa-cog"></i> Settings</button>
       </span>
+
         <div id="settings_panel" class="settings-panel"
           title="Turning on checkboxes saves your settings for future visits to the Style Editor page.">
 
@@ -9995,7 +10139,6 @@ function ActivateTab(tab) {
             </label>
           </div>
         </div>
-
 <script>
 
 function toggleSettingsPanel() {
@@ -10021,9 +10164,13 @@ function toggleSettingsPanel() {
   }
 }
 
-/* Globally declare all the elements for Settings */
-var inhiltButton = FIND("INHILT_BUTTON"), inhiltState;
-var slowButton = FIND("SLOW_BUTTON"), slowState;
+// Call the onPageLoad function when the page is loaded
+window.addEventListener('DOMContentLoaded', onPageLoad);
+
+function onPageLoad() {
+  inhiltState.onload();
+  slowState.onload();
+}
 
 /* Settings buttons saved as local storage */
 function getSavedState(buttonState, defaultValue) {
@@ -10033,9 +10180,9 @@ function getSavedState(buttonState, defaultValue) {
   if (value === null) {
     return defaultValue;
   }
-  if (buttonState === "wavlenValue") {
-    return parseInt(value);
-  }
+  // if (buttonState === "wavlenValue") {
+  //   return parseInt(value);
+  // }
   // Convert the string to boolean unless it's null or "false"
   return value !== "false";
 }
@@ -10043,36 +10190,40 @@ function getSavedState(buttonState, defaultValue) {
 function saveState(buttonState, settingIsOn) {
   localStorage.setItem(buttonState, settingIsOn);
 }
+  
+var all_saved_states = [];
 
-// Call the onPageLoad function when the page is loaded
-window.addEventListener('DOMContentLoaded', onPageLoad);
-
-function onPageLoad() {
-  // INHILT_BUTTON
-  inhiltState = getSavedState("inhiltStateSave", false);
-  if (inhiltState) STATE_NUM_LEDS = 145 - STATE_NUM_LEDS;
-  inhiltButton.checked = inhiltState ? true : false;
-
-  // SLOW_BUTTON
-  slowState = getSavedState("slowStateSave", false);
-  if (slowState) framesPerUpdate = 60 - framesPerUpdate;
-  slowButton.checked = slowState ? true : false;
+class SavedState {
+  constructor(name, def, update_function) {
+    this.name = name;
+    this.def = def;
+    this.update_function = update_function;
+    all_saved_states.push(this);
+  }
+  onload() {
+    this.set(getSavedState(this.name+"Save", this.def));
+  }
+  set(value) {
+    this.value = value;
+    FIND(this.name.toUpperCase()+"_BUTTON").checked = value ? true : false;
+    saveState(this.name+"Save", value);
+    this.update_function(value);
+  }
+  get() { return this.value; }
 }
 
+var inhiltState = new SavedState("inhilt", false, (on) => { STATE_NUM_LEDS = on ? 1 : 144; });
+var slowState = new SavedState("slow", false, (on) => { framesPerUpdate = on ? 60 : 0; });
+
 function ClickInhilt() {
-  inhiltState = !inhiltState;
-  STATE_NUM_LEDS = 145 - STATE_NUM_LEDS; // this is genius simplicity
-  inhiltButton.checked = inhiltState ? true : false;
-  saveState("inhiltStateSave", inhiltState);
+  inhiltState.set(!inhiltState.get());
 }
 
 function ClickSlow() {
-  slowState = !slowState;
-  framesPerUpdate = 60 - framesPerUpdate;
-  saveState("slowStateSave", slowState);
+  slowState.set(!slowState.get());
 }
-</script>
 
+</script>
     <br>
     <div id=TABS>
       <div id=TABLINKS class=tab></div>
