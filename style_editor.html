@@ -9627,18 +9627,6 @@ function ClickMelt() {
   STATE_LOCKUP = STATE_LOCKUP == LOCKUP_MELT ? 0 : LOCKUP_MELT;
 }
 
-function ClickInhilt() {
-  STATE_NUM_LEDS = 145 - STATE_NUM_LEDS;
-  var button = FIND("INHILT_BUTTON");
-  button.style.backgroundColor = STATE_NUM_LEDS == 1 ? "dodgerblue" : "";
-}
-
-function ClickSlow() {
-  framesPerUpdate = 60 - framesPerUpdate;
-  var button = FIND("SLOW_BUTTON");
-  button.style.backgroundColor = framesPerUpdate == 60 ? "dodgerblue" : "";
-}
-
 var num_alternatives = 1000;
 
 function Alt() {
