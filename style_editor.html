@@ -10096,14 +10096,12 @@ function ActivateTab(tab) {
             <h4 class="settings-section-label" title="These settings apply to the blade preview above.">Blade Preview:</h4>
 
             <label title="Simulates In-Hilt LED blades, (no addressable pixel effects).">
-              <input type="checkbox" id="INHILT_BUTTON" name="inhilt"
-		data-state="inhiltState" onclick="handleClick(this)">
+              <input type="checkbox" id="INHILT_BUTTON" name="inhilt" onclick="handleClick(this)">
               <span>Inhilt LED</span>
             </label>
 
             <label title="Provides &quot;snapshots&quot; of rapidly moving things to see what they look like without fast movement. *Note* Graflex hilt model probably won't be able to render with this on.">
-              <input type="checkbox" id="SLOW_BUTTON" name="slow"
-		data-state="slowState" onclick="handleClick(this)">
+              <input type="checkbox" id="SLOW_BUTTON" name="slow" onclick="handleClick(this)">
               <span>Slow</span>
             </label>
           </div>
@@ -10137,8 +10135,9 @@ function toggleSettingsPanel() {
 window.addEventListener('DOMContentLoaded', onPageLoad);
 
 function onPageLoad() {
-  inhiltState.onload();
-  slowState.onload();
+  all_saved_states.forEach(state => {
+    state.onload();
+  });
 }
 
 /* Settings buttons saved as local storage */
@@ -10149,7 +10148,6 @@ function getSavedState(buttonState, defaultValue) {
   if (value === null) {
     return defaultValue;
   }
-  // Convert the string to boolean unless it's null or "false"
   return value !== "false";
 }
 
@@ -10158,6 +10156,7 @@ function saveState(buttonState, settingIsOn) {
 }
   
 var all_saved_states = [];
+var state_by_checkbox = new Map();
 
 class SavedState {
   constructor(name, def, update_function) {
@@ -10165,7 +10164,9 @@ class SavedState {
     this.def = def;
     this.update_function = update_function;
     all_saved_states.push(this);
-  }
+    const checkbox = FIND(this.name.toUpperCase()+"_BUTTON");
+    state_by_checkbox.set(checkbox, this);
+}
   onload() {
     this.set(getSavedState(this.name+"Save", this.def));
   }
@@ -10182,8 +10183,7 @@ var inhiltState = new SavedState("inhilt", false, (on) => { STATE_NUM_LEDS = on 
 var slowState = new SavedState("slow", false, (on) => { framesPerUpdate = on ? 60 : 0; });
 
 function handleClick(checkbox) {
-  var stateName = checkbox.dataset.state;
-  var state = window[stateName];
+  var state = state_by_checkbox.get(checkbox);
   state.set(!state.get());
 }
 
