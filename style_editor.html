@@ -10134,6 +10134,9 @@ function toggleSettingsPanel() {
 // Call the onPageLoad function when the page is loaded
 window.addEventListener('DOMContentLoaded', onPageLoad);
 
+var all_saved_states = [];
+var state_by_checkbox = new Map();
+
 function onPageLoad() {
   all_saved_states.forEach(state => {
     state.onload();
@@ -10154,9 +10157,6 @@ function getSavedState(buttonState, defaultValue) {
 function saveState(buttonState, settingIsOn) {
   localStorage.setItem(buttonState, settingIsOn);
 }
-  
-var all_saved_states = [];
-var state_by_checkbox = new Map();
 
 class SavedState {
   constructor(name, def, update_function) {
