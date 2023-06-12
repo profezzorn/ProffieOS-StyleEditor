@@ -10096,12 +10096,14 @@ function ActivateTab(tab) {
             <h4 class="settings-section-label" title="These settings apply to the blade preview above.">Blade Preview:</h4>
 
             <label title="Simulates In-Hilt LED blades, (no addressable pixel effects).">
-              <input type="checkbox" id="INHILT_BUTTON" name="inhilt" onclick="ClickInhilt()">
+              <input type="checkbox" id="INHILT_BUTTON" name="inhilt"
+		data-state="inhiltState" onclick="handleClick(this)">
               <span>Inhilt LED</span>
             </label>
 
             <label title="Provides &quot;snapshots&quot; of rapidly moving things to see what they look like without fast movement. *Note* Graflex hilt model probably won't be able to render with this on.">
-              <input type="checkbox" id="SLOW_BUTTON" name="slow" onclick="ClickSlow()">
+              <input type="checkbox" id="SLOW_BUTTON" name="slow"
+		data-state="slowState" onclick="handleClick(this)">
               <span>Slow</span>
             </label>
           </div>
@@ -10179,12 +10181,10 @@ class SavedState {
 var inhiltState = new SavedState("inhilt", false, (on) => { STATE_NUM_LEDS = on ? 1 : 144; });
 var slowState = new SavedState("slow", false, (on) => { framesPerUpdate = on ? 60 : 0; });
 
-function ClickInhilt() {
-  inhiltState.set(!inhiltState.get());
-}
-
-function ClickSlow() {
-  slowState.set(!slowState.get());
+function handleClick(checkbox) {
+  var stateName = checkbox.dataset.state;
+  var state = window[stateName];
+  state.set(!state.get());
 }
 
 </script>
