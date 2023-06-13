@@ -101,20 +101,8 @@ the Do Selected Effect button together */
 .page-left .button-off:hover {
   background-color: lightgray;
   color: darkgray;
-  border: 2px solid lightgray;
-  padding: 2px;
-}
-.page-left .button-on {
-  padding: 2px;
-  border: 2px solid dodgerblue;
-}
-.page-left .button-on:hover {
-  background-color: #ddd;
-  padding: 2px;
-  border: 2px solid dodgerblue;
-}
-.page-left .button-on:active {
-  background-color: dodgerblue;
+  box-shadow: 0 0 2px 1px transparent;
+  cursor: not-allowed;
 }
 
 /* Lockup and More Effects Drop Downs */
@@ -122,11 +110,13 @@ select {
   background-color: #eee;
   color: black;
   border-radius: 5px;
-  padding: 2px 0px;
-  font-size: 14px;
+  padding: .2%;
+  font-size: .8em;
+  cursor: pointer;
 }
 select:hover {
-  background-color: #ddd;
+/*  background-color: #ddd;*/
+  box-shadow: 0 0 2px 1px dodgerblue;
 }
 
 /* Other buttons */
@@ -137,18 +127,25 @@ input[type="button"] {
   color: black;
   border-radius: 2px;
   padding: 3px;
-  margin-bottom: 3px;
+  margin-block: 5px;
   font-size: 14px;
   border: 1px solid #bbb;
   font-weight: normal;
+  transition: box-shadow 0.1s ease;
 }
 button:hover,
 input[type="button"]:hover {
-  border: 2px solid dodgerblue;
-  padding: 2px;
+  box-shadow: 0 0 2px 1px dodgerblue;
 }
 button:active,
 input[type="button"]:active {
+  background-color: dodgerblue;
+}
+button.submit-button {
+  background-color: limegreen;
+  border: 1px solid green;
+}
+button.submit-button:active {
   background-color: dodgerblue;
 }
 
@@ -184,7 +181,7 @@ input[type="button"]:active {
 /* Thumb handle styling for Chrome, Safari, and other WebKit-based browsers */
 .variant-slider::-webkit-slider-thumb {
   -webkit-appearance: none;
-  background: DodgerBlue;
+  background: dodgerBlue;
   width: 14px;
   height: 14px;
   border-radius: 20%;
@@ -193,7 +190,7 @@ input[type="button"]:active {
 }
 /* Thumb handle styling for Firefox */
 .variant-slider::-moz-range-thumb {
-  background: DodgerBlue;
+  background: dodgerBlue;
   width: 14px;
   height: 14px;
   border-radius: 20%;
@@ -201,7 +198,7 @@ input[type="button"]:active {
 }
 /* Thumb handle styling for Internet Explorer and Edge */
 .variant-slider::-ms-thumb {
-  background: DodgerBlue;
+  background: dodgerBlue;
   width: 14px;
   height: 14px;
   border-radius: 20%;
@@ -296,17 +293,17 @@ span.MAGIC_CLASS_EFFECT input[type=button].btn {
   background-color: inherit;
   float: left;
   border: none;
+  margin: unset;
   outline: none;
   cursor: pointer;
-  padding: 7px 8px;
-  transition: 0.3s;
+  padding: 8px;
+  transition: 0.1s ease;
 }
-
 /* Change background color of buttons on hover */
 .tab button:hover {
   background-color: #ddd;
+  box-shadow: 0 0 3px 1px transparent;
 }
-
 /* Create an active/current tablink class */
 .tab button.active {
   background-color: #A1D1F3;
