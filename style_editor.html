@@ -9312,6 +9312,8 @@ function ReplaceCurrentFocus(str) {
     ActivateTab("layer");
   } else if (type == "COLOR" && (classname == "Rgb16Class" || classname == "RgbClass")) {
     ActivateTab("rgb");
+  } else if (type === "ArgumentName") {
+    ActivateTab("arguments");
   } else {
     ActivateTab(type.toLowerCase());
   }
