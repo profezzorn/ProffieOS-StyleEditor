@@ -9825,37 +9825,31 @@ function ActivateTab(tab) {
       </canvas>
       <br>
       <input
-        id="POWER_BUTTON" name="on" type="button" value="Power"
+      <button
+        id="POWER_BUTTON" 
         title="Turn the blade On and Off. Simulates ignition and retraction events on the blade."
-        onclick="ClickPower();" >
-      <input
-        id="CLASH_BUTTON" name="clash" type="button" value="Clash"
+        onclick="ClickPower()">Power</button>
+      <button
         title="Simulates an impact hit on the blade. Triggers style code using EFFECT_CLASH."
-        onclick="AddClash();" >
-      <input
-        id="STAB_BUTTON" name="stab" type="button" value="Stab"
+        onclick="AddClash()">Clash</button>
+      <button
         title="Simulates an impact hit on the tip of the blade. Triggers style code using EFFECT_STAB."
-        onclick="AddStab();" >
-      <input
-        id="BLAST_BUTTON" name="blast" type="button" value="Blast"
+        onclick="AddStab()">Stab</button>
+      <button
         title="Simulates a blaster bolt deflection impact hit on the blade. Triggers style code using EFFECT_BLAST."
-        onclick="AddBlast();" >
-      <input
-        id="FORCE_BUTTON" name="force" type="button" value="Force"
+        onclick="AddBlast()">Blast</button>
+      <button
         title="Triggers style code using EFFECT_FORCE."
-        onclick="AddForce();" >
-      <input
-        id="BOOT_BUTTON" name="boot" type="button" value="Boot"
+        onclick="AddForce()">Force</button>
+      <button
         title="Simulates powering on the Proffieboard. Triggers style code Int<using EFFECT_BOOT."
-        onclick="AddBoot();" >
-      <input
-        id="NEWFONT_BUTTON" name="newfont" type="button" value="NewFont"
+        onclick="AddBoot()">Boot</button>
+      <button
         title="Simulates changing presets. Triggers style code using EFFECT_NEWFONT."
-        onclick="AddNewfont();" >
-      <input
-        id="PREON_BUTTON" name="preon" type="button" value="Preon"
+        onclick="AddNewfont()">NewFont</button>
+      <button
         title="Simulates &quot;pre-ignition&quot;; pressing the power button when there are preon.wav files available in the current font. Triggers style code using EFFECT_PREON."
-        onclick="AddPreon();" >
+        onclick="AddPreon()">Preon</button>
 
       <select
         id="LOCKUP" name="lockup"
