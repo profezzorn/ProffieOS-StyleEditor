@@ -118,7 +118,21 @@ select:hover {
 /*  background-color: #ddd;*/
   box-shadow: 0 0 2px 1px dodgerblue;
 }
-
+/* Settings Panel buttons
+need to be here to not override Other Buttons below */
+.settings-panel button {
+  background-color: #f44336;
+  color: black;
+  margin-left: 46px;
+  border: 1px solid black;
+}
+.settings-panel button.close-settings {
+  position: absolute;
+  top: 0px;
+  left: -40px;
+  padding: 0px 4px;
+  font-weight: bold;
+}
 /* Other buttons */
 button,
 input[type="button"] {
@@ -281,6 +295,51 @@ span.MAGIC_CLASS_EFFECT input[type=button].btn {
   padding: 2px 3px;
 }
 
+.settings-panel.show {
+  opacity: 1;
+  pointer-events: auto;
+}
+.settings-panel {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  color: black;
+  width: 287px;
+  border: 3px solid #888;
+  background: #ddd;
+  padding: 36px;
+  padding-left: 30px;
+  border-radius: 9px;
+  box-shadow: 6px 10px 10px rgba(0, 0, 0, 0.9);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease-in-out;
+  z-index: 1000;
+}
+.settings-panel label {
+  display: flex;
+  align-items: center;
+}
+.settings-panel label input[type="checkbox"] {
+  margin-right: 8px;
+}
+.settings-section {
+  margin-bottom: 10px;
+}
+.settings-panel .settings-header-label {
+  margin-inline-start: 2.8em;
+  margin-block-start: -1.5em;
+  color: #333;
+  font-size: 22px;
+}
+.settings-section-label {
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 5px;
+  border-bottom: 2px solid #888;
+  padding-bottom: 5px;
+}
 /* Style the tab */
 .tab {
   overflow: hidden;
@@ -9567,18 +9626,6 @@ function ClickMelt() {
   STATE_LOCKUP = STATE_LOCKUP == LOCKUP_MELT ? 0 : LOCKUP_MELT;
 }
 
-function ClickInhilt() {
-  STATE_NUM_LEDS = 145 - STATE_NUM_LEDS;
-  var button = FIND("INHILT_BUTTON");
-  button.style.backgroundColor = STATE_NUM_LEDS == 1 ? "dodgerblue" : "";
-}
-
-function ClickSlow() {
-  framesPerUpdate = 60 - framesPerUpdate;
-  var button = FIND("SLOW_BUTTON");
-  button.style.backgroundColor = framesPerUpdate == 60 ? "dodgerblue" : "";
-}
-
 var num_alternatives = 1000;
 
 function Alt() {
@@ -10017,16 +10064,117 @@ function ActivateTab(tab) {
             id="ROTATE_BUTTON" title="Toggles animation of the preview blade above."
             onclick="ClickRotate()">
             <i class="fa-solid fa-arrows-rotate"></i> Rotate</button>
-          <input
-            type=button id=INHILT_BUTTON name=inhilt  value="Inhilt"
-            title="Simulates In-Hilt LED blades, (no addressable pixel effects)."
-            onclick="ClickInhilt()" >
-          <input
-            type=button id=SLOW_BUTTON name=inhilt value="Slow"
-            title="Provides &quot;snapshots&quot; of rapidly moving things to see what they look like without fast movement. *Note* Graflex hilt model probably won't be able to render with this on."
-            onclick="ClickSlow()" >
+          <button 
+            id="SETTINGS_BUTTON" class="icon-button" title="Settings"
+            onclick="toggleSettingsPanel()">
+            <i class="fa-solid fa-cog"></i> Settings</button>
       </span>
 
+        <div id="settings_panel" class="settings-panel"
+          title="Turning on checkboxes saves your settings for future visits to the Style Editor page.">
+
+          <button
+           title="Close Settings Panel."
+            class="close-settings" onclick="toggleSettingsPanel()">X</button>
+
+            <h2 class="settings-header-label">Settings</h2>
+
+          <div class="settings-section">
+            <h4 class="settings-section-label" title="These settings apply to the blade preview above.">Blade Preview:</h4>
+
+            <label title="Simulates In-Hilt LED blades, (no addressable pixel effects).">
+              <input type="checkbox" id="INHILT_BUTTON" name="inhilt" onclick="handleClick(this)">
+              <span>Inhilt LED</span>
+            </label>
+
+            <label title="Provides &quot;snapshots&quot; of rapidly moving things to see what they look like without fast movement. *Note* Graflex hilt model probably won't be able to render with this on.">
+              <input type="checkbox" id="SLOW_BUTTON" name="slow" onclick="handleClick(this)">
+              <span>Slow</span>
+            </label>
+          </div>
+        </div>
+<script>
+
+function toggleSettingsPanel() {
+  var settingsButton = FIND("SETTINGS_BUTTON");
+  var settingsPanel = FIND("settings_panel");
+
+  settingsPanel.classList.toggle("show");
+
+  // Mouseleave event listener
+  if (settingsPanel.classList.contains("show")) {
+    var timeoutId = null;
+    settingsPanel.addEventListener("mouseleave", function(e) {
+      timeoutId = setTimeout(function() {
+        settingsPanel.classList.remove("show");
+      }, 1000);
+    });
+    settingsPanel.addEventListener("mouseenter", function(e) {
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+        timeoutId = null;
+      }
+    });
+  }
+}
+
+// Call the onPageLoad function when the page is loaded
+window.addEventListener('DOMContentLoaded', onPageLoad);
+
+var all_saved_states = [];
+var state_by_checkbox = new Map();
+
+function onPageLoad() {
+  all_saved_states.forEach(state => {
+    state.onload();
+  });
+}
+
+/* Settings buttons saved as local storage */
+function getSavedState(buttonState, defaultValue) {
+  var value = localStorage.getItem(buttonState);
+  console.log("Retrieved SavedState for " + buttonState + ": " + value);
+
+  if (value === null) {
+    return defaultValue;
+  }
+  return value !== "false";
+}
+
+function saveState(buttonState, settingIsOn) {
+  localStorage.setItem(buttonState, settingIsOn);
+}
+
+class SavedState {
+  constructor(name, def, update_function) {
+    this.name = name;
+    this.def = def;
+    this.update_function = update_function;
+    all_saved_states.push(this);
+    const checkbox = FIND(this.name.toUpperCase()+"_BUTTON");
+    state_by_checkbox.set(checkbox, this);
+}
+  onload() {
+    this.set(getSavedState(this.name+"Save", this.def));
+  }
+  set(value) {
+    this.value = value;
+    FIND(this.name.toUpperCase()+"_BUTTON").checked = value ? true : false;
+    saveState(this.name+"Save", value);
+    this.update_function(value);
+  }
+  get() { return this.value; }
+}
+
+var inhiltState = new SavedState("inhilt", false, (on) => { STATE_NUM_LEDS = on ? 1 : 144; });
+var slowState = new SavedState("slow", false, (on) => { framesPerUpdate = on ? 60 : 0; });
+
+function handleClick(checkbox) {
+  var state = state_by_checkbox.get(checkbox);
+  state.set(!state.get());
+}
+
+</script>
     <br>
     <div id=TABS>
       <div id=TABLINKS class=tab></div>
