@@ -101,20 +101,8 @@ the Do Selected Effect button together */
 .page-left .button-off:hover {
   background-color: lightgray;
   color: darkgray;
-  border: 2px solid lightgray;
-  padding: 2px;
-}
-.page-left .button-on {
-  padding: 2px;
-  border: 2px solid dodgerblue;
-}
-.page-left .button-on:hover {
-  background-color: #ddd;
-  padding: 2px;
-  border: 2px solid dodgerblue;
-}
-.page-left .button-on:active {
-  background-color: dodgerblue;
+  box-shadow: 0 0 2px 1px transparent;
+  cursor: not-allowed;
 }
 
 /* Lockup and More Effects Drop Downs */
@@ -122,13 +110,29 @@ select {
   background-color: #eee;
   color: black;
   border-radius: 5px;
-  padding: 2px 0px;
-  font-size: 14px;
+  padding: .2%;
+  font-size: .8em;
+  cursor: pointer;
 }
 select:hover {
-  background-color: #ddd;
+/*  background-color: #ddd;*/
+  box-shadow: 0 0 2px 1px dodgerblue;
 }
-
+/* Settings Panel buttons
+need to be here to not override Other Buttons below */
+.settings-panel button {
+  background-color: #f44336;
+  color: black;
+  margin-left: 46px;
+  border: 1px solid black;
+}
+.settings-panel button.close-settings {
+  position: absolute;
+  top: 0px;
+  left: -40px;
+  padding: 0px 4px;
+  font-weight: bold;
+}
 /* Other buttons */
 button,
 input[type="button"] {
@@ -137,18 +141,25 @@ input[type="button"] {
   color: black;
   border-radius: 2px;
   padding: 3px;
-  margin-bottom: 3px;
+  margin-block: 5px;
   font-size: 14px;
   border: 1px solid #bbb;
   font-weight: normal;
+  transition: box-shadow 0.1s ease;
 }
 button:hover,
 input[type="button"]:hover {
-  border: 2px solid dodgerblue;
-  padding: 2px;
+  box-shadow: 0 0 2px 1px dodgerblue;
 }
 button:active,
 input[type="button"]:active {
+  background-color: dodgerblue;
+}
+button.submit-button {
+  background-color: limegreen;
+  border: 1px solid green;
+}
+button.submit-button:active {
   background-color: dodgerblue;
 }
 
@@ -164,7 +175,7 @@ input[type="button"]:active {
   border: 1px solid black;
   border-radius: 4px;
   display: inline-block;
-  padding: 4px;
+  padding-inline: 4px;
 }
 .variant-label {
   margin-left: 3px;
@@ -184,7 +195,7 @@ input[type="button"]:active {
 /* Thumb handle styling for Chrome, Safari, and other WebKit-based browsers */
 .variant-slider::-webkit-slider-thumb {
   -webkit-appearance: none;
-  background: DodgerBlue;
+  background: dodgerBlue;
   width: 14px;
   height: 14px;
   border-radius: 20%;
@@ -193,7 +204,7 @@ input[type="button"]:active {
 }
 /* Thumb handle styling for Firefox */
 .variant-slider::-moz-range-thumb {
-  background: DodgerBlue;
+  background: dodgerBlue;
   width: 14px;
   height: 14px;
   border-radius: 20%;
@@ -201,7 +212,7 @@ input[type="button"]:active {
 }
 /* Thumb handle styling for Internet Explorer and Edge */
 .variant-slider::-ms-thumb {
-  background: DodgerBlue;
+  background: dodgerBlue;
   width: 14px;
   height: 14px;
   border-radius: 20%;
@@ -284,6 +295,51 @@ span.MAGIC_CLASS_EFFECT input[type=button].btn {
   padding: 2px 3px;
 }
 
+.settings-panel.show {
+  opacity: 1;
+  pointer-events: auto;
+}
+.settings-panel {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  color: black;
+  width: 287px;
+  border: 3px solid #888;
+  background: #ddd;
+  padding: 36px;
+  padding-left: 30px;
+  border-radius: 9px;
+  box-shadow: 6px 10px 10px rgba(0, 0, 0, 0.9);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease-in-out;
+  z-index: 1000;
+}
+.settings-panel label {
+  display: flex;
+  align-items: center;
+}
+.settings-panel label input[type="checkbox"] {
+  margin-right: 8px;
+}
+.settings-section {
+  margin-bottom: 10px;
+}
+.settings-panel .settings-header-label {
+  margin-inline-start: 2.8em;
+  margin-block-start: -1.5em;
+  color: #333;
+  font-size: 22px;
+}
+.settings-section-label {
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 5px;
+  border-bottom: 2px solid #888;
+  padding-bottom: 5px;
+}
 /* Style the tab */
 .tab {
   overflow: hidden;
@@ -296,17 +352,17 @@ span.MAGIC_CLASS_EFFECT input[type=button].btn {
   background-color: inherit;
   float: left;
   border: none;
+  margin: unset;
   outline: none;
   cursor: pointer;
-  padding: 7px 8px;
-  transition: 0.3s;
+  padding: 8px;
+  transition: 0.1s ease;
 }
-
 /* Change background color of buttons on hover */
 .tab button:hover {
   background-color: #ddd;
+  box-shadow: 0 0 3px 1px transparent;
 }
-
 /* Create an active/current tablink class */
 .tab button.active {
   background-color: #A1D1F3;
@@ -9312,6 +9368,8 @@ function ReplaceCurrentFocus(str) {
     ActivateTab("layer");
   } else if (type == "COLOR" && (classname == "Rgb16Class" || classname == "RgbClass")) {
     ActivateTab("rgb");
+  } else if (type === "ArgumentName") {
+    ActivateTab("arguments");
   } else {
     ActivateTab(type.toLowerCase());
   }
@@ -9568,18 +9626,6 @@ function ClickMelt() {
   STATE_LOCKUP = STATE_LOCKUP == LOCKUP_MELT ? 0 : LOCKUP_MELT;
 }
 
-function ClickInhilt() {
-  STATE_NUM_LEDS = 145 - STATE_NUM_LEDS;
-  var button = FIND("INHILT_BUTTON");
-  button.style.backgroundColor = STATE_NUM_LEDS == 1 ? "dodgerblue" : "";
-}
-
-function ClickSlow() {
-  framesPerUpdate = 60 - framesPerUpdate;
-  var button = FIND("SLOW_BUTTON");
-  button.style.backgroundColor = framesPerUpdate == 60 ? "dodgerblue" : "";
-}
-
 /* Save blade style to local storage via user OS dialog */
 function ClickSave() {
   Copy();
@@ -9791,37 +9837,31 @@ function ActivateTab(tab) {
       </canvas>
       <br>
       <input
-        id="POWER_BUTTON" name="on" type="button" value="Power"
+      <button
+        id="POWER_BUTTON" 
         title="Turn the blade On and Off. Simulates ignition and retraction events on the blade."
-        onclick="ClickPower();" >
-      <input
-        id="CLASH_BUTTON" name="clash" type="button" value="Clash"
+        onclick="ClickPower()">Power</button>
+      <button
         title="Simulates an impact hit on the blade. Triggers style code using EFFECT_CLASH."
-        onclick="AddClash();" >
-      <input
-        id="STAB_BUTTON" name="stab" type="button" value="Stab"
+        onclick="AddClash()">Clash</button>
+      <button
         title="Simulates an impact hit on the tip of the blade. Triggers style code using EFFECT_STAB."
-        onclick="AddStab();" >
-      <input
-        id="BLAST_BUTTON" name="blast" type="button" value="Blast"
+        onclick="AddStab()">Stab</button>
+      <button
         title="Simulates a blaster bolt deflection impact hit on the blade. Triggers style code using EFFECT_BLAST."
-        onclick="AddBlast();" >
-      <input
-        id="FORCE_BUTTON" name="force" type="button" value="Force"
+        onclick="AddBlast()">Blast</button>
+      <button
         title="Triggers style code using EFFECT_FORCE."
-        onclick="AddForce();" >
-      <input
-        id="BOOT_BUTTON" name="boot" type="button" value="Boot"
+        onclick="AddForce()">Force</button>
+      <button
         title="Simulates powering on the Proffieboard. Triggers style code Int<using EFFECT_BOOT."
-        onclick="AddBoot();" >
-      <input
-        id="NEWFONT_BUTTON" name="newfont" type="button" value="NewFont"
+        onclick="AddBoot()">Boot</button>
+      <button
         title="Simulates changing presets. Triggers style code using EFFECT_NEWFONT."
-        onclick="AddNewfont();" >
-      <input
-        id="PREON_BUTTON" name="preon" type="button" value="Preon"
+        onclick="AddNewfont()">NewFont</button>
+      <button
         title="Simulates &quot;pre-ignition&quot;; pressing the power button when there are preon.wav files available in the current font. Triggers style code using EFFECT_PREON."
-        onclick="AddPreon();" >
+        onclick="AddPreon()">Preon</button>
 
       <select
         id="LOCKUP" name="lockup"
@@ -10030,20 +10070,121 @@ function ActivateTab(tab) {
             id="ROTATE_BUTTON" title="Toggles animation of the preview blade above."
             onclick="ClickRotate()">
             <i class="fa-solid fa-arrows-rotate"></i> Rotate</button>
-          <input
-            type=button id=INHILT_BUTTON name=inhilt  value="Inhilt"
-            title="Simulates In-Hilt LED blades, (no addressable pixel effects)."
-            onclick="ClickInhilt()" >
-          <input
-            type=button id=SLOW_BUTTON name=inhilt value="Slow"
-            title="Provides &quot;snapshots&quot; of rapidly moving things to see what they look like without fast movement. *Note* Graflex hilt model probably won't be able to render with this on."
-            onclick="ClickSlow()" >
           <button 
             title="Save the blade style to your computer."
             onclick="ClickSave()">
             <i class="fa-solid fa-save"></i> Save</button>
+          <button 
+            id="SETTINGS_BUTTON" class="icon-button" title="Settings"
+            onclick="toggleSettingsPanel()">
+            <i class="fa-solid fa-cog"></i> Settings</button>
       </span>
 
+        <div id="settings_panel" class="settings-panel"
+          title="Turning on checkboxes saves your settings for future visits to the Style Editor page.">
+
+          <button
+           title="Close Settings Panel."
+            class="close-settings" onclick="toggleSettingsPanel()">X</button>
+
+            <h2 class="settings-header-label">Settings</h2>
+
+          <div class="settings-section">
+            <h4 class="settings-section-label" title="These settings apply to the blade preview above.">Blade Preview:</h4>
+
+            <label title="Simulates In-Hilt LED blades, (no addressable pixel effects).">
+              <input type="checkbox" id="INHILT_BUTTON" name="inhilt" onclick="handleClick(this)">
+              <span>Inhilt LED</span>
+            </label>
+
+            <label title="Provides &quot;snapshots&quot; of rapidly moving things to see what they look like without fast movement. *Note* Graflex hilt model probably won't be able to render with this on.">
+              <input type="checkbox" id="SLOW_BUTTON" name="slow" onclick="handleClick(this)">
+              <span>Slow</span>
+            </label>
+          </div>
+        </div>
+<script>
+
+function toggleSettingsPanel() {
+  var settingsButton = FIND("SETTINGS_BUTTON");
+  var settingsPanel = FIND("settings_panel");
+
+  settingsPanel.classList.toggle("show");
+
+  // Mouseleave event listener
+  if (settingsPanel.classList.contains("show")) {
+    var timeoutId = null;
+    settingsPanel.addEventListener("mouseleave", function(e) {
+      timeoutId = setTimeout(function() {
+        settingsPanel.classList.remove("show");
+      }, 1000);
+    });
+    settingsPanel.addEventListener("mouseenter", function(e) {
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+        timeoutId = null;
+      }
+    });
+  }
+}
+
+// Call the onPageLoad function when the page is loaded
+window.addEventListener('DOMContentLoaded', onPageLoad);
+
+var all_saved_states = [];
+var state_by_checkbox = new Map();
+
+function onPageLoad() {
+  all_saved_states.forEach(state => {
+    state.onload();
+  });
+}
+
+/* Settings buttons saved as local storage */
+function getSavedState(buttonState, defaultValue) {
+  var value = localStorage.getItem(buttonState);
+  console.log("Retrieved SavedState for " + buttonState + ": " + value);
+
+  if (value === null) {
+    return defaultValue;
+  }
+  return value !== "false";
+}
+
+function saveState(buttonState, settingIsOn) {
+  localStorage.setItem(buttonState, settingIsOn);
+}
+
+class SavedState {
+  constructor(name, def, update_function) {
+    this.name = name;
+    this.def = def;
+    this.update_function = update_function;
+    all_saved_states.push(this);
+    const checkbox = FIND(this.name.toUpperCase()+"_BUTTON");
+    state_by_checkbox.set(checkbox, this);
+}
+  onload() {
+    this.set(getSavedState(this.name+"Save", this.def));
+  }
+  set(value) {
+    this.value = value;
+    FIND(this.name.toUpperCase()+"_BUTTON").checked = value ? true : false;
+    saveState(this.name+"Save", value);
+    this.update_function(value);
+  }
+  get() { return this.value; }
+}
+
+var inhiltState = new SavedState("inhilt", false, (on) => { STATE_NUM_LEDS = on ? 1 : 144; });
+var slowState = new SavedState("slow", false, (on) => { framesPerUpdate = on ? 60 : 0; });
+
+function handleClick(checkbox) {
+  var state = state_by_checkbox.get(checkbox);
+  state.set(!state.get());
+}
+
+</script>
     <br>
     <div id=TABS>
       <div id=TABLINKS class=tab></div>
