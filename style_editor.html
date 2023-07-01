@@ -9580,21 +9580,16 @@ function ClickSlow() {
   button.style.backgroundColor = framesPerUpdate == 60 ? "dodgerblue" : "";
 }
 
-</script>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.2/FileSaver.min.js"></script>
-<!-- 
-MIT license available here: https://spdx.org/licenses/MIT.html?utm_source=cdnjs&utm_medium=cdnjs_link&utm_campaign=cdnjs_library
-https://github.com/eligrey/FileSaver.js/ -->
-<script>
-
 /* Save blade style to local storage via user OS dialog */
 function ClickSave() {
   Copy();
   let textArea = FIND("style");
   let content = "/*\nSaved from ProffieOS Style Editor:\nhttps://fredrik.hubbe.net/lightsaber/style_editor.html\n*/" + "\n\n" + textArea.value;
-  let blob = new Blob([content], {type: "text/plain;charset=utf-8"});
-  saveAs(blob, "blade_style.txt");
+  var a = document.createElement("a");
+  var file = new Blob([content], {type: "text/plain"});
+  a.href = URL.createObjectURL(file);
+  a.download = "blade-style.txt";
+  a.click();
 }
 
 var num_alternatives = 1000;
