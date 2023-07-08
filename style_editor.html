@@ -77,6 +77,128 @@ size when padding and margins may change */
   font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
   box-sizing: border-box;
 }
+
+/* Dark mode styles */
+
+/* Whole page */ 
+.dark-mode {
+  background-color: #202020;
+  color: white !important;
+  color-scheme: dark !important;
+}
+
+/* Do Selected Effect, Expand, and Layerize */
+.dark-mode .page-left .button-off,
+.dark-mode .page-left .button-off:hover {
+  background-color: #777;
+  color: darkgray;
+   box-shadow: 0 0 0 1px transparent;
+}
+.dark-mode .settings-panel button:hover{
+  background-color: #f44336;
+}
+
+/* Other buttons */
+.dark-mode button,
+.dark-mode input[type="button"] {
+  background-color: #777;
+  color: #fff;
+  border: 1px solid transparent;
+}
+.dark-mode button:hover,
+.dark-mode input[type="button"]:hover {
+  background-color: #9F9F9F;
+}
+.dark-mode button:active,
+.dark-mode .settings-panel button:active,
+.dark-mode input[type="button"]:active {
+  background-color: steelblue;
+}
+.dark-mode button.submit-button {
+  background-color: forestgreen;
+}
+
+/* Power and Rotate latching buttons */
+.dark-mode .page-left .button-latched,
+.dark-mode .page-left .button-latched:hover {
+  background-color: steelblue;
+}
+
+/* Lockup and More Effects dropdown menus */
+.dark-mode select {
+  background-color: #777;
+  color: #fff;
+  border: 1px solid transparent;
+  padding: 1px;
+}
+.dark-mode select:hover {
+  background-color: #9F9F9F;
+}
+
+/* Variant and Alt adjusters */
+.dark-mode .variant-alt-container {
+  background-color: steelblue;
+  color: white;
+}
+
+.dark-mode .textbox {
+  background-color: #333;
+  color: white;
+}
+.dark-mode .settings-panel {
+  border: 3px solid #ccc;
+  background: #777;
+  color: black;
+}
+.dark-mode .settings-panel .settings-panel-arrow {
+  border-color: transparent #777 transparent transparent;
+}
+
+/* Tabs */
+.dark-mode .tab {
+  background-color: #333;
+}
+.dark-mode .tab button:hover {
+  background-color: #9F9F9F;
+  box-shadow: 0 0 3px 1px transparent;
+}
+.dark-mode .tab button.active {
+  background-color: steelblue;
+}
+.dark-mode .tab button.disabled {
+  background-color: #777;
+  color: #bbb;
+  cursor: not-allowed;
+}
+
+/* Structured View style arguments borders */
+.dark-mode .structured-view .selected-area-container {
+  background-color: steelblue;
+}
+.dark-mode .pp-container {
+  border-color: white;
+}
+
+.dark-mode .pp-container .running {
+  border-color: chartreuse;
+}
+/* Keep color palette background white for reference. */
+.dark-mode .rgb-tabcontent {
+background-color: white;
+}
+
+/* Popup Window */
+.dark-mode .popup-window {
+  border: 3px solid #ccc;
+  background: #777;
+}
+
+.dark-mode .footer-container {
+  background-color: #333;
+}
+
+/* Non-dark mode styles */
+
 body {
   margin-top: -3px;
   margin-bottom: 0;
@@ -196,7 +318,7 @@ button.submit-button:active {
 /* Thumb handle styling for Chrome, Safari, and other WebKit-based browsers */
 .variant-slider::-webkit-slider-thumb {
   -webkit-appearance: none;
-  background: dodgerBlue;
+  background: dodgerblue;
   width: 14px;
   height: 14px;
   border-radius: 20%;
@@ -205,7 +327,7 @@ button.submit-button:active {
 }
 /* Thumb handle styling for Firefox */
 .variant-slider::-moz-range-thumb {
-  background: dodgerBlue;
+  background: dodgerblue;
   width: 14px;
   height: 14px;
   border-radius: 20%;
@@ -213,7 +335,7 @@ button.submit-button:active {
 }
 /* Thumb handle styling for Internet Explorer and Edge */
 .variant-slider::-ms-thumb {
-  background: dodgerBlue;
+  background: dodgerblue;
   width: 14px;
   height: 14px;
   border-radius: 20%;
@@ -225,7 +347,7 @@ button.submit-button:active {
   margin-right: 3px;
 }
 .error-message {
-  color: red; 
+  color: red;
   font-weight: bold;
 }
 /* Blade Style text box */
@@ -9825,7 +9947,6 @@ function ActivateTab(tab) {
         onclick='AddClickedEffect()'>
       </canvas>
       <br>
-      <input
       <button
         id="POWER_BUTTON" 
         title="Turn the blade On and Off. Simulates ignition and retraction events on the blade."
@@ -10072,8 +10193,17 @@ function ActivateTab(tab) {
            title="Close Settings Panel."
             class="close-settings" onclick="toggleSettingsPanel()">X</button>
 
-            <h2 class="settings-header-label">Settings</h2>
+          <h2 class="settings-header-label" title="Settings Panel">Settings</h2>
 
+          <div class="settings-section">
+            <h4 class="settings-section-label" title="These settings apply to the whole page.">General:</h4>
+
+            <label title="Toggles a Dark Mode look to this page.">
+              <input type="checkbox" id="DARK_BUTTON" name="darkmode" onclick="handleClick(this)">
+              <span>Dark Mode</span>
+            </label>
+
+          </div>
           <div class="settings-section">
             <h4 class="settings-section-label" title="These settings apply to the blade preview above.">Blade Preview:</h4>
 
@@ -10118,12 +10248,8 @@ window.addEventListener('DOMContentLoaded', onPageLoad);
 
 var all_saved_states = [];
 var state_by_checkbox = new Map();
-
-function onPageLoad() {
-  all_saved_states.forEach(state => {
-    state.onload();
-  });
-}
+var body = document.querySelector("body");
+var structuredView;
 
 /* Settings buttons saved as local storage */
 function getSavedState(buttonState, defaultValue) {
@@ -10161,8 +10287,19 @@ class SavedState {
   get() { return this.value; }
 }
 
+var darkState = new SavedState("dark", false, (on) => {
+  body.classList.toggle("dark-mode", on);
+  structuredView.classList.toggle("dark-mode", on);
+});
 var inhiltState = new SavedState("inhilt", false, (on) => { STATE_NUM_LEDS = on ? 1 : 144; });
 var slowState = new SavedState("slow", false, (on) => { framesPerUpdate = on ? 60 : 0; });
+
+function onPageLoad() {
+  structuredView = FIND("structured_view");
+  all_saved_states.forEach(state => {
+    state.onload();
+  });
+}
 
 function handleClick(checkbox) {
   var state = state_by_checkbox.get(checkbox);
