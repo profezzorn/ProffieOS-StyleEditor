@@ -9170,8 +9170,9 @@ var bad_fps = 0;
   }
 
   function DontShowAgain(checkboxState) {
-    localStorage.setItem(popupIdentifier, checkboxState ? "false" : "true");
-    console.log("Saving " + popupIdentifier + " " + (checkboxState ? "false" : "true"));
+    checkboxState = !checkboxState;
+    localStorage.setItem(popupIdentifier, checkboxState);
+    console.log("Saving " + popupIdentifier + " " + checkboxState);
   }
 
 function drawScene() {
