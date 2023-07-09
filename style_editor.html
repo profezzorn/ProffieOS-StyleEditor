@@ -9261,7 +9261,7 @@ var bad_fps = 0;
   <button title="OK" onclick="dismissPopupMessage()">OK</button>
   <br>
   <label title="Don't show this again. Click 'Restore Defaults' in Settings to re-enable.">
-    <input type="checkbox" id="dont_show_again" name="dontshow" onclick="DontShowAgain()">
+    <input type="checkbox" id="dont_show_again" name="dontshow" onclick="DontShowAgain(this.checked)">
     <span>Don't show this again</span>
   </label>
 </div>
@@ -9274,6 +9274,9 @@ var bad_fps = 0;
 
   function showPopupMessage(message, currentPopup) {
     popupIdentifier = currentPopup;
+    var checkbox = FIND("dont_show_again");
+    checkbox.checked = localStorage.getItem(popupIdentifier) === "false";
+
     if (localStorage.getItem(popupIdentifier) === "false") {
       console.log(popupIdentifier + " is disabled.");
     } else {
@@ -9288,9 +9291,10 @@ var bad_fps = 0;
     overlay.classList.remove("show");
   }
 
-  function DontShowAgain() {
-    localStorage.setItem(popupIdentifier, "false");
-  console.log("Saving " + popupIdentifier + " false");
+  function DontShowAgain(checkboxState) {
+    checkboxState = !checkboxState;
+    localStorage.setItem(popupIdentifier, checkboxState);
+    console.log("Saving " + popupIdentifier + " " + checkboxState);
   }
 
 function drawScene() {
