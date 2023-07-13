@@ -1690,7 +1690,6 @@ function mouse_leave(e) {
   IN_FRAME = false;
 }
 
-
 function compile() {
   // Create a shader that samples a 2D image.
   var vertexShader = gl.createShader(gl.VERTEX_SHADER);
@@ -1704,7 +1703,7 @@ function compile() {
   variables = [];
 //  shader_code = shader_code.replace("$FUNCTION$", current_style.gencode());
   shader_code = shader_code.replace("$VARIABLES$", variables.join("\n"));
-  if (use_graflex) {
+  if (graflexState.get()) {
     shader_code = shader_code.replace("$HILT$", FIND("hilt_graflex").textContent);
   } else {
     shader_code = shader_code.replace("$HILT$", FIND("hilt_cylinder").textContent);
@@ -9252,7 +9251,6 @@ var show_style;
 
 var numTick = 0;
 var framesPerUpdate = 0;
-var use_graflex = true;
 var bad_fps = 0;
 
 </script>
@@ -9305,10 +9303,9 @@ function drawScene() {
   } else {
      if (bad_fps) bad_fps --;
   }
-  if (bad_fps > 10 && use_graflex) {
+  if (bad_fps > 10 && graflexState.get()) {
     showPopupMessage("Struggling to render hilt model.<br>Switching to simpler design.<br>To re-enable Graflex model, go to Settings.", "graflexPopup");
-    use_graflex = false;
-    compile();
+    graflexState.set(false);
   }
   num_leds = blade.num_leds()
   var pixels = new Uint8Array(num_leds * 4 * 2);
@@ -10211,6 +10208,11 @@ function ActivateTab(tab) {
           <div class="settings-section">
             <h4 class="settings-section-label" title="These settings apply to the blade preview above.">Blade Preview:</h4>
 
+            <label title="Toggles the Graflex Hilt model in the preview.">
+              <input type="checkbox" id="GRAFLEX_BUTTON" name="graflex" onclick="handleClick(this)">
+              <span>Graflex Hilt</span>
+            </label>
+
             <label title="Simulates In-Hilt LED blades, (no addressable pixel effects).">
               <input type="checkbox" id="INHILT_BUTTON" name="inhilt" onclick="handleClick(this)">
               <span>Inhilt LED</span>
@@ -10295,10 +10297,12 @@ var darkState = new SavedState("dark", false, (on) => {
   body.classList.toggle("dark-mode", on);
   structuredView.classList.toggle("dark-mode", on);
 });
+var graflexState = new SavedState("graflex", true, (on) => { compile(); });
 var inhiltState = new SavedState("inhilt", false, (on) => { STATE_NUM_LEDS = on ? 1 : 144; });
 var slowState = new SavedState("slow", false, (on) => { framesPerUpdate = on ? 60 : 0; });
 
 function onPageLoad() {
+  initGL();
   structuredView = FIND("structured_view");
   all_saved_states.forEach(state => {
     state.onload();
