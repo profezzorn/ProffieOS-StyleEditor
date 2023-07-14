@@ -1496,7 +1496,7 @@ function initGL() {
 
   var str = new URL(window.location.href).searchParams.get("S");
   if (!str) {
-    str = "Layers<Red,ResponsiveLockupL<White,TrInstant,TrInstant,Int<26000>>,ResponsiveLightningBlockL<White>,ResponsiveMeltL<Mix<TwistAngle<>,Red,Yellow>>,ResponsiveDragL<White>,ResponsiveClashL<White,TrInstant,TrFade<200>,Int<26000>>,ResponsiveBlastL<White>,ResponsiveBlastWaveL<White>,ResponsiveBlastFadeL<White>,ResponsiveStabL<White>,InOutTrL<TrWipe<300>,TrWipeIn<500>>>";
+    str = "Layers<Red,ResponsiveLockupL<White,TrInstant,TrFade<100>,Int<26000>>,ResponsiveLightningBlockL<White>,ResponsiveMeltL<Mix<TwistAngle<>,Red,Yellow>>,ResponsiveDragL<White>,ResponsiveClashL<White,TrInstant,TrFade<200>,Int<26000>>,ResponsiveBlastL<White>,ResponsiveBlastWaveL<White>,ResponsiveBlastFadeL<White>,ResponsiveStabL<White>,InOutTrL<TrWipe<300>,TrWipeIn<500>>>";
   }
   FIND("style").value = str;
 
@@ -1690,7 +1690,6 @@ function mouse_leave(e) {
   IN_FRAME = false;
 }
 
-
 function compile() {
   // Create a shader that samples a 2D image.
   var vertexShader = gl.createShader(gl.VERTEX_SHADER);
@@ -1704,7 +1703,7 @@ function compile() {
   variables = [];
 //  shader_code = shader_code.replace("$FUNCTION$", current_style.gencode());
   shader_code = shader_code.replace("$VARIABLES$", variables.join("\n"));
-  if (use_graflex) {
+  if (graflexState.get()) {
     shader_code = shader_code.replace("$HILT$", FIND("hilt_graflex").textContent);
   } else {
     shader_code = shader_code.replace("$HILT$", FIND("hilt_cylinder").textContent);
@@ -2946,7 +2945,7 @@ AddTemplate("StyleNormalPtr<Pulsing<Red, Rgb<50,0,0>, 5000>, White, 300, 800, Re
 AddTemplate("StyleRainbowPtr<300, 800>");
 AddTemplate("StyleStrobePtr<White, Rainbow, 15, 300, 800>");
 AddTemplate("StyleFirePtr<Red, Yellow>");
-AddTemplate("Layers<Red, ResponsiveLockupL<White, TrInstant, TrInstant, Int<26000>, Int<6000>>,ResponsiveLightningBlockL<White, TrInstant, TrInstant>,ResponsiveMeltL<Mix<TwistAngle<>,Red,Yellow>, TrWipeIn<600>, TrWipe<600>, Int<4000>, Int<10000>>,ResponsiveDragL<White, TrInstant, TrInstant, Int<2000>, Int<10000>>,ResponsiveClashL<White, TrInstant, TrFade<200>, Int<26000>, Int<6000>>,ResponsiveBlastL<White, Int<400>, Int<100>, Int<400>, Int<28000>, Int<8000>>,ResponsiveBlastWaveL<White, Int<400>, Int<100>, Int<400>, Int<28000>, Int<8000>>,ResponsiveBlastFadeL<White, Int<8000>, Int<400>, Int<28000>, Int<8000>>,ResponsiveStabL<White, TrWipeIn<600>, TrWipe<600>, Int<14000>, Int<8000>>,InOutTrL<TrWipe<300>, TrWipeIn<500>>>");
+AddTemplate("Layers<Red, ResponsiveLockupL<White, TrInstant, TrFade<100>, Int<26000>, Int<6000>>,ResponsiveLightningBlockL<White, TrInstant, TrInstant>,ResponsiveMeltL<Mix<TwistAngle<>,Red,Yellow>, TrWipeIn<600>, TrWipe<600>, Int<4000>, Int<10000>>,ResponsiveDragL<White, TrInstant, TrInstant, Int<2000>, Int<10000>>,ResponsiveClashL<White, TrInstant, TrFade<200>, Int<26000>, Int<6000>>,ResponsiveBlastL<White, Int<400>, Int<100>, Int<400>, Int<28000>, Int<8000>>,ResponsiveBlastWaveL<White, Int<400>, Int<100>, Int<400>, Int<28000>, Int<8000>>,ResponsiveBlastFadeL<White, Int<8000>, Int<400>, Int<28000>, Int<8000>>,ResponsiveStabL<White, TrWipeIn<600>, TrWipe<600>, Int<14000>, Int<8000>>,InOutTrL<TrWipe<300>, TrWipeIn<500>>>");
 
 
 AddLayer("AlphaL<Red, Int<16000>>");
@@ -9252,7 +9251,6 @@ var show_style;
 
 var numTick = 0;
 var framesPerUpdate = 0;
-var use_graflex = true;
 var bad_fps = 0;
 
 </script>
@@ -9261,7 +9259,7 @@ var bad_fps = 0;
   <button title="OK" onclick="dismissPopupMessage()">OK</button>
   <br>
   <label title="Don't show this again. Click 'Restore Defaults' in Settings to re-enable.">
-    <input type="checkbox" id="dont_show_again" name="dontshow" onclick="DontShowAgain()">
+    <input type="checkbox" id="dont_show_again" name="dontshow" onclick="DontShowAgain(this.checked)">
     <span>Don't show this again</span>
   </label>
 </div>
@@ -9274,6 +9272,9 @@ var bad_fps = 0;
 
   function showPopupMessage(message, currentPopup) {
     popupIdentifier = currentPopup;
+    var checkbox = FIND("dont_show_again");
+    checkbox.checked = localStorage.getItem(popupIdentifier) === "false";
+
     if (localStorage.getItem(popupIdentifier) === "false") {
       console.log(popupIdentifier + " is disabled.");
     } else {
@@ -9288,9 +9289,10 @@ var bad_fps = 0;
     overlay.classList.remove("show");
   }
 
-  function DontShowAgain() {
-    localStorage.setItem(popupIdentifier, "false");
-  console.log("Saving " + popupIdentifier + " false");
+  function DontShowAgain(checkboxState) {
+    checkboxState = !checkboxState;
+    localStorage.setItem(popupIdentifier, checkboxState);
+    console.log("Saving " + popupIdentifier + " " + checkboxState);
   }
 
 function drawScene() {
@@ -9301,10 +9303,9 @@ function drawScene() {
   } else {
      if (bad_fps) bad_fps --;
   }
-  if (bad_fps > 10 && use_graflex) {
+  if (bad_fps > 10 && graflexState.get()) {
     showPopupMessage("Struggling to render hilt model.<br>Switching to simpler design.<br>To re-enable Graflex model, go to Settings.", "graflexPopup");
-    use_graflex = false;
-    compile();
+    graflexState.set(false);
   }
   num_leds = blade.num_leds()
   var pixels = new Uint8Array(num_leds * 4 * 2);
@@ -10212,6 +10213,11 @@ function ActivateTab(tab) {
           <div class="settings-section">
             <h4 class="settings-section-label" title="These settings apply to the blade preview above.">Blade Preview:</h4>
 
+            <label title="Toggles the Graflex Hilt model in the preview.">
+              <input type="checkbox" id="GRAFLEX_BUTTON" name="graflex" onclick="handleClick(this)">
+              <span>Graflex Hilt</span>
+            </label>
+
             <label title="Simulates In-Hilt LED blades, (no addressable pixel effects).">
               <input type="checkbox" id="INHILT_BUTTON" name="inhilt" onclick="handleClick(this)">
               <span>Inhilt LED</span>
@@ -10296,6 +10302,7 @@ var darkState = new SavedState("dark", false, (on) => {
   body.classList.toggle("dark-mode", on);
   structuredView.classList.toggle("dark-mode", on);
 });
+
 var tipsState = new SavedState("tips", true, (on) => { 
  if (on) {
     const elementsWithDataTitles = document.querySelectorAll("[data-title]");
@@ -10311,10 +10318,12 @@ var tipsState = new SavedState("tips", true, (on) => {
     });
   }
 });
+var graflexState = new SavedState("graflex", true, (on) => { compile(); });
 var inhiltState = new SavedState("inhilt", false, (on) => { STATE_NUM_LEDS = on ? 1 : 144; });
 var slowState = new SavedState("slow", false, (on) => { framesPerUpdate = on ? 60 : 0; });
 
 function onPageLoad() {
+  initGL();
   structuredView = FIND("structured_view");
   all_saved_states.forEach(state => {
     state.onload();
