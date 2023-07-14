@@ -10308,7 +10308,7 @@ var darkState = new SavedState("dark", false, (on) => {
   structuredView.classList.toggle("dark-mode", on);
 });
 var graflexState = new SavedState("graflex", true, (on) => { compile(); });
-var stillState = new SavedState("still", false, (on) => {});
+var mouseSwingsState = new SavedState("mouseSwings", false, (on) => {});
 var autoswingState = new SavedState("autoswing", true, (on) => {});
 var inhiltState = new SavedState("inhilt", false, (on) => { STATE_NUM_LEDS = on ? 1 : 144; });
 var slowState = new SavedState("slow", false, (on) => { framesPerUpdate = on ? 60 : 0; });
