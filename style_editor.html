@@ -1623,7 +1623,7 @@ function mouse_speed(t1, t2) {
 }
 
 function mouse_move(e) {
-  if (stillState.get()) return;
+  if (mouseSwingsState.get()) return;
   IN_FRAME = true;
   var canvas = FIND("canvas_id");
   var rect = canvas.getBoundingClientRect();
@@ -10215,8 +10215,8 @@ function ActivateTab(tab) {
             </label>
 
             <label title="Toggles the option for swinging around the preview blade above using mouse control.">
-              <input type="checkbox" id="STILL_BUTTON" name="still" onclick="handleClick(this)">
-              <span>Still</span>
+              <input type="checkbox" id="MOUSESWINGS_BUTTON" name="mouseSwings" onclick="handleSettings(this)">
+              <span>Disable mouse swings</span>
             </label>
 
             <label title="Toggles automated swing emulation on the preview blade while at rest (ie: shown when using SwingSpeed<>). Swinging while hovering over the preview area always shows swing blade effects according to movements.">
