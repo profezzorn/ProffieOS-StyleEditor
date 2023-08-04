@@ -9750,6 +9750,18 @@ function ClickMelt() {
   STATE_LOCKUP = STATE_LOCKUP == LOCKUP_MELT ? 0 : LOCKUP_MELT;
 }
 
+/* Save blade style to local storage via user OS dialog */
+function ClickSave() {
+  Copy();
+  let textArea = FIND("style");
+  let content = "/*\nSaved from ProffieOS Style Editor:\nhttps://fredrik.hubbe.net/lightsaber/style_editor.html\n*/" + "\n\n" + textArea.value;
+  var a = document.createElement("a");
+  var file = new Blob([content], {type: "text/plain"});
+  a.href = URL.createObjectURL(file);
+  a.download = "blade-style.txt";
+  a.click();
+}
+
 var num_alternatives = 1000;
 
 function Alt() {
@@ -10181,6 +10193,10 @@ function ActivateTab(tab) {
             id="ROTATE_BUTTON" title="Toggles animation of the preview blade above."
             onclick="ClickRotate()">
             <i class="fa-solid fa-arrows-rotate"></i> Rotate</button>
+          <button 
+            title="Save the blade style to your computer."
+            onclick="ClickSave()">
+            <i class="fa-solid fa-save"></i> Save</button>
           <button 
             id="SETTINGS_BUTTON" class="icon-button" title="Settings"
             onclick="toggleSettingsPanel()">
