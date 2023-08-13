@@ -212,7 +212,9 @@ body {
 .page-right {
   vertical-align: top;
  }
-
+.canvas-container {
+  position: relative;
+}
 /* This keeps the More Effects menu and
 the Do Selected Effect button together */
 .more-menu-container {
@@ -1487,6 +1489,23 @@ function initGL() {
   canvas.height = height * dpr;
   canvas.style.width = width + 'px';
   canvas.style.height = height + 'px';
+  
+  var enlargeCanvas = false;
+  FIND('ENLARGE').onclick = function() {
+    enlargeCanvas = !enlargeCanvas;
+    this.innerText = enlargeCanvas ? 'Reduce' : 'Enlarge';
+    if (enlargeCanvas) {
+      height = window.innerHeight / 2;
+    } else {
+      height = window.innerHeight / 3;
+    }
+    
+    // Update the canvas dimensions
+    canvas.width = width * dpr;
+    canvas.height = height * dpr;
+    canvas.style.width = width + 'px';
+    canvas.style.height = height + 'px';
+  }
 
   gl = canvas.getContext("experimental-webgl", {colorSpace: "srgb", antialias:false});
 
@@ -1605,7 +1624,7 @@ class Matrix {
 };
 
 function default_move_matrix() {
-  return Matrix.mktranslate(0.00, 0.0, -0.08);
+  return Matrix.mktranslate(-0.023, 0.0, -0.12);
 }
 
 var MOVE_MATRIX = default_move_matrix();
@@ -9953,12 +9972,18 @@ function ActivateTab(tab) {
   <table>
   <tr>
     <td class="page-left">
-      <canvas
-        id="canvas_id"  class="canvas-style"
-        title="Blade Preview. Move mouse to swing. Click to Clash or Do Selected Effect (and to dismiss this Tooltip.)  Goto settings to change hilt model or toggle Still mode (no swing on mouse move.)"
-        onmousemove='mouse_move(event)' onmouseleave='mouse_leave(event)'
-        onclick='AddClickedEffect()'>
-      </canvas>
+      <div class="canvas-container">      
+        <canvas
+          id="canvas_id"
+          title="Blade Preview. Move mouse to swing. Click to Clash or Do Selected Effect (and to dismiss this Tooltip.)  Goto settings to change hilt model or toggle Mouse Swings mode (no swing on mouse move.)"
+          onmousemove='mouse_move(event)' onmouseleave='mouse_leave(event)'
+          onclick='AddClickedEffect()'>
+        </canvas>
+        <button
+          id="ENLARGE"
+          title="Click to toggle blade preview window size."
+          style="position:absolute; bottom:10px; right:10px;">Enlarge</button>
+      </div>
       <br>
       <button
         id="POWER_BUTTON" 
