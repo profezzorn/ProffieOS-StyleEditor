@@ -10302,8 +10302,7 @@ var inhiltState = new SavedState("inhilt", false, (on) => { STATE_NUM_LEDS = on 
 var slowState = new SavedState("slow", false, (on) => { framesPerUpdate = on ? 60 : 0; });
 
 function onPageLoad() {
-  // THIS IS CAUSING TABS DOUBLING, but without it, createShader is null. Cascade issue likely.
-  // initGL();
+  initGL();
   structuredView = FIND("structured_view");
   all_saved_states.forEach(state => {
     state.onload();
