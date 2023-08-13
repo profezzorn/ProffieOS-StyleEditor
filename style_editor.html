@@ -1642,6 +1642,7 @@ function mouse_speed(t1, t2) {
 }
 
 function mouse_move(e) {
+  if (mouseswingsState.get()) return;
   IN_FRAME = true;
   var canvas = FIND("canvas_id");
   var rect = canvas.getBoundingClientRect();
@@ -1682,7 +1683,7 @@ function get_swing_speed() {
   if (len >= 6) {
     return mouse_speed(0, len - 6);
   }
-  if (IN_FRAME) return 0.0;
+  if (IN_FRAME || !autoswingState.get()) return 0.0;
   return Math.sin(millis() * Math.PI / 1000.0) * 250 + 250
 }
 
@@ -10254,6 +10255,15 @@ function ActivateTab(tab) {
               <span>Graflex Hilt</span>
             </label>
 
+            <label title="Toggles the option for swinging around the preview blade above using mouse control.">
+              <input type="checkbox" id="MOUSESWINGS_BUTTON" name="mouseswings" onclick="handleSettings(this)">
+              <span>Disable mouse swings</span>
+            </label>
+
+            <label title="Toggles automated swing emulation on the preview blade while at rest (ie: shown when using SwingSpeed<>). Swinging while hovering over the preview area always shows swing blade effects according to movements.">
+              <input type="checkbox" id="AUTOSWING_BUTTON" name="autoswing" onclick="handleClick(this)">
+              <span>Swing Emulation</span>
+
             <label title="Simulates In-Hilt LED blades, (no addressable pixel effects).">
               <input type="checkbox" id="INHILT_BUTTON" name="inhilt" onclick="handleClick(this)">
               <span>Inhilt LED</span>
@@ -10339,6 +10349,8 @@ var darkState = new SavedState("dark", false, (on) => {
   structuredView.classList.toggle("dark-mode", on);
 });
 var graflexState = new SavedState("graflex", true, (on) => { compile(); });
+var mouseswingsState = new SavedState("mouseswings", false, (on) => {});
+var autoswingState = new SavedState("autoswing", true, (on) => {});
 var inhiltState = new SavedState("inhilt", false, (on) => { STATE_NUM_LEDS = on ? 1 : 144; });
 var slowState = new SavedState("slow", false, (on) => { framesPerUpdate = on ? 60 : 0; });
 
