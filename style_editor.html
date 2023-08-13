@@ -10246,6 +10246,11 @@ function ActivateTab(tab) {
               <span>Dark Mode</span>
             </label>
 
+            <label title="Toggles pop-up tooltips On or Off.">
+              <input type="checkbox" id="TIPS_BUTTON" name="tooltips" onclick="handleClick(this)">
+              <span >Tool Tips</span>
+            </label>
+
           </div>
           <div class="settings-section">
             <h4 class="settings-section-label" title="These settings apply to the blade preview above.">Blade Preview:</h4>
@@ -10347,6 +10352,22 @@ class SavedState {
 var darkState = new SavedState("dark", false, (on) => {
   body.classList.toggle("dark-mode", on);
   structuredView.classList.toggle("dark-mode", on);
+});
+
+var tipsState = new SavedState("tips", true, (on) => { 
+ if (on) {
+    const elementsWithDataTitles = document.querySelectorAll("[data-title]");
+    elementsWithDataTitles.forEach((element) => {
+      element.setAttribute("title", element.dataset.title);
+      element.removeAttribute("data-title");
+    });
+  } else {
+    const elementsWithTitles = document.querySelectorAll("[title]");
+    elementsWithTitles.forEach((element) => {
+      element.dataset.title = element.getAttribute("title");
+      element.removeAttribute("title");
+    });
+  }
 });
 var graflexState = new SavedState("graflex", true, (on) => { compile(); });
 var mouseswingsState = new SavedState("mouseswings", false, (on) => {});
