@@ -465,6 +465,17 @@ span.MAGIC_CLASS_EFFECT input[type=button].btn {
   border-bottom: 2px solid #888;
   padding-bottom: 5px;
 }
+
+/* Align Wavlen Settings label */
+.wavlen-label {
+  display: block;
+  margin-top: 5px;
+}
+.wavlen-value {
+  width: 80px;
+  margin-left: 5px;
+}
+
 /* Style the tab */
 .tab {
   overflow: hidden;
@@ -7555,7 +7566,14 @@ class WavLenClass extends FUNCTION {
     super("Length of associated wav file in MS", arguments);
     this.add_arg("EFFECT", "EFFECT", "Which effect to get the length of.", EFFECT(EFFECT_NONE));
   }
-  getInteger(led) { return 500; }
+  // WavLen value can be set in settings panel
+  setLength(value) {
+    this.wavlenValue = value;
+     console.log("Updated WavLen: ", this.wavlenValue);
+  }
+  getInteger(led) {
+    return myWavLen.wavlenValue;
+  }
 };
 
 function WavLen(EFFECT) { return new WavLenClass(EFFECT); }
@@ -10242,12 +10260,12 @@ function ActivateTab(tab) {
             <h4 class="settings-section-label" title="These settings apply to the whole page.">General:</h4>
 
             <label title="Toggles a Dark Mode look to this page.">
-              <input type="checkbox" id="DARK_BUTTON" name="darkmode" onclick="handleClick(this)">
+              <input type="checkbox" id="DARK_BUTTON" name="darkmode" onclick="handleSettings(this)">
               <span>Dark Mode</span>
             </label>
 
             <label title="Toggles pop-up tooltips On or Off.">
-              <input type="checkbox" id="TIPS_BUTTON" name="tooltips" onclick="handleClick(this)">
+              <input type="checkbox" id="TIPS_BUTTON" name="tooltips" onclick="handleSettings(this)">
               <span >Tool Tips</span>
             </label>
 
@@ -10256,30 +10274,38 @@ function ActivateTab(tab) {
             <h4 class="settings-section-label" title="These settings apply to the blade preview above.">Blade Preview:</h4>
 
             <label title="Toggles the Graflex Hilt model in the preview.">
-              <input type="checkbox" id="GRAFLEX_BUTTON" name="graflex" onclick="handleClick(this)">
+              <input type="checkbox" id="GRAFLEX_BUTTON" name="graflex" onclick="handleSettings(this)">
               <span>Graflex Hilt</span>
             </label>
 
             <label title="Toggles the option for swinging around the preview blade above using mouse control.">
-              <input type="checkbox" id="MOUSESWINGS_BUTTON" name="mouseswings" onclick="handleClick(this)">
+              <input type="checkbox" id="MOUSESWINGS_BUTTON" name="mouseswings" onclick="handleSettings(this)">
               <span>Disable mouse swings</span>
             </label>
 
             <label title="Toggles automated swing emulation on the preview blade while at rest (ie: shown when using SwingSpeed<>). Swinging while hovering over the preview area always shows swing blade effects according to movements.">
-              <input type="checkbox" id="AUTOSWING_BUTTON" name="autoswing" onclick="handleClick(this)">
+              <input type="checkbox" id="AUTOSWING_BUTTON" name="autoswing" onclick="handleSettings(this)">
               <span>Swing Emulation</span>
             </label>
 
             <label title="Simulates In-Hilt LED blades, (no addressable pixel effects).">
-              <input type="checkbox" id="INHILT_BUTTON" name="inhilt" onclick="handleClick(this)">
+              <input type="checkbox" id="INHILT_BUTTON" name="inhilt" onclick="handleSettings(this)">
               <span>Inhilt LED</span>
             </label>
 
             <label title="Provides &quot;snapshots&quot; of rapidly moving things to see what they look like without fast movement. *Note* Graflex hilt model probably won't be able to render with this on.">
-              <input type="checkbox" id="SLOW_BUTTON" name="slow" onclick="handleClick(this)">
+              <input type="checkbox" id="SLOW_BUTTON" name="slow" onclick="handleSettings(this)">
               <span>Slow</span>
             </label>
           </div>
+
+          <div class="settings-section">
+            <label title="Enter a custom WavLen value in milliseconds. This is also the time used if IgnitionTime<> or RetractionTime<> is set to zero." class="wavlen-label">
+              WavLen time:
+              <input type='number' id="WAVLEN_VALUE" class="wavlen-value" value="500">
+            </label>
+          </div>
+          <br>
         </div>
 <script>
 
@@ -10313,6 +10339,8 @@ var all_saved_states = [];
 var state_by_checkbox = new Map();
 var body = document.querySelector("body");
 var structuredView;
+var wavlenInput = FIND("WAVLEN_VALUE");
+var myWavLen = new WavLenClass();
 
 /* Settings buttons saved as local storage */
 function getSavedState(buttonState, defaultValue) {
@@ -10322,6 +10350,9 @@ function getSavedState(buttonState, defaultValue) {
   if (value === null) {
     return defaultValue;
   }
+  if (buttonState === "wavlenSave"){
+    return value;
+  }
   return value !== "false";
 }
 
@@ -10330,21 +10361,26 @@ function saveState(buttonState, settingIsOn) {
 }
 
 class SavedState {
-  constructor(name, def, update_function) {
+  constructor(name, def, update_function, type = "checkbox") {
     this.name = name;
     this.def = def;
     this.update_function = update_function;
+    this.type = type;
     all_saved_states.push(this);
     const checkbox = FIND(this.name.toUpperCase()+"_BUTTON");
     state_by_checkbox.set(checkbox, this);
-}
+  }
   onload() {
-    this.set(getSavedState(this.name+"Save", this.def));
+    this.set(getSavedState(this.name + "Save", this.def));
   }
   set(value) {
     this.value = value;
-    FIND(this.name.toUpperCase()+"_BUTTON").checked = value ? true : false;
-    saveState(this.name+"Save", value);
+    if (this.type === "checkbox") {
+      FIND(this.name.toUpperCase() + "_BUTTON").checked = value ? true : false;
+    } else if (this.type === "number") {
+      FIND(this.name.toUpperCase() + "_VALUE").value = value;
+    }
+    saveState(this.name + "Save", value);
     this.update_function(value);
   }
   get() { return this.value; }
@@ -10375,6 +10411,15 @@ var mouseswingsState = new SavedState("mouseswings", false, (on) => {});
 var autoswingState = new SavedState("autoswing", true, (on) => {});
 var inhiltState = new SavedState("inhilt", false, (on) => { STATE_NUM_LEDS = on ? 1 : 144; });
 var slowState = new SavedState("slow", false, (on) => { framesPerUpdate = on ? 60 : 0; });
+var wavlenState = new SavedState("wavlen", 500, (value) => {
+  myWavLen.setLength(value);
+}, "number");
+wavlenInput.addEventListener("input", function(e) {
+  var value = parseInt(this.value);
+  var newValue = (isNaN(value) || value < 1) ? 1 : value;
+  this.value = newValue;
+  wavlenState.set(newValue);
+});
 
 function onPageLoad() {
   initGL();
@@ -10384,7 +10429,7 @@ function onPageLoad() {
   });
 }
 
-function handleClick(checkbox) {
+function handleSettings(checkbox) {
   var state = state_by_checkbox.get(checkbox);
   state.set(!state.get());
 }
