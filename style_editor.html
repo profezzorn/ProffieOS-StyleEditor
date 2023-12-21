@@ -7168,6 +7168,7 @@ class InOutFuncXClass extends FUNCTION {
     super.run(blade);
     var now = micros();
     var delta = now - this.last_micros;
+    if (delta < 0 || delta > 1000000) delta = 1;
     this.last_micros = now;
     if (blade.is_on()) {
       if (this.extension == 0.0) {
