@@ -6583,6 +6583,7 @@ function TrColorCycleX(MILLIS, START_RPM, END_RPM) { return new TrColorCycleXCla
 class TrColorCycleClass extends MACRO {
   constructor(MILLIS, START_RPM, END_RPM) {
     super("ColorCycle transition", arguments);
+    this.add_arg("MILLIS", "INT", "Transition length in milliseconds.")
     this.add_arg("START_RPM", "INT", "RPM at the beginning of transition", 0);
     this.add_arg("END_RPM", "INT", "RPM at the end of transition", 6000);
     this.SetExpansion(TrColorCycleX(Int(MILLIS), this.START_RPM, this.END_RPM))
