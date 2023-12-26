@@ -2837,10 +2837,12 @@ function encstr(s) {
 
 function mkbutton2(name, val) {
   return "<input type=button class=btn onclick='SetToAndFormat(\""+val+"\")' value='"+enc(name)+"'>\n";
-  //  return "<span class=btn onclick='SetTo(\""+name+"\")'>"+enc(name)+"</span>\n";  
+  //  return "<span class=btn onclick='SetTo(\""+name+"\")'>"+enc(name)+"</span>\n";
 }
 function mkbutton(name) {
   return mkbutton2(name, name);
+//  return "<input type=button class=btn onclick='SetTo(\""+name+"\")' value='"+enc(name)+"'>\n";
+  //  return "<span class=btn onclick='SetTo(\""+name+"\")'>"+enc(name)+"</span>\n";
 }
 
 
