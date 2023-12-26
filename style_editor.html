@@ -1440,24 +1440,7 @@ function initGL() {
   tabBodiesElement.innerHTML = "";
 
   AddTab("color", "Styles",effect_links.sort().join(""))
-  if (colorsortState.get()) {
-    // Sort sortedRgbLinks based on the name:
-    sortedRgbLinks.sort((a, b) => a.name.localeCompare(b.name));
-    // Map sortedRgbLinks to mkcolorbuttonByName HTML strings
-    qlinks = sortedRgbLinks.map(color => mkcolorbuttonByName(color.name, color.r, color.g, color.b));
-    AddTab("rgb", "Colors",
-      qlinks.join("") +
-      "<div class='custom-color'>" +
-      "<label for='COLOR'>Custom color </label>" +
-      "<input type='color' id='COLOR' value='#ff0000' class='color-picker' onclick='ClickColor()' /></div>");
-  } else {
-    qlinks.sort();
-    AddTab("rgb", "Colors",
-      qlinks.join("") +
-      "<div class='custom-color'>" +
-      "<label for='COLOR'>Custom color </label>" +
-      "<input type='color' id='COLOR' value='#ff0000' class='color-picker' onclick='ClickColor()' /></div>");
-  }
+  AddTab("rgb", "Colors", ""); updateRgbTabContent();
   AddTab("layer", "Layers", layer_links.sort().join(""));
   AddTab("function", "Functions", function_links.sort().join(""));
   AddTab("transition", "Transitions", transition_links.sort().join(""));
@@ -2574,7 +2557,6 @@ function ClickColor() {
 //var function_links = "<b>Functions:</b>";
 //var transition_links = "<b>Transitions:</b>";
 
-var qlinks = [];
 var effect_links = [];
 var layer_links = [];
 var effect_type_links = []
@@ -2584,7 +2566,8 @@ var transition_links = [];
 
 var all_colors = {};
 var colorNames = {};
-var sortedRgbLinks = [];
+var byHueLinks = [];
+var byNameLinks = [];
 
 class RgbClass extends STYLE {
   constructor(r,g,b,a) {
@@ -2979,11 +2962,8 @@ function mkcolorbuttonByName(name, r, g, b) {
 
 function AddColor(name, r, g, b) {
   colorNames[r+","+g+","+b] = name;
-  if (colorsortState.get()) {
-    sortedRgbLinks.push({name, r, g, b});
-  } else {
-    qlinks.push(mkcolorbutton(name, r, g, b));
-  }  
+  byNameLinks.push({name, r, g, b});
+  byHueLinks.push(mkcolorbutton(name, r, g, b));
   all_colors[name] = new RgbClass(r, g, b);
 }
 
@@ -3175,58 +3155,54 @@ AddFunction("EffectIncrementF<EFFECT_CLASH, Int<32768>, Int<8192>>");
 AddFunction("MarbleF<Int<-2000>, Int<40000>, Ifon<Int<827680>, Int<0>>, Int<1276800>>");
 AddFunction("LockupPulseF<SaberBase::LOCKUP_NORMAL>");
 
-function loadColorData() {
-  // Clear arrays
-  sortedRgbLinks = [];
-  qlinks = [];
-  AddColor("AliceBlue", 223, 239, 255);
-  AddColor("Aqua", 0, 255, 255);
-  AddColor("Aquamarine", 55, 255, 169);
-  AddColor("Azure", 223, 255, 255);
-  AddColor("Bisque", 255, 199, 142);
-  AddColor("Black", 0, 0, 0);
-  AddColor("BlanchedAlmond", 255, 213, 157);
-  AddColor("Blue", 0, 0, 255);
-  AddColor("Chartreuse", 55, 255, 0);
-  AddColor("Coral", 255, 55, 19);
-  AddColor("Cornsilk", 255, 239, 184);
-  AddColor("Cyan", 0, 255, 255);
-  AddColor("DarkOrange", 255, 68, 0);
-  AddColor("DeepPink", 255, 0, 75);
-  AddColor("DeepSkyBlue", 0, 135, 255);
-  AddColor("DodgerBlue", 2, 72, 255);
-  AddColor("FloralWhite", 255, 244, 223);
-  AddColor("GhostWhite", 239, 239, 255);
-  AddColor("Green", 0, 255, 0);
-  AddColor("GreenYellow", 108, 255, 6);
-  AddColor("HoneyDew", 223, 255, 223);
-  AddColor("HotPink", 255, 36, 118);
-  AddColor("Ivory", 255, 255, 223);
-  AddColor("LavenderBlush", 255, 223, 233);
-  AddColor("LemonChiffon", 255, 244, 157);
-  AddColor("LightCyan", 191, 255, 255);
-  AddColor("LightPink", 255, 121, 138);
-  AddColor("LightSalmon", 255, 91, 50);
-  AddColor("LightYellow", 255, 255, 191);
-  AddColor("Magenta", 255, 0, 255);
-  AddColor("MintCream", 233, 255, 244);
-  AddColor("MistyRose", 255, 199, 193);
-  AddColor("Moccasin", 255, 199, 119);
-  AddColor("NavajoWhite", 255, 187, 108);
-  AddColor("Orange", 255, 97, 0);
-  AddColor("OrangeRed", 255, 14, 0);
-  AddColor("PapayaWhip", 255, 221, 171);
-  AddColor("PeachPuff", 255, 180, 125);
-  AddColor("Pink", 255, 136, 154);
-  AddColor("Red", 255, 0, 0);
-  AddColor("SeaShell", 255, 233, 219);
-  AddColor("Snow", 255, 244, 244);
-  AddColor("SpringGreen", 0, 255, 55);
-  AddColor("SteelBlue", 14, 57, 118);
-  AddColor("Tomato", 255, 31, 15);
-  AddColor("White", 255, 255, 255);
-  AddColor("Yellow", 255, 255, 0);
-}
+AddColor("AliceBlue", 223, 239, 255);
+AddColor("Aqua", 0, 255, 255);
+AddColor("Aquamarine", 55, 255, 169);
+AddColor("Azure", 223, 255, 255);
+AddColor("Bisque", 255, 199, 142);
+AddColor("Black", 0, 0, 0);
+AddColor("BlanchedAlmond", 255, 213, 157);
+AddColor("Blue", 0, 0, 255);
+AddColor("Chartreuse", 55, 255, 0);
+AddColor("Coral", 255, 55, 19);
+AddColor("Cornsilk", 255, 239, 184);
+AddColor("Cyan", 0, 255, 255);
+AddColor("DarkOrange", 255, 68, 0);
+AddColor("DeepPink", 255, 0, 75);
+AddColor("DeepSkyBlue", 0, 135, 255);
+AddColor("DodgerBlue", 2, 72, 255);
+AddColor("FloralWhite", 255, 244, 223);
+AddColor("GhostWhite", 239, 239, 255);
+AddColor("Green", 0, 255, 0);
+AddColor("GreenYellow", 108, 255, 6);
+AddColor("HoneyDew", 223, 255, 223);
+AddColor("HotPink", 255, 36, 118);
+AddColor("Ivory", 255, 255, 223);
+AddColor("LavenderBlush", 255, 223, 233);
+AddColor("LemonChiffon", 255, 244, 157);
+AddColor("LightCyan", 191, 255, 255);
+AddColor("LightPink", 255, 121, 138);
+AddColor("LightSalmon", 255, 91, 50);
+AddColor("LightYellow", 255, 255, 191);
+AddColor("Magenta", 255, 0, 255);
+AddColor("MintCream", 233, 255, 244);
+AddColor("MistyRose", 255, 199, 193);
+AddColor("Moccasin", 255, 199, 119);
+AddColor("NavajoWhite", 255, 187, 108);
+AddColor("Orange", 255, 97, 0);
+AddColor("OrangeRed", 255, 14, 0);
+AddColor("PapayaWhip", 255, 221, 171);
+AddColor("PeachPuff", 255, 180, 125);
+AddColor("Pink", 255, 136, 154);
+AddColor("Red", 255, 0, 0);
+AddColor("SeaShell", 255, 233, 219);
+AddColor("Snow", 255, 244, 244);
+AddColor("SpringGreen", 0, 255, 55);
+AddColor("SteelBlue", 14, 57, 118);
+AddColor("Tomato", 255, 31, 15);
+AddColor("White", 255, 255, 255);
+AddColor("Yellow", 255, 255, 0);
+
 AddLayer("InOutHelperL<InOutFuncX<Int<300>,Int<800>>>");
 AddLayer("InOutTrL<TrWipe<300>,TrWipeIn<500>>");
 
@@ -9981,6 +9957,27 @@ function AddTabContent(tab, data) {
   FIND(tab + "_tabcontent").innerHTML += data;
 }
 
+function SetTabContent(tab, data) {
+  FIND(tab + "_tabcontent").innerHTML = data;
+}
+
+function updateRgbTabContent() {
+ if (colorsortState.get()) {
+    // Sort by name and map to HTML strings
+    byNameLinks.sort((a, b) => a.name.localeCompare(b.name));
+    sortedRgbLinks = byNameLinks.map(color => mkcolorbuttonByName(color.name, color.r, color.g, color.b));
+    console.log("Sort colors by Name");
+  } else {
+    sortedRgbLinks = byHueLinks.sort();
+    console.log("Sort colors by Hue");
+  }
+
+  SetTabContent("rgb", sortedRgbLinks.join("") +
+    "<div class='custom-color'>" +
+    "<label for='COLOR'>Custom color </label>" +
+    "<input type='color' id='COLOR' value='#ff0000' class='color-picker' onclick='ClickColor()' /></div>");
+}
+
 function ActivateTab(tab) {
   if(!FIND(tab+"_tab")) {
     console.log("No such tab");
@@ -10415,7 +10412,7 @@ var tipsState = new SavedState("tips", true, (on) => {
   }
 });
 var colorsortState = new SavedState("colorsort", false, (on) => {
-  initGL();
+  updateRgbTabContent();
 });
 var graflexState = new SavedState("graflex", true, (on) => { compile(); });
 var mouseswingsState = new SavedState("mouseswings", false, (on) => {});
