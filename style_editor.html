@@ -5110,6 +5110,7 @@ function actual_millis() {
   return new Date().getTime() - start_millis;
 }
 var current_micros = 0;
+var current_micros_internal = 0;
 function micros() {
   return current_micros;
 }
@@ -9330,7 +9331,8 @@ function drawScene() {
   
   var delta_us = delta_actual_millis * time_factor
   last_micros = current_micros;
-  current_micros += delta_us;
+  current_micros_internal += delta_us;
+  current_micros = current_micros_internal
   if (current_micros - last_micros > 1000000/45) {
      bad_fps ++;
   } else {
@@ -9372,7 +9374,7 @@ function drawScene() {
         pixels[i*4 + 3] = 255;
     }
     if (last_micros != 0) {
-      current_micros += (current_micros - last_micros) / 2;
+      current_micros += delta_us / 2;
     }
     if (framesPerUpdate == 0) {
       S.run(blade);
