@@ -9703,7 +9703,7 @@ function SetTo(str) {
   Run();
 }
 
-function SetToAndFormat(str, event) {
+function SetToAndFormat(str) {
   var parser = new Parser(str, classes, identifiers);
   var style = parser.parse();
   pp_is_url++;
