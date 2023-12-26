@@ -2565,8 +2565,7 @@ var transition_links = [];
 
 var all_colors = {};
 var colorNames = {};
-var byHueLinks = [];
-var byNameLinks = [];
+var colorData = [];
 
 class RgbClass extends STYLE {
   constructor(r,g,b,a) {
@@ -2949,20 +2948,9 @@ function mkcolorbutton(name, r, g, b) {
   return "<input srt='"+sortString+"' type=button style='border: 1px solid black;padding:8px;color:"+textColor+";background:"+bgColor+"' class=btn onclick='SetTo(\""+name+"\")' value='"+enc(name)+"'>\n";
 }
 
-function mkcolorbuttonByName(name, r, g, b) {
-  r = mapcolor(r);
-  g = mapcolor(g);
-  b = mapcolor(b);
-  var bgColor = "rgb("+r+","+g+","+b+")";
-  if (r == 0 && g == 0 && b == 0) bgColor = "black";
-  var textColor = (name === "Black" || name === "Blue") ? "white" : "black";
-  return "<input type=button style='border: 1px solid black;padding:8px;color:"+textColor+";background:"+bgColor+"' class=btn onclick='SetTo(\""+name+"\")' value='"+enc(name)+"'>\n";
-}
-
 function AddColor(name, r, g, b) {
   colorNames[r+","+g+","+b] = name;
-  byNameLinks.push({name, r, g, b});
-  byHueLinks.push(mkcolorbutton(name, r, g, b));
+  colorData.push(mkcolorbutton(name, r, g, b));
   all_colors[name] = new RgbClass(r, g, b);
 }
 
@@ -9960,15 +9948,23 @@ function SetTabContent(tab, data) {
   FIND(tab + "_tabcontent").innerHTML = data;
 }
 
+function sortByName() {
+  // Extract name from HTML string
+  colorData.sort((a, b) => {
+    const nameA = a.match(/value='(.*?)'/)[1];
+    const nameB = b.match(/value='(.*?)'/)[1];
+    return nameA.localeCompare(nameB);
+  });
+  return colorData;
+}
+
 function updateRgbTabContent() {
- if (colorsortState.get()) {
-    // Sort by name and map to HTML strings
-    byNameLinks.sort((a, b) => a.name.localeCompare(b.name));
-    sortedRgbLinks = byNameLinks.map(color => mkcolorbuttonByName(color.name, color.r, color.g, color.b));
+  if (colorsortState.get()) {
     console.log("Sort colors by Name");
+    sortedRgbLinks = sortByName();
   } else {
-    sortedRgbLinks = byHueLinks.sort();
     console.log("Sort colors by Hue");
+    sortedRgbLinks = colorData.sort();
   }
 
   SetTabContent("rgb", sortedRgbLinks.join("") +
