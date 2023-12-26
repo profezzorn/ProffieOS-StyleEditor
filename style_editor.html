@@ -2837,8 +2837,8 @@ function encstr(s) {
 
 function mkbutton2(name, val) {
   return "<input type=button class=btn onclick='SetToAndFormat(\""+val+"\")' value='"+enc(name)+"'>\n";
+    //  return "<span class=btn onclick='SetTo(\""+name+"\")'>"+enc(name)+"</span>\n";  
 }
-
 function mkbutton(name) {
   return mkbutton2(name, name);
 }
@@ -2888,7 +2888,7 @@ function AddHistory(name, type) {
   var label = name;
   if (label.length > 80) label = label.slice(0,78) + "...";
   name = name.split("\n").join(" ").split("   ").join(" ").split("  ").join(" ").split("< ").join("<");
-  var btn = "<input type=button class='btn' onclick='SetToAndFormat(\""+name+"\", event)' value='"+enc(label)+"'>\n";
+  var btn = "<input type=button class=btn onclick='SetToAndFormat(\""+name+"\")' value='"+enc(label)+"'>\n";	
   var tag  = "<span class=MAGIC_CLASS_"+type+">" + btn + "</span>\n";
   history_html = tag + history_html.replace(tag, "");
   FIND("history_tabcontent").innerHTML = history_html;
