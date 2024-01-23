@@ -10389,7 +10389,7 @@ var graflexState = new SavedState("graflex", true, (on) => { compile(); });
 var mouseswingsState = new SavedState("mouseswings", false, (on) => {});
 var autoswingState = new SavedState("autoswing", true, (on) => {});
 var inhiltState = new SavedState("inhilt", false, (on) => { STATE_NUM_LEDS = on ? 1 : 144; });
-var slowState = new SavedState("slow", false, (on) => { framesPerUpdate = on ? 60 : 0; time_factor = framesPerUpdate == 0 ? 1000 : (500/framesPerUpdate)});
+var slowState = new SavedState("slow", false, (on) => { framesPerUpdate = on ? 10 : 0; time_factor = framesPerUpdate == 0 ? 1000 : (500/framesPerUpdate)});
 
 function onPageLoad() {
   initGL();
