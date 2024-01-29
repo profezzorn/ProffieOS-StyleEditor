@@ -6608,36 +6608,53 @@ class TrConcatClass extends TRANSITION {
     // Last argument must be a transition.
     this.add_arg("TRANSITION" + i, "TRANSITION", "Transiton " + i);
     this.pos_ = this.ARGS.length;
+    this.c1p = -1;
+    this.c2p = -1;
+  }
+  updateC2P() {
+     console.log("POS = " + this.pos_);
+     for (var i = this.pos_ + 1; i < this.ARGS.length - 1; i++) {
+       if (this.ARGS[i].getType() != "TRANSITION") {
+         this.c2p = i;
+	 console.log("C2P = " + i);
+         return;
+       }
+     }
+     console.log("C2P = -1");
+     this.c2p = -1;
   }
   begin() {
     this.pos_ = 0;
+    this.c1p = -1;
+    this.updateC2P();
     this.ARGS[0].begin();
   }
   done() {
     return this.pos_ >= this.ARGS.length;
   }
+  
   run(blade) {
-    for (var i = 0; i < this.ARGS.length; i++) {
-      if (this.ARGS[i].getType() != "TRANSITION") {
-        this.ARGS[i].run(blade);
-      }
-    }
+    if (this.c1p != -1) this.ARGS[this.c1p].run(blade);
+    if (this.c2p != -1) this.ARGS[this.c2p].run(blade);
     while (this.pos_ < this.ARGS.length) {
       this.ARGS[this.pos_].run(blade);
       if (!this.ARGS[this.pos_].done()) break;
       this.pos_++;
       if (this.done()) break;
-      if (this.ARGS[this.pos_].getType() != "TRANSITION") this.pos_++;
+      if (this.ARGS[this.pos_].getType() != "TRANSITION") {
+        this.c1p = this.c2p;
+	this.updateC2P()
+        if (this.c2p != -1) this.ARGS[this.c2p].run(blade);
+        this.pos_++;
+      }
       if (this.done()) break;
       this.ARGS[this.pos_].begin();
     }
   }
   getColor(A, B, led) {
     if (this.done()) return B;
-    if (this.pos_ != 0 && this.ARGS[this.pos_-1].getType() != "TRANSITION")
-      A = this.ARGS[this.pos_-1].getColor(led);
-    if (this.pos_ < this.ARGS.length - 1 && this.ARGS[this.pos_+1].getType() != "TRANSITION")
-      B = this.ARGS[this.pos_+1].getColor(led);
+    if (this.c1p != -1) A = this.ARGS[this.c1p].getColor(led);
+    if (this.c2p != -1) B = this.ARGS[this.c2p].getColor(led);
     return this.ARGS[this.pos_].getColor(A, B, led);
   }
 };
