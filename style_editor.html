@@ -6634,6 +6634,7 @@ class TrConcatClass extends TRANSITION {
   }
   
   run(blade) {
+    if (this.done()) return;
     if (this.c1p != -1) this.ARGS[this.c1p].run(blade);
     if (this.c2p != -1) this.ARGS[this.c2p].run(blade);
     while (this.pos_ < this.ARGS.length) {
