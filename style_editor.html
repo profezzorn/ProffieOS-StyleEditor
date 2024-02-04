@@ -5621,29 +5621,35 @@ class MultiTransitionEffectLClass extends STYLE {
     this.effect_ = new OneshotEffectDetector(this.EFFECT);
     this.TRANSITIONS=[];
     this.running=[];
+    this.E=[];
     this.pos = 0;
     for (var i = 0; i < this.N; i++) {
       this.TRANSITIONS.push(this.TRANSITION.DOCOPY());
       this.running.push(false);
+      this.E.push(null);
     }
     HandleEffectType(EFFECT_ARG);
   }
   run(blade) {
+    var TMP = last_detected_blade_effect;
     var e = this.effect_.Detect(blade);
     if (e) {
       this.TRANSITIONS[this.pos].begin();
       this.running[this.pos] = true;
+      this.E[this.pos] = last_detected_blade_effect;
       this.pos++;
       if (this.pos == this.N) this.pos = 0;
     }
     for (var i = 0; i < this.N; i++) {
       if (this.running[i]) {
+        last_detected_blade_effect = this.E[i];
         this.TRANSITIONS[i].run(blade);
         if (this.TRANSITIONS[i].done()) {
           this.running[i] = false;
         }
       }
     }
+    last_detected_blade_effect = last_detected_blade_effect;
   }
   getColor(led) {
     var ret = Transparent();
@@ -6612,15 +6618,12 @@ class TrConcatClass extends TRANSITION {
     this.c2p = -1;
   }
   updateC2P() {
-     console.log("POS = " + this.pos_);
      for (var i = this.pos_ + 1; i < this.ARGS.length - 1; i++) {
        if (this.ARGS[i].getType() != "TRANSITION") {
          this.c2p = i;
-	 console.log("C2P = " + i);
          return;
        }
      }
-     console.log("C2P = -1");
      this.c2p = -1;
   }
   begin() {
