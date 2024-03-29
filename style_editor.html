@@ -3049,6 +3049,7 @@ AddTransition("TrJoin<TrFade<500>, TrWipe<500>>");
 AddTransition("TrJoinR<TrFade<500>, TrWipe<500>>");
 AddTransition("TrRandom<TrFade<500>, TrWipe<500>, TrBoing<500, 2>>");
 AddTransition("TrSelect<Variation,TrFade<500>, TrWipe<500>, TrBoing<500, 2>>");
+AddTransition("TrSequence<TrFade<500>, TrWipe<500>, TrBoing<500, 2>>");
 AddTransition("TrSmoothFade<300>");
 AddTransition("TrWipe<500>");
 AddTransition("TrWipeIn<500>");
@@ -6777,6 +6778,44 @@ function TrSelect(ARGS) {
   return new TrSelectClass(Array.from(arguments));
 }
 
+class TrSequenceClass extends TRANSITION {
+  constructor(ARGS) {
+    super("Sequence transitions", ARGS);
+    this.TRANSITIONS = Array.from(ARGS);
+    for (var i = 0; i < this.TRANSITIONS.length; i++) {
+      this.add_arg("TRANSITION" + (i + 1), "TRANSITION", "Transition " + (i + 1));
+    }
+    this.n_ = -1;
+    this.begin_ = true;
+  }
+
+  begin() {
+    this.begin_ = true;
+  }
+
+  run(blade) {
+    if (this.begin_) {
+      this.begin_ = false;
+      this.n_ = (this.n_ + 1) % this.TRANSITIONS.length;
+      this.selected = this.TRANSITIONS[this.n_];
+      this.selected.begin();
+    }
+    this.selected.run(blade);
+  }
+
+  getColor(A, B, led) {
+    return this.selected.getColor(A, B, led);
+  }
+
+  done() {
+    return this.selected && this.selected.done();
+  }
+}
+
+function TrSequence(ARGS) {
+  return new TrSequenceClass(Array.from(arguments));
+}
+
 class TrExtendXClass extends TRANSITION {
   constructor(MILLIS, TRANSITION) {
     super("Extend a transition.", arguments);
@@ -8861,6 +8900,7 @@ function newCall(Cls) {
     TrJoinR : TrJoinR,
     TrRandom : TrRandom,
     TrSelect : TrSelect,
+    TrSequence : TrSequence,
     TrWaveX : TrWaveX,
     TrSparkX : TrSparkX,
     TrWipeSparkTip : TrWipeSparkTip,
