@@ -1476,6 +1476,7 @@ function initGL() {
 
   width = window.innerWidth;
   height = window.innerHeight;
+  canvas_id.setAttribute("title", "Blade Preview.\nMove mouse to swing. Click to Clash\nor to Do Selected Effect (and to dismiss this Tooltip.)\nGoto settings to change hilt model or toggle Mouse Swings mode (swinging with mouse moves.)");
 
   if(window.devicePixelRatio !== undefined) {
     dpr = window.devicePixelRatio;
@@ -10053,8 +10054,6 @@ function ActivateTab(tab) {
       <div class="canvas-container">      
         <canvas
           id="canvas_id"
-          title="Blade Preview. Move mouse to swing. Click to Clash or Do Selected Effect (and to dismiss this Tooltip.)  Goto settings to change hilt model or toggle Mouse Swings mode (no swing on mouse move.)"
-          onmousemove='mouse_move(event)' onmouseleave='mouse_leave(event)'
           onclick='AddClickedEffect()'>
         </canvas>
         <button
