@@ -7545,10 +7545,10 @@ function RampF() {
 
 class MultClass extends FUNCTION {
   constructor(ARGS) {
-    super("Multiply values", ARGS);
+    super("Multiply values. Note - Uses fixed point 16.15 multiplication", ARGS);
     this.FUNCTIONS = Array.from(ARGS);
     for (var i = 1; i < this.FUNCTIONS.length + 1; i++)
-      this.add_arg("FUNCTION" + i, "FUNCTION", "COLOR " + i);
+      this.add_arg("FUNCTION" + i, "FUNCTION", "Function " + i);
   }
   getInteger(led) {
     var ret = this.FUNCTIONS[0].getInteger(led);
