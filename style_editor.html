@@ -3001,6 +3001,7 @@ AddEffect("Mix<Int<16384>, Red, Blue>");
 AddEffect("OnSpark<Green, White, 200>");
 AddLayer("OnSparkL<White, Int<200>>");
 AddEffectWL("OriginalBlast<Blue, White>");
+AddEffect("Pixelate<Gradient<Red,Blue,Green>, 5>");
 AddEffect("Pulsing<Blue, Red, 800>");
 AddLayer("PulsingL<Red, Int<800>>");
 AddEffect("Rainbow");
@@ -3491,6 +3492,51 @@ class OnSparkClass extends MACRO {
 
 function OnSpark(T, SPARK_COLOR, MILLIS) {
   return new OnSparkClass(T, SPARK_COLOR, MILLIS);
+}
+
+class PixelateXClass extends STYLE {
+  constructor(COLOR, PIXEL_SIZE_FUNC = new Int(2)) {
+    super("Pixelate", Array.from(arguments)); // Include arguments for display
+    this.COLOR = COLOR;
+    this.PIXEL_SIZE_FUNC = PIXEL_SIZE_FUNC;
+    this.last_led = -1;
+    this.last_color = Rgb(0, 0, 0); // Assuming Rgb is a function that returns a color object
+    this.add_arg("COLOR", "COLOR", "Color");
+    this.add_arg("PIXEL_SIZE_FUNC", "FUNCTION", "Pixel Size");
+  }
+
+  run(blade) {
+    super.run(blade);
+    this.PIXEL_SIZE_FUNC.run(blade);
+    return this.COLOR.run(blade);
+  }
+
+  getColor(led) {
+    if (Math.abs(led - this.last_led) >= this.PIXEL_SIZE_FUNC.getInteger(led)) {
+      this.last_led = led;
+      this.last_color = this.COLOR.getColor(led);
+    }
+    return this.last_color;
+  }
+}
+
+function PixelateX(COLOR, PIXEL_SIZE_FUNC = new Int(2)) {
+  return new PixelateXClass(COLOR, PIXEL_SIZE_FUNC);
+}
+
+class PixelateClass extends MACRO {
+  constructor(COLOR, PIXEL_SIZE = 2) {
+    super("Pixelate", Array.from(arguments)); // Include arguments for display
+    this.COLOR = COLOR;
+    this.PIXEL_SIZE = PIXEL_SIZE;
+    this.add_arg("COLOR", "COLOR", "Color");
+    this.add_arg("PIXEL_SIZE", "INT", "Pixel Size");
+    this.SetExpansion(new PixelateXClass(COLOR, new Int(this.PIXEL_SIZE)));
+  }
+}
+
+function Pixelate(COLOR, PIXEL_SIZE = 2) {
+  return new PixelateClass(COLOR, PIXEL_SIZE);
 }
 
 class PulsingFClass extends FUNCTION {
@@ -8815,6 +8861,8 @@ function newCall(Cls) {
     OriginalBlast : OriginalBlast,
     OriginalBlastL : OriginalBlastL,
     OriginalBlastF : OriginalBlastF,
+    Pixelate : Pixelate,
+    PixelateX : PixelateX,
     Pulsing : Pulsing,
     PulsingX : PulsingX,
     PulsingL : PulsingL,
