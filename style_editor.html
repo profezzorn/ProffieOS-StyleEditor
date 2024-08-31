@@ -5686,15 +5686,15 @@ function MultiTransitionEffectL(T, E, N) {
 }
 
 class MultiTransitionEffectClass extends MACRO {
-  constructor(T, Effect Color, TRANSITION1, TRANSITION2, EFFECT, N) {
+  constructor(T, EFFECT_COLOR, TRANSITION1, TRANSITION2, EFFECT, N) {
     super("Trigger transitions on an effect.", arguments);
     this.add_arg("T", "COLOR", "Base color.");
-    this.add_arg("Effect Color", "COLOR", "Effect color.");
+    this.add_arg("EFFECT_COLOR", "COLOR", "Effect color.");
     this.add_arg("TRANSITION1", "TRANSITION", "from Base to Effect Color");
     this.add_arg("TRANSITION2", "TRANSITION", "from Effect Color back to Base");
     this.add_arg("EFFECT", "EFFECT", "Effect type");
     this.add_arg("N", "INT", "Number of simultaneous effects.", 3);
-    this.SetExpansion(Layers(this.T, MultiTransitionEffectL(TrConcat(this.TRANSITION1, this.Effect Color, this.TRANSITION2), this.EFFECT, this.N)));
+    this.SetExpansion(Layers(this.T, MultiTransitionEffectL(TrConcat(this.TRANSITION1, this.EFFECT_COLOR, this.TRANSITION2), this.EFFECT, this.N)));
   }
 };
 
@@ -5703,7 +5703,7 @@ function MultiTransitionEffect(T, EC, T1, T2, E, N) {
 }
 
 class TransitionEffectLClass extends STYLE {
-  constructor(Effect Color, TRANSITION1, TRANSITION2, EFFECT_ARG) {
+  constructor(EFFECT_COLOR, TRANSITION1, TRANSITION2, EFFECT_ARG) {
     super("Trigger transitions on an effect.", arguments);
     this.add_arg("TRANSITION", "TRANSITION", "from Effect Color back to Base");
     this.add_arg("EFFECT", "EFFECT", "Effect type");
@@ -5743,14 +5743,14 @@ function TransitionEffectL(T, E) {
 }
 
 class TransitionEffectClass extends MACRO {
-  constructor(T, Effect Color, TRANSITION1, TRANSITION2, EFFECT_ARG) {
+  constructor(T, EFFECT_COLOR, TRANSITION1, TRANSITION2, EFFECT_ARG) {
     super("Trigger transitions on an effect.", arguments);
     this.add_arg("T", "COLOR", "Base color.");
     this.add_arg("Effect Color", "COLOR", "Effect color.");
     this.add_arg("TRANSITION1", "TRANSITION", "from Base to Effect Color");
     this.add_arg("TRANSITION2", "TRANSITION", "from Effect Color back to Base");
     this.add_arg("EFFECT", "EFFECT", "Effect type");
-    this.SetExpansion(Layers(this.T, TransitionEffectL(TrConcat(this.TRANSITION1, this.Effect Color, this.TRANSITION2), this.EFFECT)));
+    this.SetExpansion(Layers(this.T, TransitionEffectL(TrConcat(this.TRANSITION1, this.EFFECT_COLOR, this.TRANSITION2), this.EFFECT)));
   }
 };
 
