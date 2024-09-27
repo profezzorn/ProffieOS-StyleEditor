@@ -10357,6 +10357,9 @@ function ActivateTab(tab) {
               <span>Slow</span>
             </label>
           </div>
+          <button 
+            title="Restore all settings to default, including restoring popups."
+            id="restore_defaults" onclick="ClickRestore()">Restore Defaults</button>
         </div>
 <script>
 
@@ -10464,6 +10467,11 @@ function onPageLoad() {
 function handleClick(checkbox) {
   var state = state_by_checkbox.get(checkbox);
   state.set(!state.get());
+}
+
+function ClickRestore() {
+  localStorage.clear();
+  onPageLoad();
 }
 
 </script>
