@@ -605,7 +605,7 @@ Add, Delete, Move Up, Move Down */
 .footer-links a:hover {
   color: #000;
 }
-	
+  
 /* Popup Window */
 .popup-window.show {
   opacity: 1;
@@ -6302,7 +6302,7 @@ class TrCenterWipeClass extends MACRO {
   constructor(MILLIS, POS) {
     super("WipeIn transition", arguments);
     this.add_arg("MILLIS", "INT", "Center Wipe time in milliseconds.");
-    this.add_arg("POS", "INT", "Position", 16384);
+    this.add_arg("POS", "TIME_FUNCTION", "Position", Int(16384)); // Updated POS to "TIME_FUNCTION"
     this.SetExpansion(TrCenterWipeX(Int(MILLIS), Int(this.POS)));
   }
 }
@@ -6314,7 +6314,7 @@ class TrCenterWipeSparkXClass extends MACRO {
     super("WipeIn transition", arguments);
     this.add_arg("COLOR", "COLOR", "Color");
     this.add_arg("MILLIS", "FUNCTION", "Center Wipe time in milliseconds.");
-    this.add_arg("POS", "INT", "Position", Int(16384));
+    this.add_arg("POS", "TIME_FUNCTION", "Position", Int(16384)); // Updated POS to "TIME_FUNCTION"
     this.SetExpansion(TrJoin(TrCenterWipeX(MILLIS, this.POS),TrWaveX(COLOR, Sum(MILLIS, MILLIS, MILLIS, MILLIS), Int(200), Sum(MILLIS, MILLIS), this.POS)));
   }
 }
@@ -6326,7 +6326,7 @@ class TrCenterWipeSparkClass extends MACRO {
     super("WipeIn transition", arguments);
     this.add_arg("COLOR", "COLOR", "Color");
     this.add_arg("MILLIS", "INT", "Center Wipe time in milliseconds.");
-    this.add_arg("POS", "INT", "Position", 16384);
+    this.add_arg("POS", "TIME_FUNCTION", "Position", Int(16384)); // Updated POS to "TIME_FUNCTION"
     this.SetExpansion(TrJoin(TrCenterWipeX(Int(MILLIS), Int(this.POS)),TrWaveX(COLOR, Sum(Int(MILLIS), Int(MILLIS), Int(MILLIS), Int(MILLIS)), Int(200), Sum(Int(MILLIS), Int(MILLIS)), Int(this.POS))));
   }
 }
@@ -6650,7 +6650,7 @@ class TrConcatClass extends TRANSITION {
       if (this.done()) break;
       if (this.ARGS[this.pos_].getType() != "TRANSITION") {
         this.c1p = this.c2p;
-	this.updateC2P()
+  this.updateC2P()
         if (this.c2p != -1) this.ARGS[this.c2p].run(blade);
         this.pos_++;
       }
