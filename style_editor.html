@@ -1274,13 +1274,13 @@ Material getMaterial(vec3 hp, vec3 dir) {
   }
 }
 
-void main() {
+vec4 run(vec2 position) {
     vec3 light = vec3(-5, 8.0, -8.0);
     vec3 eye = vec3(0.0, 0.0, -12.0);
     float zoom = 1.5;
     vec3 dir = normalize(
-            vec3((v_position.x) / u_width / zoom,
-                 (v_position.y) / u_width / zoom, 2.0));
+            vec3((position.x) / u_width / zoom,
+                 (position.y) / u_width / zoom, 2.0));
     mat4 rot3 = mat4(0.0, -1.0, 0.0, 0.0,
                      0.0, 0.0, -1.0, 0.0,
                      1.0, 0.0, 0.0, 0.0,
@@ -1418,8 +1418,24 @@ void main() {
     // color += vec3(max(dot(color, vec3(0.299, 0.587, 0.114)) - 1.0, 0.0));
 
 //    gl_FragColor = pow(vec4(color, 1.0), vec4(1.0/2.2));
-    gl_FragColor = pow(vec4(color, 1.0), vec4(1.0/2.2));
+    return pow(vec4(color, 1.0), vec4(1.0/2.2));
 }
+
+vec2 hash21(float p) {
+  vec3 p3 = fract(vec3(p) * vec3(.1031, .1030, .0973));
+  p3 += dot(p3, p3.yzx + 33.33);
+  return fract((p3.xx+p3.yz)*p3.zy);
+}
+
+void main() {
+  gl_FragColor = run(v_position);
+
+  for (int j = AA; j > 1; j--) {
+    gl_FragColor += run(v_position + hash21(float(j)) - vec2(0.5,0.5));
+  }
+  gl_FragColor /= float(AA);
+}
+
 </script>
 
 <script>
@@ -1721,7 +1737,9 @@ function compile() {
   var fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
   var shader_code = FIND("fragment_shader").textContent;
 
-  variables = [];
+  variables = [
+    "#define AA " + AA,
+  ];
 //  shader_code = shader_code.replace("$FUNCTION$", current_style.gencode());
   shader_code = shader_code.replace("$VARIABLES$", variables.join("\n"));
   if (graflexState.get()) {
@@ -3001,6 +3019,7 @@ AddEffect("Mix<Int<16384>, Red, Blue>");
 AddEffect("OnSpark<Green, White, 200>");
 AddLayer("OnSparkL<White, Int<200>>");
 AddEffectWL("OriginalBlast<Blue, White>");
+AddEffect("PixelateX<StaticFire<Blue,Cyan>,Int<10>>");
 AddEffect("Pulsing<Blue, Red, 800>");
 AddLayer("PulsingL<Red, Int<800>>");
 AddEffect("Rainbow");
@@ -3491,6 +3510,51 @@ class OnSparkClass extends MACRO {
 
 function OnSpark(T, SPARK_COLOR, MILLIS) {
   return new OnSparkClass(T, SPARK_COLOR, MILLIS);
+}
+
+class PixelateXClass extends STYLE {
+  constructor(COLOR, PIXEL_SIZE_FUNC = new Int(2)) {
+    super("Pixelate", Array.from(arguments)); // Include arguments for display
+    this.COLOR = COLOR;
+    this.PIXEL_SIZE_FUNC = PIXEL_SIZE_FUNC;
+    this.last_led = -1;
+    this.last_color = Rgb(0, 0, 0); // Assuming Rgb is a function that returns a color object
+    this.add_arg("COLOR", "COLOR", "Color");
+    this.add_arg("PIXEL_SIZE_FUNC", "FUNCTION", "Pixel Size");
+  }
+
+  run(blade) {
+    super.run(blade);
+    this.PIXEL_SIZE_FUNC.run(blade);
+    return this.COLOR.run(blade);
+  }
+
+  getColor(led) {
+    if (Math.abs(led - this.last_led) >= this.PIXEL_SIZE_FUNC.getInteger(led)) {
+      this.last_led = led;
+      this.last_color = this.COLOR.getColor(led);
+    }
+    return this.last_color;
+  }
+}
+
+function PixelateX(COLOR, PIXEL_SIZE_FUNC = new Int(2)) {
+  return new PixelateXClass(COLOR, PIXEL_SIZE_FUNC);
+}
+
+class PixelateClass extends MACRO {
+  constructor(COLOR, PIXEL_SIZE = 2) {
+    super("Pixelate", Array.from(arguments)); // Include arguments for display
+    this.COLOR = COLOR;
+    this.PIXEL_SIZE = PIXEL_SIZE;
+    this.add_arg("COLOR", "COLOR", "Color");
+    this.add_arg("PIXEL_SIZE", "INT", "Pixel Size");
+    this.SetExpansion(new PixelateXClass(COLOR, new Int(this.PIXEL_SIZE)));
+  }
+}
+
+function Pixelate(COLOR, PIXEL_SIZE = 2) {
+  return new PixelateClass(COLOR, PIXEL_SIZE);
 }
 
 class PulsingFClass extends FUNCTION {
@@ -6314,7 +6378,7 @@ class TrCenterWipeSparkXClass extends MACRO {
     super("WipeIn transition", arguments);
     this.add_arg("COLOR", "COLOR", "Color");
     this.add_arg("MILLIS", "FUNCTION", "Center Wipe time in milliseconds.");
-    this.add_arg("POS", "TIME_FUNCTION", "Position", Int(16384)); // Updated POS to "TIME_FUNCTION"
+    this.add_arg("POS", "TIME_FUNCTION", "Position", Int(16384));
     this.SetExpansion(TrJoin(TrCenterWipeX(MILLIS, this.POS),TrWaveX(COLOR, Sum(MILLIS, MILLIS, MILLIS, MILLIS), Int(200), Sum(MILLIS, MILLIS), this.POS)));
   }
 }
@@ -6373,7 +6437,7 @@ class TrCenterWipeInSparkXClass extends MACRO {
     super("WipeIn transition", arguments);
     this.add_arg("COLOR", "COLOR", "Color");
     this.add_arg("MILLIS", "TIME_FUNCTION", "Center Wipe time in milliseconds.");
-    this.add_arg("POS", "INT", "Position", Int(16384));
+    this.add_arg("POS", "FUNCTION", "Position", Int(16384));
     this.SetExpansion(TrJoin(TrCenterWipeInX(MILLIS, this.POS),TrJoin(TrWaveX(COLOR, MILLIS.DOCOPY(), Int(200), Sum(MILLIS, MILLIS), Int(0)),TrWaveX(COLOR, MILLIS, Int(200), Sum(MILLIS, MILLIS), Int(32768)))));
 
   }
@@ -8815,6 +8879,8 @@ function newCall(Cls) {
     OriginalBlast : OriginalBlast,
     OriginalBlastL : OriginalBlastL,
     OriginalBlastF : OriginalBlastF,
+    Pixelate : Pixelate,
+    PixelateX : PixelateX,
     Pulsing : Pulsing,
     PulsingX : PulsingX,
     PulsingL : PulsingL,
@@ -9342,6 +9408,7 @@ var numTick = 0;
 var framesPerUpdate = 0;
 var timeFactor = 1.0;
 var bad_fps = 0;
+var good_fps = 0;
 
 </script>
 <div id="popup_window" class="popup-window">
@@ -9386,6 +9453,8 @@ var bad_fps = 0;
   }
 
 var pixels;
+var AA = 1;
+var AA_STEP_SIZE = 1;
   
 function drawScene() {
   var now_actual_millis = actual_millis();
@@ -9398,12 +9467,32 @@ function drawScene() {
   current_micros = current_micros_internal
   if (current_micros - last_micros > 1000000/45) {
      bad_fps ++;
+     if (good_fps) good_fps--;
   } else {
      if (bad_fps) bad_fps --;
+     good_fps++;
   }
-  if (bad_fps > 10 && graflexState.get()) {
-    showPopupMessage("Struggling to render hilt model.<br>Switching to simpler design.<br>To re-enable Graflex model, go to Settings.", "graflexPopup");
-    graflexState.set(false);
+  if (benchmarkState.get()) {
+     if (bad_fps > 20) {
+        if (AA_STEP_SIZE < 0) AA_STEP_SIZE-=1; else AA_STEP_SIZE=-1;
+        AA+=AA_STEP_SIZE;
+	if (AA < 1) AA = 1;
+	compile();
+	bad_fps = 0;
+        FIND("error_message").innerHTML = "AA="+AA;
+     }
+     if (good_fps > 20) {
+        if (AA_STEP_SIZE > 0) AA_STEP_SIZE+=1; else AA_STEP_SIZE=1;
+        AA+=AA_STEP_SIZE;
+	compile();
+	good_fps = 0;
+        FIND("error_message").innerHTML = "AA="+AA;
+     }
+  } else {
+    if (bad_fps > 10 && graflexState.get()) {
+      showPopupMessage("Struggling to render hilt model.<br>Switching to simpler design.<br>To re-enable Graflex model, go to Settings.", "graflexPopup");
+      graflexState.set(false);
+    }
   }
   num_leds = blade.num_leds()
   if (!pixels || pixels.length < num_leds * 4 * 2) {
@@ -10357,6 +10446,13 @@ function ActivateTab(tab) {
               <span>Slow</span>
             </label>
           </div>
+          <div class="settings-section">
+            <h4 class="settings-section-label" title="These settings are useful for people making modifications to the style editor.">Developer Settings:</h4>
+            <label title="Benchmark how many passes we can render per frame.">
+              <input type="checkbox" id="BENCHMARK_BUTTON" name="benchmark" onclick="handleClick(this)">
+              <span>Benchmark</span>
+            </label>
+          </div>
         </div>
 <script>
 
@@ -10452,6 +10548,7 @@ var mouseswingsState = new SavedState("mouseswings", false, (on) => {});
 var autoswingState = new SavedState("autoswing", true, (on) => {});
 var inhiltState = new SavedState("inhilt", false, (on) => { STATE_NUM_LEDS = on ? 1 : 144; });
 var slowState = new SavedState("slow", false, (on) => { framesPerUpdate = on ? 10 : 0; time_factor = framesPerUpdate == 0 ? 1000 : (500/framesPerUpdate)});
+var benchmarkState = new SavedState("benchmark", false, (on) => { AA=1; compile(); FIND("error_message").innerHTML = ""; });
 
 function onPageLoad() {
   initGL();
