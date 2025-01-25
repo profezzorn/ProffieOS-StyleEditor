@@ -7826,7 +7826,7 @@ function SlowNoise(SPEED) {
 
 class IsLessThanClass extends FUNCTION {
   constructor(F, V) {
-    super("Returns 32768 if F < V, 0 otherwise.", arguments);
+    super("Returns 32768 if F < V, otherwise 0.", arguments);
     this.add_arg("F", "FUNCTION", "F");
     this.add_arg("V", "FUNCTION", "V");
   }
@@ -7841,7 +7841,7 @@ function IsLessThan(F, V) {
 
 class IsGreaterThanClass extends MACRO {
   constructor(F, V) {
-    super("Returns 32768 if F > V, 0 otherwise.", arguments);
+    super("Returns 32768 if F > V, otherwise 0.", arguments);
     this.add_arg("F", "FUNCTION", "F");
     this.add_arg("V", "FUNCTION", "V");
     this.SetExpansion(IsLessThan(V.DOCOPY(), F.DOCOPY()));
@@ -7854,7 +7854,7 @@ function IsGreaterThan(F, V) {
 
 class IsBetweenClass extends FUNCTION {
   constructor(F, BOTTOM, TOP) {
-    super("Returns 32768 if BOTTOM < F < TOP, 0 otherwise.", arguments);
+    super("Returns 32768 if BOTTOM < F < TOP, otherwise 0.", arguments);
     this.add_arg("F", "FUNCTION", "F");
     this.add_arg("BOTTOM", "FUNCTION", "BOTTOM");
     this.add_arg("TOP", "FUNCTION", "TOP");
@@ -8304,7 +8304,7 @@ function BladeAngle(MIN, MAX) {
 
 class LockupPulseFClass extends FUNCTION {
   constructor() {
-    super("32768 if specified lockup type, 0 otherwise.", arguments);
+    super("32768 if specified lockup type, otherwise 0.", arguments);
     this.add_arg("LOCKUP_TYPE", "LOCKUP_TYPE", "Lockup type");
     this.value_ = 0;
   }
@@ -10368,7 +10368,7 @@ function ActivateTab(tab) {
             <i class="fa-solid fa-copy"></i> Copy</button>
           <button 
             id="expand_button"
-            title="Reveals the &quot;under the hood&quot; code that the shorthand macro uses. This allows access to otherwise omitted arguments, and is only an active button when applicable."
+            title="Reveals the &quot;under the hood&quot; code that the shorthand macro uses. This allows access to otherwise omitted arguments, and allows functions to be used instead of just numbers. It is only an active button when applicable."
             onclick="DoExpand()">
             <i class="fa-solid fa-up-right-and-down-left-from-center"></i> Expand</button>
           <button 
