@@ -1285,13 +1285,13 @@ Material getMaterial(vec3 hp, vec3 dir) {
   }
 }
 
-void main() {
+vec4 run(vec2 position) {
     vec3 light = vec3(-5, 8.0, -8.0);
     vec3 eye = vec3(0.0, 0.0, -12.0);
     float zoom = 1.5;
     vec3 dir = normalize(
-            vec3((v_position.x) / u_width / zoom,
-                 (v_position.y) / u_width / zoom, 2.0));
+            vec3((position.x) / u_width / zoom,
+                 (position.y) / u_width / zoom, 2.0));
     mat4 rot3 = mat4(0.0, -1.0, 0.0, 0.0,
                      0.0, 0.0, -1.0, 0.0,
                      1.0, 0.0, 0.0, 0.0,
@@ -1429,8 +1429,24 @@ void main() {
     // color += vec3(max(dot(color, vec3(0.299, 0.587, 0.114)) - 1.0, 0.0));
 
 //    gl_FragColor = pow(vec4(color, 1.0), vec4(1.0/2.2));
-    gl_FragColor = pow(vec4(color, 1.0), vec4(1.0/2.2));
+    return pow(vec4(color, 1.0), vec4(1.0/2.2));
 }
+
+vec2 hash21(float p) {
+  vec3 p3 = fract(vec3(p) * vec3(.1031, .1030, .0973));
+  p3 += dot(p3, p3.yzx + 33.33);
+  return fract((p3.xx+p3.yz)*p3.zy);
+}
+
+void main() {
+  gl_FragColor = run(v_position);
+
+  for (int j = AA; j > 1; j--) {
+    gl_FragColor += run(v_position + hash21(float(j)) - vec2(0.5,0.5));
+  }
+  gl_FragColor /= float(AA);
+}
+
 </script>
 
 <script>
@@ -1487,6 +1503,7 @@ function initGL() {
 
   width = window.innerWidth;
   height = window.innerHeight;
+  canvas_id.setAttribute("title", "Blade Preview.\nMove mouse to swing. Click to Clash\nor to Do Selected Effect (and to dismiss this Tooltip.)\nGoto settings to change hilt model or toggle Mouse Swings mode (swinging with mouse moves.)");
 
   if(window.devicePixelRatio !== undefined) {
     dpr = window.devicePixelRatio;
@@ -1731,7 +1748,9 @@ function compile() {
   var fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
   var shader_code = FIND("fragment_shader").textContent;
 
-  variables = [];
+  variables = [
+    "#define AA " + AA,
+  ];
 //  shader_code = shader_code.replace("$FUNCTION$", current_style.gencode());
   shader_code = shader_code.replace("$VARIABLES$", variables.join("\n"));
   if (graflexState.get()) {
@@ -2188,7 +2207,7 @@ class STYLE {
 
 class MACRO extends STYLE {
   SetExpansion(expansion) {
-    this.expansion = expansion.DOCOPY();
+    this.expansion = expansion;
   }
   run(blade) { this.expansion.run(blade); }
   getInteger(led) { return this.expansion.getInteger(led); }
@@ -3011,6 +3030,7 @@ AddEffect("Mix<Int<16384>, Red, Blue>");
 AddEffect("OnSpark<Green, White, 200>");
 AddLayer("OnSparkL<White, Int<200>>");
 AddEffectWL("OriginalBlast<Blue, White>");
+AddEffect("PixelateX<StaticFire<Blue,Cyan>,Int<10>>");
 AddEffect("Pulsing<Blue, Red, 800>");
 AddLayer("PulsingL<Red, Int<800>>");
 AddEffect("Rainbow");
@@ -3060,6 +3080,7 @@ AddTransition("TrJoin<TrFade<500>, TrWipe<500>>");
 AddTransition("TrJoinR<TrFade<500>, TrWipe<500>>");
 AddTransition("TrRandom<TrFade<500>, TrWipe<500>, TrBoing<500, 2>>");
 AddTransition("TrSelect<Variation,TrFade<500>, TrWipe<500>, TrBoing<500, 2>>");
+AddTransition("TrSequence<TrFade<500>, TrWipe<500>, TrBoing<500, 2>>");
 AddTransition("TrSmoothFade<300>");
 AddTransition("TrWipe<500>");
 AddTransition("TrWipeIn<500>");
@@ -3116,6 +3137,7 @@ AddFunction("PulsingF<Int<800>>");
 AddFunction("RandomBlinkF<Int<3000>>");
 AddFunction("RandomF");
 AddFunction("RandomPerLEDF");
+AddFunction("RampF");
 AddFunction("SequenceF<100, 37, 0b0001010100011100, 0b0111000111000101, 0b0100000000000000>");
 AddFunction("SparkleF");
 AddFunction("StrobeF<Int<15>, Int<1>>");
@@ -3499,6 +3521,51 @@ class OnSparkClass extends MACRO {
 
 function OnSpark(T, SPARK_COLOR, MILLIS) {
   return new OnSparkClass(T, SPARK_COLOR, MILLIS);
+}
+
+class PixelateXClass extends STYLE {
+  constructor(COLOR, PIXEL_SIZE_FUNC = new Int(2)) {
+    super("Pixelate", Array.from(arguments)); // Include arguments for display
+    this.COLOR = COLOR;
+    this.PIXEL_SIZE_FUNC = PIXEL_SIZE_FUNC;
+    this.last_led = -1;
+    this.last_color = Rgb(0, 0, 0); // Assuming Rgb is a function that returns a color object
+    this.add_arg("COLOR", "COLOR", "Color");
+    this.add_arg("PIXEL_SIZE_FUNC", "FUNCTION", "Pixel Size");
+  }
+
+  run(blade) {
+    super.run(blade);
+    this.PIXEL_SIZE_FUNC.run(blade);
+    return this.COLOR.run(blade);
+  }
+
+  getColor(led) {
+    if (Math.abs(led - this.last_led) >= this.PIXEL_SIZE_FUNC.getInteger(led)) {
+      this.last_led = led;
+      this.last_color = this.COLOR.getColor(led);
+    }
+    return this.last_color;
+  }
+}
+
+function PixelateX(COLOR, PIXEL_SIZE_FUNC = new Int(2)) {
+  return new PixelateXClass(COLOR, PIXEL_SIZE_FUNC);
+}
+
+class PixelateClass extends MACRO {
+  constructor(COLOR, PIXEL_SIZE = 2) {
+    super("Pixelate", Array.from(arguments)); // Include arguments for display
+    this.COLOR = COLOR;
+    this.PIXEL_SIZE = PIXEL_SIZE;
+    this.add_arg("COLOR", "COLOR", "Color");
+    this.add_arg("PIXEL_SIZE", "INT", "Pixel Size");
+    this.SetExpansion(new PixelateXClass(COLOR, new Int(this.PIXEL_SIZE)));
+  }
+}
+
+function Pixelate(COLOR, PIXEL_SIZE = 2) {
+  return new PixelateClass(COLOR, PIXEL_SIZE);
 }
 
 class PulsingFClass extends FUNCTION {
@@ -5121,6 +5188,7 @@ function actual_millis() {
   return new Date().getTime() - start_millis;
 }
 var current_micros = 0;
+var current_micros_internal = 0;
 function micros() {
   return current_micros;
 }
@@ -5631,29 +5699,35 @@ class MultiTransitionEffectLClass extends STYLE {
     this.effect_ = new OneshotEffectDetector(this.EFFECT);
     this.TRANSITIONS=[];
     this.running=[];
+    this.E=[];
     this.pos = 0;
     for (var i = 0; i < this.N; i++) {
       this.TRANSITIONS.push(this.TRANSITION.DOCOPY());
       this.running.push(false);
+      this.E.push(null);
     }
     HandleEffectType(EFFECT_ARG);
   }
   run(blade) {
+    var TMP = last_detected_blade_effect;
     var e = this.effect_.Detect(blade);
     if (e) {
       this.TRANSITIONS[this.pos].begin();
       this.running[this.pos] = true;
+      this.E[this.pos] = last_detected_blade_effect;
       this.pos++;
       if (this.pos == this.N) this.pos = 0;
     }
     for (var i = 0; i < this.N; i++) {
       if (this.running[i]) {
+        last_detected_blade_effect = this.E[i];
         this.TRANSITIONS[i].run(blade);
         if (this.TRANSITIONS[i].done()) {
           this.running[i] = false;
         }
       }
     }
+    last_detected_blade_effect = last_detected_blade_effect;
   }
   getColor(led) {
     var ret = Transparent();
@@ -6315,7 +6389,7 @@ class TrCenterWipeSparkXClass extends MACRO {
     super("WipeIn transition", arguments);
     this.add_arg("COLOR", "COLOR", "Color");
     this.add_arg("MILLIS", "FUNCTION", "Center Wipe time in milliseconds.");
-    this.add_arg("POS", "INT", "Position", Int(16384));
+    this.add_arg("POS", "FUNCTION", "Position", Int(16384));
     this.SetExpansion(TrJoin(TrCenterWipeX(MILLIS, this.POS),TrWaveX(COLOR, Sum(MILLIS, MILLIS, MILLIS, MILLIS), Int(200), Sum(MILLIS, MILLIS), this.POS)));
   }
 }
@@ -6374,7 +6448,7 @@ class TrCenterWipeInSparkXClass extends MACRO {
     super("WipeIn transition", arguments);
     this.add_arg("COLOR", "COLOR", "Color");
     this.add_arg("MILLIS", "TIME_FUNCTION", "Center Wipe time in milliseconds.");
-    this.add_arg("POS", "INT", "Position", Int(16384));
+    this.add_arg("POS", "FUNCTION", "Position", Int(16384));
     this.SetExpansion(TrJoin(TrCenterWipeInX(MILLIS, this.POS),TrJoin(TrWaveX(COLOR, MILLIS.DOCOPY(), Int(200), Sum(MILLIS, MILLIS), Int(0)),TrWaveX(COLOR, MILLIS, Int(200), Sum(MILLIS, MILLIS), Int(32768)))));
 
   }
@@ -6594,6 +6668,7 @@ function TrColorCycleX(MILLIS, START_RPM, END_RPM) { return new TrColorCycleXCla
 class TrColorCycleClass extends MACRO {
   constructor(MILLIS, START_RPM, END_RPM) {
     super("ColorCycle transition", arguments);
+    this.add_arg("MILLIS", "INT", "Transition length in milliseconds.")
     this.add_arg("START_RPM", "INT", "RPM at the beginning of transition", 0);
     this.add_arg("END_RPM", "INT", "RPM at the end of transition", 6000);
     this.SetExpansion(TrColorCycleX(Int(MILLIS), this.START_RPM, this.END_RPM))
@@ -6617,36 +6692,51 @@ class TrConcatClass extends TRANSITION {
     // Last argument must be a transition.
     this.add_arg("TRANSITION" + i, "TRANSITION", "Transiton " + i);
     this.pos_ = this.ARGS.length;
+    this.c1p = -1;
+    this.c2p = -1;
+  }
+  updateC2P() {
+     for (var i = this.pos_ + 1; i < this.ARGS.length - 1; i++) {
+       if (this.ARGS[i].getType() != "TRANSITION") {
+         this.c2p = i;
+         return;
+       }
+     }
+     this.c2p = -1;
   }
   begin() {
     this.pos_ = 0;
+    this.c1p = -1;
+    this.updateC2P();
     this.ARGS[0].begin();
   }
   done() {
     return this.pos_ >= this.ARGS.length;
   }
+  
   run(blade) {
-    for (var i = 0; i < this.ARGS.length; i++) {
-      if (this.ARGS[i].getType() != "TRANSITION") {
-        this.ARGS[i].run(blade);
-      }
-    }
+    if (this.done()) return;
+    if (this.c1p != -1) this.ARGS[this.c1p].run(blade);
+    if (this.c2p != -1) this.ARGS[this.c2p].run(blade);
     while (this.pos_ < this.ARGS.length) {
       this.ARGS[this.pos_].run(blade);
       if (!this.ARGS[this.pos_].done()) break;
       this.pos_++;
       if (this.done()) break;
-      if (this.ARGS[this.pos_].getType() != "TRANSITION") this.pos_++;
+      if (this.ARGS[this.pos_].getType() != "TRANSITION") {
+        this.c1p = this.c2p;
+	this.updateC2P()
+        if (this.c2p != -1) this.ARGS[this.c2p].run(blade);
+        this.pos_++;
+      }
       if (this.done()) break;
       this.ARGS[this.pos_].begin();
     }
   }
   getColor(A, B, led) {
     if (this.done()) return B;
-    if (this.pos_ != 0 && this.ARGS[this.pos_-1].getType() != "TRANSITION")
-      A = this.ARGS[this.pos_-1].getColor(led);
-    if (this.pos_ < this.ARGS.length - 1 && this.ARGS[this.pos_+1].getType() != "TRANSITION")
-      B = this.ARGS[this.pos_+1].getColor(led);
+    if (this.c1p != -1) A = this.ARGS[this.c1p].getColor(led);
+    if (this.c2p != -1) B = this.ARGS[this.c2p].getColor(led);
     return this.ARGS[this.pos_].getColor(A, B, led);
   }
 };
@@ -6763,6 +6853,44 @@ class TrSelectClass extends TRANSITION {
 
 function TrSelect(ARGS) {
   return new TrSelectClass(Array.from(arguments));
+}
+
+class TrSequenceClass extends TRANSITION {
+  constructor(ARGS) {
+    super("Sequence transitions", ARGS);
+    this.TRANSITIONS = Array.from(ARGS);
+    for (var i = 0; i < this.TRANSITIONS.length; i++) {
+      this.add_arg("TRANSITION" + (i + 1), "TRANSITION", "Transition " + (i + 1));
+    }
+    this.n_ = -1;
+    this.begin_ = true;
+  }
+
+  begin() {
+    this.begin_ = true;
+  }
+
+  run(blade) {
+    if (this.begin_) {
+      this.begin_ = false;
+      this.n_ = (this.n_ + 1) % this.TRANSITIONS.length;
+      this.selected = this.TRANSITIONS[this.n_];
+      this.selected.begin();
+    }
+    this.selected.run(blade);
+  }
+
+  getColor(A, B, led) {
+    return this.selected.getColor(A, B, led);
+  }
+
+  done() {
+    return this.selected && this.selected.done();
+  }
+}
+
+function TrSequence(ARGS) {
+  return new TrSequenceClass(Array.from(arguments));
 }
 
 class TrExtendXClass extends TRANSITION {
@@ -7179,6 +7307,7 @@ class InOutFuncXClass extends FUNCTION {
     super.run(blade);
     var now = micros();
     var delta = now - this.last_micros;
+    if (delta < 0 || delta > 1000000) delta = 1;
     this.last_micros = now;
     if (blade.is_on()) {
       if (this.extension == 0.0) {
@@ -8768,6 +8897,8 @@ function newCall(Cls) {
     OriginalBlast : OriginalBlast,
     OriginalBlastL : OriginalBlastL,
     OriginalBlastF : OriginalBlastF,
+    Pixelate : Pixelate,
+    PixelateX : PixelateX,
     Pulsing : Pulsing,
     PulsingX : PulsingX,
     PulsingL : PulsingL,
@@ -8855,6 +8986,7 @@ function newCall(Cls) {
     TrJoinR : TrJoinR,
     TrRandom : TrRandom,
     TrSelect : TrSelect,
+    TrSequence : TrSequence,
     TrWaveX : TrWaveX,
     TrSparkX : TrSparkX,
     TrWipeSparkTip : TrWipeSparkTip,
@@ -9284,12 +9416,17 @@ var blade = new Blade();
 var rotate_start;
 var last_micros;
 
+var last_actual_millis= actual_millis() - 10;
+var time_factor = 1000; // transforms ms to us
+
 var last_style;
 var show_style;
 
 var numTick = 0;
 var framesPerUpdate = 0;
+var timeFactor = 1.0;
 var bad_fps = 0;
+var good_fps = 0;
 
 </script>
 <div id="popup_window" class="popup-window">
@@ -9333,20 +9470,52 @@ var bad_fps = 0;
     console.log("Saving " + popupIdentifier + " " + checkboxState);
   }
 
+var pixels;
+var AA = 1;
+var AA_STEP_SIZE = 1;
+  
 function drawScene() {
+  var now_actual_millis = actual_millis();
+  var delta_actual_millis = now_actual_millis - last_actual_millis;
+  last_actual_millis = now_actual_millis;
+  
+  var delta_us = delta_actual_millis * time_factor
   last_micros = current_micros;
-  current_micros = actual_millis() * 1000;
+  current_micros_internal += delta_us;
+  current_micros = current_micros_internal
   if (current_micros - last_micros > 1000000/45) {
      bad_fps ++;
+     if (good_fps) good_fps--;
   } else {
      if (bad_fps) bad_fps --;
+     good_fps++;
   }
-  if (bad_fps > 10 && graflexState.get()) {
-    showPopupMessage("Struggling to render hilt model.<br>Switching to simpler design.<br>To re-enable Graflex model, go to Settings.", "graflexPopup");
-    graflexState.set(false);
+  if (benchmarkState.get()) {
+     if (bad_fps > 20) {
+        if (AA_STEP_SIZE < 0) AA_STEP_SIZE-=1; else AA_STEP_SIZE=-1;
+        AA+=AA_STEP_SIZE;
+	if (AA < 1) AA = 1;
+	compile();
+	bad_fps = 0;
+        FIND("error_message").innerHTML = "AA="+AA;
+     }
+     if (good_fps > 20) {
+        if (AA_STEP_SIZE > 0) AA_STEP_SIZE+=1; else AA_STEP_SIZE=1;
+        AA+=AA_STEP_SIZE;
+	compile();
+	good_fps = 0;
+        FIND("error_message").innerHTML = "AA="+AA;
+     }
+  } else {
+    if (bad_fps > 10 && graflexState.get()) {
+      showPopupMessage("Struggling to render hilt model.<br>Switching to simpler design.<br>To re-enable Graflex model, go to Settings.", "graflexPopup");
+      graflexState.set(false);
+    }
   }
   num_leds = blade.num_leds()
-  var pixels = new Uint8Array(num_leds * 4 * 2);
+  if (!pixels || pixels.length < num_leds * 4 * 2) {
+     pixels = new Uint8Array(num_leds * 4 * 2);
+  }
   var S = current_style;
   if (S != last_style) {
     last_style = S;
@@ -9363,7 +9532,9 @@ function drawScene() {
   } else {
     S = show_style;
   }
-  if (S.getColor && S.getType && S.getType() == "COLOR") {
+  numTick++;
+  if (S.getColor && S.getType && S.getType() == "COLOR" && numTick > framesPerUpdate) {
+    numTick = 0;
     S.run(blade);
     for (var i = 0; i < num_leds; i++) {
         c = S.getColor(i);
@@ -9373,7 +9544,7 @@ function drawScene() {
         pixels[i*4 + 3] = 255;
     }
     if (last_micros != 0) {
-      current_micros += (current_micros - last_micros) / 2;
+      current_micros += delta_us / 2;
     }
     if (framesPerUpdate == 0) {
       S.run(blade);
@@ -9440,11 +9611,7 @@ function drawScene() {
 
 function tick() {
   window.requestAnimationFrame(tick);
-  numTick++;
-  if (numTick > framesPerUpdate) {
-    numTick = 0;
-    drawScene();
-  }
+  drawScene();
 }
 var overall_string;
 
@@ -9994,7 +10161,6 @@ function ActivateTab(tab) {
       <div class="canvas-container">      
         <canvas
           id="canvas_id"
-          title="Blade Preview. Move mouse to swing. Click to Clash or Do Selected Effect (and to dismiss this Tooltip.)  Goto settings to change hilt model or toggle Mouse Swings mode (no swing on mouse move.)"
           onmousemove='mouse_move(event)' onmouseleave='mouse_leave(event)'
           onclick='AddClickedEffect()'>
         </canvas>
@@ -10298,14 +10464,19 @@ function ActivateTab(tab) {
               <span>Slow</span>
             </label>
           </div>
-
           <div class="settings-section">
+            <h4 class="settings-section-label" title="These settings are useful for people making modifications to the style editor.">Developer Settings:</h4>
+            <label title="Benchmark how many passes we can render per frame.">
+              <input type="checkbox" id="BENCHMARK_BUTTON" name="benchmark" onclick="handleClick(this)">
+              <span>Benchmark</span>
+            </label>
             <label title="Enter a custom WavLen value in milliseconds. This is also the time used if IgnitionTime<> or RetractionTime<> is set to zero." class="wavlen-label">
               WavLen time:
               <input type='number' id="WAVLEN_VALUE" class="wavlen-value" value="500">
             </label>
           </div>
           <br>
+          </div>
         </div>
 <script>
 
@@ -10410,7 +10581,8 @@ var graflexState = new SavedState("graflex", true, (on) => { compile(); });
 var mouseswingsState = new SavedState("mouseswings", false, (on) => {});
 var autoswingState = new SavedState("autoswing", true, (on) => {});
 var inhiltState = new SavedState("inhilt", false, (on) => { STATE_NUM_LEDS = on ? 1 : 144; });
-var slowState = new SavedState("slow", false, (on) => { framesPerUpdate = on ? 60 : 0; });
+var slowState = new SavedState("slow", false, (on) => { framesPerUpdate = on ? 10 : 0; time_factor = framesPerUpdate == 0 ? 1000 : (500/framesPerUpdate)});
+var benchmarkState = new SavedState("benchmark", false, (on) => { AA=1; compile(); FIND("error_message").innerHTML = ""; });
 var wavlenState = new SavedState("wavlen", 500, (value) => {
   myWavLen.setLength(value);
 }, "number");
