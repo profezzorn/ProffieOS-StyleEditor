@@ -10467,7 +10467,7 @@ function ActivateTab(tab) {
           <div class="settings-section">
             <h4 class="settings-section-label" title="These settings are useful for people making modifications to the style editor.">Developer Settings:</h4>
             <label title="Benchmark how many passes we can render per frame.">
-              <input type="checkbox" id="BENCHMARK_BUTTON" name="benchmark" onclick="handleClick(this)">
+              <input type="checkbox" id="BENCHMARK_BUTTON" name="benchmark" onclick="handleSettings(this)">
               <span>Benchmark</span>
             </label>
             <label title="Enter a custom WavLen value in milliseconds. This is also the time used if IgnitionTime<> or RetractionTime<> is set to zero." class="wavlen-label">
@@ -10532,37 +10532,55 @@ function saveState(buttonState, settingIsOn) {
 }
 
 class SavedState {
-  constructor(name, def, update_function, type = "checkbox") {
+  constructor(name, def, update_function) {
     this.name = name;
     this.def = def;
     this.update_function = update_function;
-    this.type = type;
     all_saved_states.push(this);
-    const checkbox = FIND(this.name.toUpperCase()+"_BUTTON");
-    state_by_checkbox.set(checkbox, this);
   }
   onload() {
     this.set(getSavedState(this.name + "Save", this.def));
   }
   set(value) {
-    this.value = value;
-    if (this.type === "checkbox") {
-      FIND(this.name.toUpperCase() + "_BUTTON").checked = value ? true : false;
-    } else if (this.type === "number") {
-      FIND(this.name.toUpperCase() + "_VALUE").value = value;
-    }
-    saveState(this.name + "Save", value);
-    this.update_function(value);
+    throw new Error("set() must be implemented by subclass");
   }
   get() { return this.value; }
 }
 
-var darkState = new SavedState("dark", false, (on) => {
+class SavedStateBool extends SavedState {
+  constructor(name, def, update_function) {
+    super(name, def, update_function);
+    // For checkboxes, store the mapping for use in handleSettings().
+    const checkbox = FIND(name.toUpperCase() + "_BUTTON");
+    state_by_checkbox.set(checkbox, this);
+  }
+  set(value) {
+    this.value = value;
+    FIND(this.name.toUpperCase() + "_BUTTON").checked = value ? true : false;
+    saveState(this.name + "Save", value);
+    this.update_function(value);
+  }
+}
+
+class SavedStateNumber extends SavedState {
+  constructor(name, def, update_function) {
+    super(name, def, update_function);
+  }
+  set(value) {
+    this.value = value;
+    FIND(this.name.toUpperCase() + "_VALUE").value = value;
+    saveState(this.name + "Save", value);
+    this.update_function(value);
+  }
+}
+
+
+var darkState = new SavedStateBool("dark", false, (on) => {
   body.classList.toggle("dark-mode", on);
   structuredView.classList.toggle("dark-mode", on);
 });
 
-var tipsState = new SavedState("tips", true, (on) => { 
+var tipsState = new SavedStateBool("tips", true, (on) => { 
  if (on) {
     const elementsWithDataTitles = document.querySelectorAll("[data-title]");
     elementsWithDataTitles.forEach((element) => {
@@ -10577,15 +10595,20 @@ var tipsState = new SavedState("tips", true, (on) => {
     });
   }
 });
-var graflexState = new SavedState("graflex", true, (on) => { compile(); });
-var mouseswingsState = new SavedState("mouseswings", false, (on) => {});
-var autoswingState = new SavedState("autoswing", true, (on) => {});
-var inhiltState = new SavedState("inhilt", false, (on) => { STATE_NUM_LEDS = on ? 1 : 144; });
-var slowState = new SavedState("slow", false, (on) => { framesPerUpdate = on ? 10 : 0; time_factor = framesPerUpdate == 0 ? 1000 : (500/framesPerUpdate)});
-var benchmarkState = new SavedState("benchmark", false, (on) => { AA=1; compile(); FIND("error_message").innerHTML = ""; });
-var wavlenState = new SavedState("wavlen", 500, (value) => {
+
+var colorsortState = new SavedStateBool("colorsort", false, (on) => {
+  updateRgbTabContent();
+});
+
+var graflexState = new SavedStateBool("graflex", true, (on) => { compile(); });
+var mouseswingsState = new SavedStateBool("mouseswings", false, (on) => {});
+var autoswingState = new SavedStateBool("autoswing", true, (on) => {});
+var inhiltState = new SavedStateBool("inhilt", false, (on) => { STATE_NUM_LEDS = on ? 1 : 144; });
+var slowState = new SavedStateBool("slow", false, (on) => { framesPerUpdate = on ? 10 : 0; time_factor = framesPerUpdate == 0 ? 1000 : (500/framesPerUpdate)});
+var benchmarkState = new SavedStateBool("benchmark", false, (on) => { AA=1; compile(); FIND("error_message").innerHTML = ""; });
+var wavlenState = new SavedStateNumber("wavlen", 500, (value) => {
   myWavLen.setLength(value);
-}, "number");
+});
 wavlenInput.addEventListener("input", function(e) {
   var value = parseInt(this.value);
   var newValue = (isNaN(value) || value < 1) ? 1 : value;
