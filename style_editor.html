@@ -7476,9 +7476,9 @@ class SawClass extends FUNCTION {
     this.pos = fract(this.pos + delta / 60000000.0 * this.RPM.getInteger(0));
     var high = this.HIGH.getInteger(0);
     var low = this.LOW.getInteger(0);
-    this.value = low + this.pos * (high - low);
+    this.value = Math.floor(low + this.pos * (high - low));
   }
-  getInteger(led) { return Math.floor(this.value); }
+  getInteger(led) { return this.value; }
 };
 
 function Saw(RPM, LOW, HIGH) { return new SawClass(RPM, LOW, HIGH); }
