@@ -7478,7 +7478,7 @@ class SawClass extends FUNCTION {
     var low = this.LOW.getInteger(0);
     this.value = low + this.pos * (high - low);
   }
-  getInteger(led) { return this.value; }
+  getInteger(led) { return Math.floor(this.value); }
 };
 
 function Saw(RPM, LOW, HIGH) { return new SawClass(RPM, LOW, HIGH); }
