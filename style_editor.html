@@ -6807,7 +6807,7 @@ class TrSelectClass extends TRANSITION {
   constructor(ARGS) {
     super("Select transitions", ARGS);
     this.TRANSITIONS = Array.from(ARGS).slice(1);
-    this.add_arg("F", "FUNCTION", "Transition to select");
+    this.add_arg("F", "FUNCTION", "This FUNCTION selects which of the transitions to use");
     for (var i = 1; i <= max(this.TRANSITIONS.length, 1); i++) {
       this.add_arg("TRANSITION" + i, "TRANSITION", "Transiton " + i);
     }
