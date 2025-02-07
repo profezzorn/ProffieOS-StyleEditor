@@ -1459,12 +1459,14 @@ var height;
 
 // Create n textures of about 1MB each.
 function initGL() {
+  // Clear existing tab links and tab bodies before populating
+  var tabLinksElement = FIND("TABLINKS");
+  var tabBodiesElement = FIND("TABBODIES");
+  tabLinksElement.innerHTML = "";
+  tabBodiesElement.innerHTML = "";
+
   AddTab("color", "Styles",effect_links.sort().join(""))
-  AddTab("rgb", "Colors",
-    qlinks.sort().join("") +
-    "<div class='custom-color'>" +
-    "<label for='COLOR'>Custom color </label>" +
-    "<input type='color' id='COLOR' value='#ff0000' class='color-picker' onclick='ClickColor()' /></div>");
+  AddTab("rgb", "Colors", ""); updateRgbTabContent();
   AddTab("layer", "Layers", layer_links.sort().join(""));
   AddTab("function", "Functions", function_links.sort().join(""));
   AddTab("transition", "Transitions", transition_links.sort().join(""));
@@ -1856,9 +1858,6 @@ function Arg(expected_type, arg, default_arg) {
   }
   if (typeof(arg) != "number" && arg.getType() != expected_type) {
     throw "Expected " + expected_type + " but got " + arg;
-  }
-  if (expected_type == "INT" && typeof(arg) == "number") {
-    return new INTEGER(arg);
   }
   if (expected_type == "INT" || expected_type == "EFFECT" || expected_type == "LOCKUP_TYPE" || expected_type == "ArgumentName") {
     return arg;
@@ -2584,7 +2583,6 @@ function ClickColor() {
 //var function_links = "<b>Functions:</b>";
 //var transition_links = "<b>Transitions:</b>";
 
-var qlinks = [];
 var effect_links = [];
 var layer_links = [];
 var effect_type_links = []
@@ -2594,6 +2592,7 @@ var transition_links = [];
 
 var all_colors = {};
 var colorNames = {};
+var colorData = [];
 
 class RgbClass extends STYLE {
   constructor(r,g,b,a) {
@@ -2930,6 +2929,8 @@ function mapcolor(x) {
   return Math.round(x * 255);
 }
 
+
+//sort color by hue
 function rgbToHsl(r, g, b) {
   r /= 255, g /= 255, b /= 255;
 
@@ -2978,7 +2979,7 @@ function mkcolorbutton(name, r, g, b) {
 
 function AddColor(name, r, g, b) {
   colorNames[r+","+g+","+b] = name;
-  qlinks.push(mkcolorbutton(name, r, g, b));
+  colorData.push(mkcolorbutton(name, r, g, b));
   all_colors[name] = new RgbClass(r, g, b);
 }
 
@@ -3107,7 +3108,6 @@ AddFunction("BlinkingF<Int<1000>, Int<500>>");
 AddFunction("BrownNoiseF<Int<50>>");
 AddFunction("HumpFlickerF<50>");
 AddFunction("NoisySoundLevel");
-AddFunction("NoisySoundLevelCompat");
 AddFunction("SmoothSoundLevel");
 AddFunction("SwingSpeed<250>");
 AddFunction("SwingAcceleration<130>");
@@ -3313,9 +3313,8 @@ class Range {
 };
 
 // TODO
-// Gray out buttons not applicable to the current type.
+// Gray out buttons not applicable to the current type. - BC WIP.
 // Save -> save to local storage (keep 10?) maybe with images?
-// save as -> save to local storage with name
 // Mix
 
 class ColorCycleClass extends STYLE {
@@ -6822,7 +6821,7 @@ class TrSelectClass extends TRANSITION {
   constructor(ARGS) {
     super("Select transitions", ARGS);
     this.TRANSITIONS = Array.from(ARGS).slice(1);
-    this.add_arg("F", "FUNCTION", "Transition to select");
+    this.add_arg("F", "FUNCTION", "This FUNCTION selects which of the transitions to use");
     for (var i = 1; i <= max(this.TRANSITIONS.length, 1); i++) {
       this.add_arg("TRANSITION" + i, "TRANSITION", "Transiton " + i);
     }
@@ -7491,7 +7490,7 @@ class SawClass extends FUNCTION {
     this.pos = fract(this.pos + delta / 60000000.0 * this.RPM.getInteger(0));
     var high = this.HIGH.getInteger(0);
     var low = this.LOW.getInteger(0);
-    this.value = low + this.pos * (high - low);
+    this.value = Math.floor(low + this.pos * (high - low));
   }
   getInteger(led) { return this.value; }
 };
@@ -7620,7 +7619,7 @@ function RampF() {
 
 class MultClass extends FUNCTION {
   constructor(ARGS) {
-    super("Multiply values", ARGS);
+    super("Multiply values. Uses fixed point 16.15 multiplication", ARGS);
     this.FUNCTIONS = Array.from(ARGS);
     for (var i = 1; i < this.FUNCTIONS.length + 1; i++)
       this.add_arg("FUNCTION" + i, "FUNCTION", "COLOR " + i);
@@ -7845,7 +7844,7 @@ function SlowNoise(SPEED) {
 
 class IsLessThanClass extends FUNCTION {
   constructor(F, V) {
-    super("Returns 32768 if F < V, 0 otherwise.", arguments);
+    super("Returns 32768 if F < V, otherwise 0.", arguments);
     this.add_arg("F", "FUNCTION", "F");
     this.add_arg("V", "FUNCTION", "V");
   }
@@ -7860,7 +7859,7 @@ function IsLessThan(F, V) {
 
 class IsGreaterThanClass extends MACRO {
   constructor(F, V) {
-    super("Returns 32768 if F > V, 0 otherwise.", arguments);
+    super("Returns 32768 if F > V, otherwise 0.", arguments);
     this.add_arg("F", "FUNCTION", "F");
     this.add_arg("V", "FUNCTION", "V");
     this.SetExpansion(IsLessThan(V.DOCOPY(), F.DOCOPY()));
@@ -7873,7 +7872,7 @@ function IsGreaterThan(F, V) {
 
 class IsBetweenClass extends FUNCTION {
   constructor(F, BOTTOM, TOP) {
-    super("Returns 32768 if BOTTOM < F < TOP, 0 otherwise.", arguments);
+    super("Returns 32768 if BOTTOM < F < TOP, otherwise 0.", arguments);
     this.add_arg("F", "FUNCTION", "F");
     this.add_arg("BOTTOM", "FUNCTION", "BOTTOM");
     this.add_arg("TOP", "FUNCTION", "TOP");
@@ -8323,7 +8322,7 @@ function BladeAngle(MIN, MAX) {
 
 class LockupPulseFClass extends FUNCTION {
   constructor() {
-    super("32768 if specified lockup type, 0 otherwise.", arguments);
+    super("32768 if specified lockup type, otherwise 0.", arguments);
     this.add_arg("LOCKUP_TYPE", "LOCKUP_TYPE", "Lockup type");
     this.value_ = 0;
   }
@@ -10127,6 +10126,35 @@ function AddTabContent(tab, data) {
   FIND(tab + "_tabcontent").innerHTML += data;
 }
 
+function SetTabContent(tab, data) {
+  FIND(tab + "_tabcontent").innerHTML = data;
+}
+
+function sortByName() {
+  // Extract name from HTML string
+  colorData.sort((a, b) => {
+    const nameA = a.match(/value='(.*?)'/)[1];
+    const nameB = b.match(/value='(.*?)'/)[1];
+    return nameA.localeCompare(nameB);
+  });
+  return colorData;
+}
+
+function updateRgbTabContent() {
+  if (colorsortState.get()) {
+    console.log("Sort colors by Name");
+    sortedRgbLinks = sortByName();
+  } else {
+    console.log("Sort colors by Hue");
+    sortedRgbLinks = colorData.sort();
+  }
+
+  SetTabContent("rgb", sortedRgbLinks.join("") +
+    "<div class='custom-color'>" +
+    "<label for='COLOR'>Custom color </label>" +
+    "<input type='color' id='COLOR' value='#ff0000' class='color-picker' onclick='ClickColor()' /></div>");
+}
+
 function ActivateTab(tab) {
   if(!FIND(tab+"_tab")) {
     console.log("No such tab");
@@ -10387,7 +10415,7 @@ function ActivateTab(tab) {
             <i class="fa-solid fa-copy"></i> Copy</button>
           <button 
             id="expand_button"
-            title="Reveals the &quot;under the hood&quot; code that the shorthand macro uses. This allows access to otherwise omitted arguments, and is only an active button when applicable."
+            title="Reveals the &quot;under the hood&quot; code that the shorthand macro uses. This allows access to otherwise omitted arguments, and allows functions to be used instead of just numbers. It is only an active button when applicable."
             onclick="DoExpand()">
             <i class="fa-solid fa-up-right-and-down-left-from-center"></i> Expand</button>
           <button 
@@ -10435,6 +10463,11 @@ function ActivateTab(tab) {
               <span >Tool Tips</span>
             </label>
 
+            <label title="Toggle between sorting the Colors tab hue or by name.">
+              <input type="checkbox" id="COLORSORT_BUTTON" name="colorsort" onclick="handleClick(this)">
+              <span>Sort Colors by name</span>
+            </label>
+
           </div>
           <div class="settings-section">
             <h4 class="settings-section-label" title="These settings apply to the blade preview above.">Blade Preview:</h4>
@@ -10477,6 +10510,10 @@ function ActivateTab(tab) {
           </div>
           <br>
           </div>
+          <br>
+          <button
+            title="Restore all settings to default, including restoring popups."
+            id="restore_defaults" onclick="ClickRestore()">Restore Defaults</button>
         </div>
 <script>
 
@@ -10627,6 +10664,11 @@ function onPageLoad() {
 function handleSettings(checkbox) {
   var state = state_by_checkbox.get(checkbox);
   state.set(!state.get());
+}
+
+function ClickRestore() {
+  localStorage.clear();
+  onPageLoad();
 }
 
 </script>
