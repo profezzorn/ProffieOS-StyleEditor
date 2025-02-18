@@ -10554,14 +10554,7 @@ var myWavLen = new WavLenClass();
 function getSavedState(buttonState, defaultValue) {
   var value = localStorage.getItem(buttonState);
   console.log("Retrieved SavedState for " + buttonState + ": " + value);
-
-  if (value === null) {
-    return defaultValue;
-  }
-  if (buttonState === "wavlenSave"){
-    return value;
-  }
-  return value !== "false";
+  return (value === null ? defaultValue : value);
 }
 
 function saveState(buttonState, settingIsOn) {
@@ -10592,10 +10585,11 @@ class SavedStateBool extends SavedState {
     state_by_checkbox.set(checkbox, this);
   }
   set(value) {
-    this.value = value;
-    FIND(this.name.toUpperCase() + "_BUTTON").checked = value ? true : false;
-    saveState(this.name + "Save", value);
-    this.update_function(value);
+    const boolValue = (value === true || value === "true");
+    this.value = boolValue;
+    FIND(this.name.toUpperCase() + "_BUTTON").checked = boolValue;
+    saveState(this.name + "Save", boolValue);
+    this.update_function(boolValue);
   }
 }
 
