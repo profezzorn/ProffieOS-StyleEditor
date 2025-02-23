@@ -280,6 +280,19 @@ button:active,
 input[type="button"]:active {
   background-color: dodgerblue;
 }
+/*Keep from browser takeover of number inputs */
+input[type='number'] {
+  width: 60px;
+  height: 22px;
+}
+input[type='number']::-webkit-inner-spin-button,
+input[type='number']::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type='number'] {
+  -moz-appearance: textfield;
+}
 button.submit-button {
   background-color: limegreen;
   border: 1px solid green;
@@ -1439,6 +1452,19 @@ void main() {
 </script>
 
 <script>
+
+function SafeguardInputs(e) {
+  if (e.target.value == "") {
+    console.log("SafeguardInputs() run to avoid null value");
+    var changeEvent = new Event('change');
+    e.target.value = 0;
+    if (e.target.id === "VARIANT_VALUE") {
+      FIND("VARIANT_SLIDER").value = 0;
+    }
+    e.target.dispatchEvent(changeEvent);
+  }
+}
+
 var gl = null;
 var shaderProgram = null;
 var t = 0.0;
@@ -1471,7 +1497,7 @@ function initGL() {
 
   // Add arg string.
   var A = "";
-  A += "Arg string: <input id=ARGSTR name=arg type=input size=80 value='builtin 0 1' onchange='ArgStringChanged()' /><br><table>";
+  A += "Arg string: <input id=ARGSTR name=arg type=text size=80 value='builtin 0 1' onchange='ArgStringChanged()' /><br><table>";
   var v = Object.keys(ArgumentName_ENUM_BUILDER.value_to_name);
   for (var i = 0; i < v.length; i++) {
     var V = parseInt(v[i]);
@@ -1481,7 +1507,7 @@ function initGL() {
        A += "<input type=color id=ARGSTR_"+N+" onclick='ClickArgColor("+N+")' onchange='ClickArgColor("+N+")' >";
     } else {
        A += "<input type=button value='<'  onclick='IncreaseArg("+N+",-1)' >";
-       A += "<input id=ARGSTR_"+N+" type=input size=6 value=0 onchange='ArgChanged("+N+")' >";
+       A += "<input id=ARGSTR_"+N+" type='number' size=6 value=0 onchange='ArgChanged("+N+")' onfocusout='SafeguardInputs(event)' >";
        A += "<input type=button value='>'  onclick='IncreaseArg("+N+",1)' >";
     }
     A += "</td></tr>\n";
@@ -7944,12 +7970,15 @@ class SyncAltToVarianceFClass extends FUNCTION {
       console.log("SYNC FIRST");
       FIND("ALT").value = VAR;
     } else if (VAR != this.last_) {
-      console.log("SYNC ALT");
+      if (isNaN(VAR)) VAR = 0;
+      console.log("SYNC ALT: " + VAR);
       FIND("ALT").value = VAR;
       blade.addEffect(EFFECT_ALT_SOUND, 0.0);
     } else {
       console.log("SYNC VAR");
       VAR = Alt();
+      if (isNaN(VAR)) VAR = 0;
+      console.log("SYNC VAR: " + VAR);
       FIND("VARIANT_VALUE").value = VAR;
     }
     this.last_ = VAR;
@@ -9815,6 +9844,7 @@ function ArgChanged(ARG) {
   var N = ArgumentName_ENUM_BUILDER.value_to_name[ARG];
   var tag = FIND("ARGSTR_"+N);
   setARG(ARG, tag.value);
+  console.log("Updated " + N + " : " + tag.value)
 }
 
 function IncreaseArg(ARG, I) {
@@ -9822,6 +9852,7 @@ function IncreaseArg(ARG, I) {
   var tag = FIND("ARGSTR_"+N);
   tag.value = parseInt(tag.value) + I;
   setARG(ARG, tag.value);
+  console.log("Updated " + N + " : " + tag.value)
 }
 
 function ClickArgColor(ARG) {
@@ -9954,11 +9985,20 @@ function Alt() {
   return parseInt(FIND("ALT").value);
 }
 
+function updateAltValue(newValue) {
+  if (newValue > num_alternatives) {
+    newValue = num_alternatives;
+  }
+  FIND("ALT").value = newValue;
+  console.log("Updated Alt: " + newValue);
+}
+
 function IncreaseAlt(n) {
   var v = Alt() + n;
   if (v < 0) v += num_alternatives;
   if (v > num_alternatives) v -= num_alternatives;
   FIND("ALT").value = v;
+  console.log("Updated Alt: " + v)
 }
 
 function Variant() {
@@ -10354,10 +10394,10 @@ function ActivateTab(tab) {
             onmouseup="stopAdjustingValue()"
             onmouseleave="stopAdjustingValue()" >
           <input
-            id="VARIANT_VALUE" name=varvalue type=input size="6" value="0"
+            id="VARIANT_VALUE" name=varvalue type='number' value="0"
             title="The current Variant value. You can also type in this field for direct entry of a value."
-            oninput="updateVariantValue(this.value)" >
-          <input
+            oninput="updateVariantValue(this.value)"
+            onfocusout="SafeguardInputs(event)" >          <input
             id="VARIANT_PLUS" name=varplus type=button value=">"
             title="Increases the Variant value. Hold to increase speed of the changing value."
             onmousedown="startAdjustingValue(1, 'VARIANT_SLIDER')"
@@ -10369,8 +10409,10 @@ function ActivateTab(tab) {
             title="Decreases the Alt value."
             onclick="IncreaseAlt(-1)" >
           <input
-            id="ALT" name=alt type=input size="3" value="0"
-            title="The current Alt value. You can also type in this field for direct entry of a value." >
+            id="ALT" name=alt type='number' value="0"
+            title="The current Alt value. You can also type in this field for direct entry of a value."
+            oninput="updateAltValue(this.value)"
+            onfocusout="SafeguardInputs(event)" >
           <input
             id="ALT_PLUS" name=altplus type=button value=">"
             title="Increases the Alt value."
