@@ -2041,7 +2041,7 @@ class STYLE {
       var note = arguments[i+1];
       var comment = null;
       if (typeof(arg) == "number") {
-        arg = "" + arg;
+        arg = "<div class='pp-container'><span title='" + note + "'>" + arg + "</span></div>";
       } else {
         comment = arg.COMMENT;
         arg = this.call_pp_no_comment(arg);
