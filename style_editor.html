@@ -4589,6 +4589,9 @@ function AddBoot() {
 function AddPreon() {
   blade.addEffect(EFFECT_PREON, 0.0);
 }
+function AddPostoff() {
+  blade.addEffect(EFFECT_POSTOFF, 0.0);
+}
 
 var blast_hump = [ 255,255,252,247,240,232,222,211,
                    199,186,173,159,145,132,119,106,
@@ -10229,6 +10232,9 @@ function ActivateTab(tab) {
       <button
         title="Simulates &quot;pre-ignition&quot;; pressing the power button when there are preon.wav files available in the current font. Triggers style code using EFFECT_PREON."
         onclick="AddPreon()">Preon</button>
+      <button
+        title="Simulates &quot;post-retraction&quot;; autofollows retraction when there are pstoff.wav files available in the current font. Triggers style code using EFFECT_POSTOFF."
+        onclick="AddPostoff()">Postoff</button>
 
       <select
         id="LOCKUP" name="lockup"
@@ -10269,6 +10275,7 @@ function ActivateTab(tab) {
             EFFECT_BOOT,
             EFFECT_NEWFONT,
             EFFECT_PREON,
+            EFFECT_POSTOFF,
           ].includes(Number(value)));
 
         // Add sub-groups for the different categories of effects
