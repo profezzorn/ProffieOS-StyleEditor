@@ -10571,9 +10571,6 @@ class SavedState {
   onload() {
     this.set(getSavedState(this.name + "Save", this.def));
   }
-  set(value) {
-    throw new Error("set() must be implemented by subclass");
-  }
   get() { return this.value; }
 }
 
