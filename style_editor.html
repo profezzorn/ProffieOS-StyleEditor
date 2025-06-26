@@ -6991,8 +6991,8 @@ class TrDoEffectAlwaysXClass extends TRANSITION {
     super("Do effect", arguments);
     this.add_arg("TRANSITION","TRANSITION", "Wrapped transition");
     this.add_arg("EFFECT", "EFFECT", "Effect to trigger.");
-    this.add_arg("WAVNUM", "FUNCTION", "Select wave number.");
-    this.add_arg("LOCATION", "FUNCTION", "Effect location.");
+    this.add_arg("WAVNUM", "FUNCTION", "Select wave number.", Int(-1));
+    this.add_arg("LOCATION", "FUNCTION", "Effect location.", Int(-1));
     this.begin_ = false;
   }
   begin() {
