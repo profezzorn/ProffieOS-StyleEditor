@@ -1,3 +1,4 @@
 # ProffieOS-StyleEditor
 
-Try it: http://profezzorn.github.io/ProffieOS-StyleEditor/style_editor.html
+Try it: https://fredrik.hubbe.net/ProffieOS-StyleEditor/style_editor.html
+
