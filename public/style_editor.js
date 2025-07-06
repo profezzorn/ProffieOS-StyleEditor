@@ -1,126 +1,43 @@
-var gl = null;
-var shaderProgram = null;
 var t = 0.0;
 
 var width;
 var height;
 
-// Create n textures of about 1MB each.
-function initGL() {
-  // Clear existing tab links and tab bodies before populating
-  var tabLinksElement = FIND("TABLINKS");
-  var tabBodiesElement = FIND("TABBODIES");
-  tabLinksElement.innerHTML = "";
-  tabBodiesElement.innerHTML = "";
-
-  AddTab("color", "Styles",effect_links.sort().join(""))
-  AddTab("rgb", "Colors", ""); updateRgbTabContent();
-  AddTab("layer", "Layers", layer_links.sort().join(""));
-  AddTab("function", "Functions", function_links.sort().join(""));
-  AddTab("transition", "Transitions", transition_links.sort().join(""));
-  AddTab("effect", "Effects");
-  AddTab("lockup_type", "Lockup Types");
-  AddTab("arguments", "Arguments");
-  AddTab("example", "Examples", template_links.join(""));
-  AddTab("history", "History");
-  AddTab("arg_string", "ArgString");
-  EFFECT_ENUM_BUILDER.addToTab("effect", "EFFECT_");
-  LOCKUP_ENUM_BUILDER.addToTab("lockup_type", "LOCKUP_");
-  ArgumentName_ENUM_BUILDER.addToTab("arguments", "");
-
-  // Add arg string.
-  var A = "";
-  A += "Arg string: <input id=ARGSTR name=arg type=input size=80 value='builtin 0 1' onchange='ArgStringChanged()' /><br><table>";
-  var v = Object.keys(ArgumentName_ENUM_BUILDER.value_to_name);
-  for (var i = 0; i < v.length; i++) {
-    var V = parseInt(v[i]);
-    var N = ArgumentName_ENUM_BUILDER.value_to_name[V];
-    A += "<tr><td>" + N + "</td><td>";
-    if (N.search("COLOR") >= 0) {
-       A += "<input type=color id=ARGSTR_"+N+" onclick='ClickArgColor("+N+")' onchange='ClickArgColor("+N+")' >";
-    } else {
-       A += "<input type=button value='<'  onclick='IncreaseArg("+N+",-1)' >";
-       A += "<input id=ARGSTR_"+N+" type=input size=6 value=0 onchange='ArgChanged("+N+")' >";
-       A += "<input type=button value='>'  onclick='IncreaseArg("+N+",1)' >";
-    }
-    A += "</td></tr>\n";
+function FIND(id) {
+  var ret = document.getElementById(id);
+  if (!ret) {
+//    console.log("Failed to find " + id);
   }
-  A += "</table\n";
-  AddTabContent("arg_string", A);
+  return ret;
+}
+const start_millis = new Date().getTime();
+function actual_millis() {
+  return new Date().getTime() - start_millis;
+}
+var current_micros = 0;
+var current_micros_internal = 0;
+function micros() {
+  return current_micros;
+}
 
+function millis() {
+  return current_micros / 1000;
+}
 
-  var canvas = FIND("canvas_id");
+function fract(v) {
+  return v - Math.floor(v);
+}
 
-  width = window.innerWidth;
-  height = window.innerHeight;
-  canvas_id.setAttribute("title", "Blade Preview.\nMove mouse to swing. Click to Clash\nor to Do Selected Effect (and to dismiss this Tooltip.)\nGoto settings to change hilt model or toggle Mouse Swings mode (swinging with mouse moves.)");
-
-  if(window.devicePixelRatio !== undefined) {
-    dpr = window.devicePixelRatio;
-  } else {
-    dpr = 1;
-  }
-
-  width = width * 2 / 3;
-  height /= 3;
-  canvas.width = width * dpr;
-  canvas.height = height * dpr;
-  canvas.style.width = width + 'px';
-  canvas.style.height = height + 'px';
-  
-  var enlargeCanvas = false;
-  FIND('ENLARGE').onclick = function() {
-    enlargeCanvas = !enlargeCanvas;
-    this.innerText = enlargeCanvas ? 'Reduce' : 'Enlarge';
-    if (enlargeCanvas) {
-      height = window.innerHeight / 2;
-    } else {
-      height = window.innerHeight / 3;
-    }
-    
-    // Update the canvas dimensions
-    canvas.width = width * dpr;
-    canvas.height = height * dpr;
-    canvas.style.width = width + 'px';
-    canvas.style.height = height + 'px';
-  }
-
-  gl = canvas.getContext("experimental-webgl", {colorSpace: "srgb", antialias:false});
-
-  if (!gl) {
-    throw "Unable to fetch WebGL rendering context for Canvas";
-  }
-
-  var str = new URL(window.location.href).searchParams.get("S");
-  if (!str) {
-    str = "Layers<Red,ResponsiveLockupL<White,TrInstant,TrFade<100>,Int<26000>>,ResponsiveLightningBlockL<White>,ResponsiveMeltL<Mix<TwistAngle<>,Red,Yellow>>,ResponsiveDragL<White>,ResponsiveClashL<White,TrInstant,TrFade<200>,Int<26000>>,ResponsiveBlastL<White>,ResponsiveBlastWaveL<White>,ResponsiveBlastFadeL<White>,ResponsiveStabL<White>,InOutTrL<TrWipe<300>,TrWipeIn<500>>>";
-  }
-  FIND("style").value = str;
-
-  Run();
-  DoLayerize();
-
-  //FIND("color_links").innerHTML = qlinks;
-  //FIND("effect_links").innerHTML = effect_links;
-  //FIND("effect_type_links").innerHTML = effect_type_links;
-  //FIND("template_links").innerHTML = template_links;
-  //FIND("function_links").innerHTML = function_links;
-  //FIND("transition_links").innerHTML = transition_links;
-
-  // Bind a vertex buffer with a single triangle
-  var buffer = gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-  var bufferData = new Float32Array([
-       -1.0, -1.0, 1.0, -1.0, -1.0,  1.0, 1.0, 1.0]);
-  gl.bufferData(gl.ARRAY_BUFFER, bufferData, gl.STATIC_DRAW);
-  gl.enableVertexAttribArray(shaderProgram.a_position);
-  gl.vertexAttribPointer(shaderProgram.a_position, 2, gl.FLOAT, false, 0, 0);
-
-  var texture = gl.createTexture();
-  gl.bindTexture(gl.TEXTURE_2D, texture);
-
-  // Start the event loop.
-  tick();
+var max = Math.max;
+var min = Math.min;
+var sin = Math.sin;
+function random(i) {
+  return Math.floor(Math.random() * i);
+}
+function clamp(a, b, c) {
+  if (a < b) return b;
+  if (a > c) return c;
+  return a;
 }
 
 class Matrix {
@@ -186,6 +103,30 @@ class Matrix {
     ret.set(2,3,z);
     return ret;
   }
+    static fromValues(a, b, c, d,
+		      e, f, g, h,
+		      i, j, k, l,
+		      m, n, o, p) {
+	var ret = new Matrix(4, 4);
+	ret.values[0] = a;
+	ret.values[1] = b;
+	ret.values[2] = c;
+	ret.values[3] = d;
+	ret.values[4] = e;
+	ret.values[5] = f;
+	ret.values[6] = g;
+	ret.values[7] = h;
+	ret.values[8] = i;
+	ret.values[9] = j;
+	ret.values[10] = k;
+	ret.values[11] = l;
+	ret.values[12] = m;
+	ret.values[13] = n;
+	ret.values[14] = o;
+	ret.values[15] = p;
+	return ret;
+	
+    }
 
   tostr() {
     var ret = "{";
@@ -201,8 +142,23 @@ class Matrix {
   }
 };
 
+function default_rotation_matrix() {
+    var ret = Matrix.mktranslate(0.0, 0.0, 0.0);
+//    ret  = ret.mult(Matrix.mkzrot(Math.PI/2.0));
+//    ret  = ret.mult(Matrix.mkxrot(Math.PI/2.0));
+    return ret;
+}
+
 function default_move_matrix() {
-  return Matrix.mktranslate(-0.023, 0.0, -0.12);
+//    var ret = Matrix.mktranslate(0.0, 0.0, 0.0);
+//  return Matrix.mktranslate(0.0, 1.6, -200.0);
+//    var ret = Matrix.mktranslate(-0.023, 0.0, -0.12);
+
+    //    ret  = ret.mult(Matrix.mkxrot(Math.PI/2.0));
+    var ret = default_rotation_matrix();
+//    ret = ret.mult(Matrix.mktranslate(0.0, 0.0, -20.0));
+    return ret;
+    
 }
 
 var MOVE_MATRIX = default_move_matrix();
@@ -239,15 +195,18 @@ function mouse_move(e) {
   if (e.shiftKey) {
     MOVE_MATRIX = default_move_matrix();
   } else {
+      var SCALE = 100.0;
     BLADE_ANGLE=-y;
-    MOVE_MATRIX = Matrix.mkzrot(Math.PI/2.0).mult(Matrix.mkxrot(-y)).mult(Matrix.mkzrot(y));
+//    MOVE_MATRIX = Matrix.mkzrot(Math.PI/2.0).mult(Matrix.mkxrot(-y)).mult(Matrix.mkzrot(y));
 
-    MOVE_MATRIX = Matrix.mkyrot(Math.PI/2.0)
-    MOVE_MATRIX = MOVE_MATRIX.mult(Matrix.mktranslate(1.0, 0.04, 0.0));
+    MOVE_MATRIX = default_rotation_matrix()
+    MOVE_MATRIX = MOVE_MATRIX.mult(Matrix.mkyrot(Math.PI/2.0));
+    MOVE_MATRIX = MOVE_MATRIX.mult(Matrix.mktranslate(1.0 * SCALE, 0.04 * SCALE, 0.0));
     MOVE_MATRIX = MOVE_MATRIX.mult(Matrix.mkyrot(-x/3));
-    MOVE_MATRIX = MOVE_MATRIX.mult(Matrix.mktranslate(-1.0, 0.0, 0.0));
-    MOVE_MATRIX = MOVE_MATRIX.mult(Matrix.mkzrot(-y));
-    MOVE_MATRIX = MOVE_MATRIX.mult(Matrix.mktranslate(-0.17, 0.0, 0.0));
+    MOVE_MATRIX = MOVE_MATRIX.mult(Matrix.mktranslate(-1.0 * SCALE, 0.0, 0.0));
+    MOVE_MATRIX = MOVE_MATRIX.mult(Matrix.mkzrot(y));
+    MOVE_MATRIX = MOVE_MATRIX.mult(Matrix.mktranslate(-0.17 * SCALE, 0.0, 0.0));
+
   }
 //  console.log(MOVE_MATRIX.values);
 }
@@ -282,80 +241,19 @@ function get_swing_accel() {
 }
 
 function mouse_leave(e) {
-  console.log("Mouse leave!");
+//  console.log("Mouse leave!");
   MOVE_MATRIX = default_move_matrix();
   MOUSE_POSITIONS = [];
   IN_FRAME = false;
 }
 
 function compile() {
-  // Create a shader that samples a 2D image.
-  var vertexShader = gl.createShader(gl.VERTEX_SHADER);
-  gl.shaderSource(vertexShader,
-                  FIND("vertex_shader").textContent);
-  gl.compileShader(vertexShader);
-
-  var fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
-  var shader_code = FIND("fragment_shader").textContent;
-
-  variables = [
-    "#define AA " + AA,
-  ];
-//  shader_code = shader_code.replace("$FUNCTION$", current_style.gencode());
-  shader_code = shader_code.replace("$VARIABLES$", variables.join("\n"));
-  if (graflexState.get()) {
-    shader_code = shader_code.replace("$HILT$", FIND("hilt_graflex").textContent);
-  } else {
-    shader_code = shader_code.replace("$HILT$", FIND("hilt_cylinder").textContent);
-  }
-  // console.log(shader_code);
-
-  gl.shaderSource(fragmentShader, shader_code);
-  gl.compileShader(fragmentShader);
-  if (!gl.getShaderParameter(fragmentShader, gl.COMPILE_STATUS)) {
-
-    var v = shader_code.split("\n");
-    for (var i = 0; i < v.length; i++) {
-      console.log( (i+1) + ": " + v[i]);
-  }
-    throw "Could not compile shader:\n\n" + gl.getShaderInfoLog(fragmentShader);
-  }
-
-  shaderProgram = gl.createProgram();
-  gl.attachShader(shaderProgram, vertexShader);
-  gl.attachShader(shaderProgram, fragmentShader);
-  gl.linkProgram(shaderProgram);
-  if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
-    throw "Could not link the shader program!\n\n" + gl.getProgramInfoLog(shaderProgram);
-  }
-  gl.useProgram(shaderProgram);
-
+  // reinitialize render if required
 }
 
 var varnum = 0;
 var variables = [];
 var vartypes = {};
-
-function genvar(t) {
-  varnum++;
-  var variable = "u_" + varnum;
-  variables.push( "uniform " + t + " " + variable + ";");
-  vartypes[variable] = t;
-  return variable;
-}
-
-function setvar(variable, val) {
-  // console.log(variable + " = " + val);
-  if (vartypes[variable] == "float") {
-    gl.uniform1f(gl.getUniformLocation(shaderProgram, variable),  val);
-    return;
-  }
-  if (vartypes[variable] == "int") {
-    gl.uniform1i(gl.getUniformLocation(shaderProgram, variable),  val);
-    return;
-  }
-  console.log("SETVAR ERROR " + variable);
-}
 
 class MyError {
   constructor(desc) {
@@ -495,7 +393,7 @@ class STYLE {
     var url = this.pp();
     pp_is_url--;
     var parser = new Parser(url, classes, identifiers);
-    ret = parser.parse();
+    var ret = parser.parse();
     ret.COMMENT = this.COMMENT;
     return ret;
   }
@@ -3754,44 +3652,6 @@ function LockupTr(BASE, COLOR, BeginTr, EndTr, LOCKUP_TYPE, CONDITION) {
   return new LockupTrClass(BASE, COLOR, BeginTr, EndTr, LOCKUP_TYPE, CONDITION);
 }
 
-const start_millis = new Date().getTime();
-function actual_millis() {
-  return new Date().getTime() - start_millis;
-}
-var current_micros = 0;
-var current_micros_internal = 0;
-function micros() {
-  return current_micros;
-}
-
-function millis() {
-  return current_micros / 1000;
-}
-
-function fract(v) {
-  return v - Math.floor(v);
-}
-
-function FIND(id) {
-  ret = document.getElementById(id);
-  if (!ret) {
-//    console.log("Failed to find " + id);
-  }
-  return ret;
-}
-
-var max = Math.max;
-var min = Math.min;
-var sin = Math.sin;
-function random(i) {
-  return Math.floor(Math.random() * i);
-}
-function clamp(a, b, c) {
-  if (a < b) return b;
-  if (a > c) return c;
-  return a;
-}
-
 class Blade {
   constructor() {
     this.effects_ = [];
@@ -3818,7 +3678,7 @@ var last_detected_blade_effect;
 
 var handled_types = {};
 function PushHandledTypes() {
-  ret = [ handled_types, handled_lockups ];
+  var ret = [ handled_types, handled_lockups ];
   handled_types = {};
   handled_lockups = {};
   return ret;
@@ -8025,7 +7885,125 @@ var good_fps = 0;
 var pixels;
 var AA = 1;
 var AA_STEP_SIZE = 1;
-  
+
+// returns Float32Array with 3 * num_pixel values
+function getSaberColors() {
+    var now_actual_millis = actual_millis();
+    var delta_actual_millis = now_actual_millis - last_actual_millis;
+    last_actual_millis = now_actual_millis;
+    
+    var delta_us = delta_actual_millis * time_factor
+    last_micros = current_micros;
+    current_micros_internal += delta_us;
+    current_micros = current_micros_internal
+    if (current_micros - last_micros > 1000000/45) {
+	bad_fps ++;
+	if (good_fps) good_fps--;
+    } else {
+	if (bad_fps) bad_fps --;
+	good_fps++;
+    }
+    if (benchmarkState.get()) {
+	if (bad_fps > 20) {
+            if (AA_STEP_SIZE < 0) AA_STEP_SIZE-=1; else AA_STEP_SIZE=-1;
+            AA+=AA_STEP_SIZE;
+	    if (AA < 1) AA = 1;
+	    compile();
+	    bad_fps = 0;
+            FIND("error_message").innerHTML = "AA="+AA;
+	}
+	if (good_fps > 20) {
+            if (AA_STEP_SIZE > 0) AA_STEP_SIZE+=1; else AA_STEP_SIZE=1;
+            AA+=AA_STEP_SIZE;
+	    compile();
+	    good_fps = 0;
+            FIND("error_message").innerHTML = "AA="+AA;
+	}
+    }
+    var num_leds = blade.num_leds()
+    if (!pixels || pixels.length != num_leds * 3) {
+	pixels = new Float32Array(num_leds * 3);
+    }
+    var S = current_style;
+    if (S != last_style) {
+	last_style = S;
+	if (S.getType) {
+	    S.set_right_side(current_focus || style_tree)
+	    if (S.getType() == "TRANSITION") {
+		S = TransitionLoop(Rgb(0,0,0), TrConcat(TrDelay(500), Rgb(255,0,0), S, Rgb(0,0,255), TrInstant()));
+	    }
+	    if (S.getType() == "FUNCTION") {
+		S = Mix(S, Rgb(0,0,0), Rgb(255,255,255));
+	    }
+	}
+	show_style = S;
+    } else {
+	S = show_style;
+    }
+    numTick++;
+    if (S.getColor && S.getType && S.getType() == "COLOR" && numTick > framesPerUpdate) {
+	numTick = 0;
+	S.run(blade);
+	for (var i = 0; i < num_leds; i++) {
+            var c = S.getColor(i);
+            pixels[i*3 + 0] = c.r / 2;
+            pixels[i*3 + 1] = c.g / 2;
+            pixels[i*3 + 2] = c.b / 2;
+	}
+	if (last_micros != 0) {
+	    current_micros += delta_us / 2;
+	}
+	if (framesPerUpdate == 0) {
+	    S.run(blade);
+	}
+	for (var i = 0; i < num_leds; i++) {
+            var c = S.getColor(i);
+            pixels[i*3 + 0] += c.r / 2;
+            pixels[i*3 + 1] += c.g / 2;
+            pixels[i*3 + 2] += c.b / 2;
+	}
+	S.update_displays();
+    }
+    t += 1;
+    return pixels;
+}
+
+function getSaberMove() {
+  var rotation = MOVE_MATRIX;
+  if (STATE_ROTATE) {
+    var u_value = (new Date().getTime() - rotate_start) / 3000.0;
+    var rotation = default_move_matrix();
+    rotation = rotation.mult(Matrix.mkyrot(u_value));
+    rotation = rotation.mult(Matrix.mkzrot(u_value / 7.777));
+
+  } else {
+    if (0) {
+      OLD_MOVE_MATRIX = default_move_matrix();
+      rotation = default_move_matrix();
+      rotation = rotation.mult(Matrix.mkzrot(0.2));
+    }
+    rotate_start = new Date().getTime();
+//    rotation = default_move_matrix();
+  }
+  OLD_MOVE_MATRIX = rotation;
+//  rotation = rotation.mult(Matrix.mkzrot(Math.PI));
+//  rotation = rotation.mult(Matrix.mkxrot(Math.PI));
+ //  rotation = rotation.mult(Matrix.mkyrot(Math.PI*3.0/2.0));
+//  rotation = rotation.mult(Matrix.mkyrot(Math.PI/2.0));
+ //  rotation = rotation.mult(Matrix.mkzrot(-Math.PI/2.0));
+    //  rotation = rotation.mult(Matrix.mkyrot(-Math.PI/2.0));
+    rotation = Matrix.fromValues(
+	0.0, -1.0, 0.0, 0.0,
+        0.0, 0.0, -1.0, 0.0,
+        1.0, 0.0, 0.0, 0.0,
+        0.0, 0.0, 0.0, 1.0).mult(rotation);
+    rotation = rotation.mult(Matrix.mkyrot(Math.PI/2.0));
+    rotation = rotation.mult(Matrix.mktranslate(0.0, 0.0, -250.0));
+
+    
+  return rotation;  
+}
+
 function drawScene() {
   var now_actual_millis = actual_millis();
   var delta_actual_millis = now_actual_millis - last_actual_millis;
@@ -8058,13 +8036,8 @@ function drawScene() {
 	good_fps = 0;
         FIND("error_message").innerHTML = "AA="+AA;
      }
-  } else {
-    if (bad_fps > 10 && graflexState.get()) {
-      showPopupMessage("Struggling to render hilt model.<br>Switching to simpler design.<br>To re-enable Graflex model, go to Settings.", "graflexPopup");
-      graflexState.set(false);
-    }
   }
-  num_leds = blade.num_leds()
+  var num_leds = blade.num_leds()
   if (!pixels || pixels.length < num_leds * 4 * 2) {
      pixels = new Uint8Array(num_leds * 4 * 2);
   }
@@ -8089,7 +8062,7 @@ function drawScene() {
     numTick = 0;
     S.run(blade);
     for (var i = 0; i < num_leds; i++) {
-        c = S.getColor(i);
+        var c = S.getColor(i);
         pixels[i*4 + 0] = Math.round(c.r * 255);
         pixels[i*4 + 1] = Math.round(c.g * 255);
         pixels[i*4 + 2] = Math.round(c.b * 255);
@@ -8102,7 +8075,7 @@ function drawScene() {
       S.run(blade);
     }
     for (var i = 0; i < num_leds; i++) {
-        c = S.getColor(i);
+        var c = S.getColor(i);
         pixels[i*4 + 0 + num_leds * 4] = Math.round(c.r * 255);
         pixels[i*4 + 1 + num_leds * 4] = Math.round(c.g * 255);
         pixels[i*4 + 2 + num_leds * 4] = Math.round(c.b * 255);
@@ -8110,29 +8083,9 @@ function drawScene() {
     }
     S.update_displays();
   }
-  // TODO: Generate mipmaps, then adjust level based on distance from blade
-  gl.texImage2D(
-      gl.TEXTURE_2D,
-      0,        // level
-      gl.RGBA,  // internalFormat
-      num_leds, 2,   // width, height
-      0,        // border
-      gl.RGBA,   // source format
-      gl.UNSIGNED_BYTE, // source type
-      pixels);
 
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+  /// three.js animation stuff here!!
 
-  // Draw these textures to the screen, offset by 1 pixel increments
-  gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-  gl.viewport(0, 0, width * dpr, height * dpr);
-  gl.clearColor(0.0, 1.0, 0.0, 1.0);
-  gl.clear(gl.COLOR_BUFFER_BIT);
-
-  gl.viewport(0, 0, width * dpr, height * dpr);
   var rotation = MOVE_MATRIX;
   if (STATE_ROTATE) {
     var u_value = (new Date().getTime() - rotate_start) / 3000.0;
@@ -8148,15 +8101,7 @@ function drawScene() {
     }
     rotate_start = new Date().getTime();
   }
-  gl.uniform1f(gl.getUniformLocation(shaderProgram, "u_time"),
-               (new Date().getTime() - start) / 1000.0);
-  gl.uniform1f(gl.getUniformLocation(shaderProgram, "u_width"), width);
-  gl.uniform1f(gl.getUniformLocation(shaderProgram, "u_height"), height);
-
-  gl.uniformMatrix4fv(gl.getUniformLocation(shaderProgram, "u_move_matrix"), false, rotation.values);
-  gl.uniformMatrix4fv(gl.getUniformLocation(shaderProgram, "u_old_move_matrix"), false, OLD_MOVE_MATRIX.values);
   OLD_MOVE_MATRIX = rotation;
-  gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 
   t += 1;
 }
@@ -8937,8 +8882,108 @@ var inhiltState = new SavedState("inhilt", false, (on) => { STATE_NUM_LEDS = on 
 var slowState = new SavedState("slow", false, (on) => { framesPerUpdate = on ? 10 : 0; time_factor = framesPerUpdate == 0 ? 1000 : (500/framesPerUpdate)});
 var benchmarkState = new SavedState("benchmark", false, (on) => { AA=1; compile(); FIND("error_message").innerHTML = ""; });
 
+// Create n textures of about 1MB each.
+function SetupRendering() {
+  // Clear existing tab links and tab bodies before populating
+  var tabLinksElement = FIND("TABLINKS");
+  var tabBodiesElement = FIND("TABBODIES");
+  tabLinksElement.innerHTML = "";
+  tabBodiesElement.innerHTML = "";
+
+  AddTab("color", "Styles",effect_links.sort().join(""))
+  AddTab("rgb", "Colors", ""); updateRgbTabContent();
+  AddTab("layer", "Layers", layer_links.sort().join(""));
+  AddTab("function", "Functions", function_links.sort().join(""));
+  AddTab("transition", "Transitions", transition_links.sort().join(""));
+  AddTab("effect", "Effects");
+  AddTab("lockup_type", "Lockup Types");
+  AddTab("arguments", "Arguments");
+  AddTab("example", "Examples", template_links.join(""));
+  AddTab("history", "History");
+  AddTab("arg_string", "ArgString");
+  EFFECT_ENUM_BUILDER.addToTab("effect", "EFFECT_");
+  LOCKUP_ENUM_BUILDER.addToTab("lockup_type", "LOCKUP_");
+  ArgumentName_ENUM_BUILDER.addToTab("arguments", "");
+
+  // Add arg string.
+  var A = "";
+  A += "Arg string: <input id=ARGSTR name=arg type=input size=80 value='builtin 0 1' onchange='ArgStringChanged()' /><br><table>";
+  var v = Object.keys(ArgumentName_ENUM_BUILDER.value_to_name);
+  for (var i = 0; i < v.length; i++) {
+    var V = parseInt(v[i]);
+    var N = ArgumentName_ENUM_BUILDER.value_to_name[V];
+    A += "<tr><td>" + N + "</td><td>";
+    if (N.search("COLOR") >= 0) {
+       A += "<input type=color id=ARGSTR_"+N+" onclick='ClickArgColor("+N+")' onchange='ClickArgColor("+N+")' >";
+    } else {
+       A += "<input type=button value='<'  onclick='IncreaseArg("+N+",-1)' >";
+       A += "<input id=ARGSTR_"+N+" type=input size=6 value=0 onchange='ArgChanged("+N+")' >";
+       A += "<input type=button value='>'  onclick='IncreaseArg("+N+",1)' >";
+    }
+    A += "</td></tr>\n";
+  }
+  A += "</table\n";
+  AddTabContent("arg_string", A);
+
+
+  var canvas = FIND("canvas_id");
+
+  width = window.innerWidth;
+  height = window.innerHeight;
+  canvas_id.setAttribute("title", "Blade Preview.\nMove mouse to swing. Click to Clash\nor to Do Selected Effect (and to dismiss this Tooltip.)\nGoto settings to change hilt model or toggle Mouse Swings mode (swinging with mouse moves.)");
+
+  if(window.devicePixelRatio !== undefined) {
+    dpr = window.devicePixelRatio;
+  } else {
+    dpr = 1;
+  }
+
+  width = width * 2 / 3;
+  height /= 3;
+  canvas.width = width * dpr;
+  canvas.height = height * dpr;
+  canvas.style.width = width + 'px';
+  canvas.style.height = height + 'px';
+  
+  var enlargeCanvas = false;
+  FIND('ENLARGE').onclick = function() {
+    enlargeCanvas = !enlargeCanvas;
+    this.innerText = enlargeCanvas ? 'Reduce' : 'Enlarge';
+    if (enlargeCanvas) {
+      height = window.innerHeight / 2;
+    } else {
+      height = window.innerHeight / 3;
+    }
+    
+    // Update the canvas dimensions
+    canvas.width = width * dpr;
+    canvas.height = height * dpr;
+    canvas.style.width = width + 'px';
+    canvas.style.height = height + 'px';
+  }
+
+  var str = new URL(window.location.href).searchParams.get("S");
+  if (!str) {
+    str = "Layers<Red,ResponsiveLockupL<White,TrInstant,TrFade<100>,Int<26000>>,ResponsiveLightningBlockL<White>,ResponsiveMeltL<Mix<TwistAngle<>,Red,Yellow>>,ResponsiveDragL<White>,ResponsiveClashL<White,TrInstant,TrFade<200>,Int<26000>>,ResponsiveBlastL<White>,ResponsiveBlastWaveL<White>,ResponsiveBlastFadeL<White>,ResponsiveStabL<White>,InOutTrL<TrWipe<300>,TrWipeIn<500>>>";
+  }
+  FIND("style").value = str;
+
+  Run();
+  DoLayerize();
+
+  //FIND("color_links").innerHTML = qlinks;
+  //FIND("effect_links").innerHTML = effect_links;
+  //FIND("effect_type_links").innerHTML = effect_type_links;
+  //FIND("template_links").innerHTML = template_links;
+  //FIND("function_links").innerHTML = function_links;
+  //FIND("transition_links").innerHTML = transition_links;
+
+  // Start the event loop.
+  tick();
+}
+
 function onPageLoad() {
-  initGL();
+  SetupRendering();
   structuredView = FIND("structured_view");
   all_saved_states.forEach(state => {
     state.onload();
