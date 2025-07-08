@@ -1377,7 +1377,7 @@ function AddHistory(name, type) {
   var label = name;
   if (label.length > 80) label = label.slice(0,78) + "...";
   name = name.split("\n").join(" ").split("   ").join(" ").split("  ").join(" ").split("< ").join("<");
-  var btn = "<input type=button class='btn' onclick='SetToAndFormat(\""+name+"\", event)' value='"+enc(label)+"'>\n";
+  var btn = "<input type=button class=btn onclick='SetToAndFormat(\""+name+"\")' value='"+enc(label)+"'>\n";
   var tag  = "<span class=MAGIC_CLASS_"+type+">" + btn + "</span>\n";
   history_html = tag + history_html.replace(tag, "");
   FIND("history_tabcontent").innerHTML = history_html;
@@ -8466,7 +8466,7 @@ function IncreaseAlt(n) {
   FIND("ALT").value = v;
 }
 
-function Variant() {nction Variant
+function Variant() {
  return parseInt(FIND("VARIANT_VALUE").value);
 }
 
