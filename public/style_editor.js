@@ -104,28 +104,28 @@ class Matrix {
     return ret;
   }
     static fromValues(a, b, c, d,
-		      e, f, g, h,
-		      i, j, k, l,
-		      m, n, o, p) {
-	var ret = new Matrix(4, 4);
-	ret.values[0] = a;
-	ret.values[1] = b;
-	ret.values[2] = c;
-	ret.values[3] = d;
-	ret.values[4] = e;
-	ret.values[5] = f;
-	ret.values[6] = g;
-	ret.values[7] = h;
-	ret.values[8] = i;
-	ret.values[9] = j;
-	ret.values[10] = k;
-	ret.values[11] = l;
-	ret.values[12] = m;
-	ret.values[13] = n;
-	ret.values[14] = o;
-	ret.values[15] = p;
-	return ret;
-	
+          e, f, g, h,
+          i, j, k, l,
+          m, n, o, p) {
+  var ret = new Matrix(4, 4);
+  ret.values[0] = a;
+  ret.values[1] = b;
+  ret.values[2] = c;
+  ret.values[3] = d;
+  ret.values[4] = e;
+  ret.values[5] = f;
+  ret.values[6] = g;
+  ret.values[7] = h;
+  ret.values[8] = i;
+  ret.values[9] = j;
+  ret.values[10] = k;
+  ret.values[11] = l;
+  ret.values[12] = m;
+  ret.values[13] = n;
+  ret.values[14] = o;
+  ret.values[15] = p;
+  return ret;
+  
     }
 
   tostr() {
@@ -3043,9 +3043,6 @@ function AddNewfont() {
 function AddBoot() {
   blade.addEffect(EFFECT_BOOT, Math.random() * 0.7 + 0.2);
 }
-function AddPreon() {
-  blade.addEffect(EFFECT_PREON, 0.0);
-}
 
 var blast_hump = [ 255,255,252,247,240,232,222,211,
                    199,186,173,159,145,132,119,106,
@@ -3663,7 +3660,10 @@ class Blade {
     return STATE_NUM_LEDS;
   }
   addEffect(type, location) {
-    console.log("Add effect " + type + " @ " + location);
+    // Use actual effect name for console logging clarity.
+    const effectName = Object.keys(window).find(
+      key => window[key] === type && key.indexOf("EFFECT_") === 0) || type;
+    console.log("Add effect " + effectName + " (" + type + ") @ " + location);
     this.effects_.push(new BladeEffect(type, micros(), location));
   }
   GetEffects() {
@@ -4308,18 +4308,28 @@ class InOutTrLClass extends STYLE {
     this.on_ = false;
     this.out_active_ = false;
     this.in_active_ = false;
+    this.ignitionDetector = new OneshotEffectDetector(EFFECT_IGNITION);
   }
   run(blade) {
     this.OFF.run(blade);
 
     if (this.on_ != blade.is_on()) {
-      this.on_ = blade.is_on();
-      if (this.on_) {
-        this.OUT_TR.begin();
-        this.out_active_ = true;
-      } else {
+      if (!blade.is_on()) {
+        this.on_ = false;
+        this.ignitionDetector.last_detected_ = micros();
+        this.out_active_ = false;
         this.IN_TR.begin();
         this.in_active_ = true;
+      } else {
+        this.on_ = true;
+        this.in_active_ = false;
+      }
+    }
+    // Ignition based on EFFECT_IGNITION
+    if (blade.is_on()) {
+      if (this.ignitionDetector.Detect(blade)) {
+        this.OUT_TR.begin();
+        this.out_active_ = true;
       }
     }
 
@@ -5156,7 +5166,7 @@ class TrConcatClass extends TRANSITION {
       if (this.done()) break;
       if (this.ARGS[this.pos_].getType() != "TRANSITION") {
         this.c1p = this.c2p;
-	this.updateC2P()
+  this.updateC2P()
         if (this.c2p != -1) this.ARGS[this.c2p].run(blade);
         this.pos_++;
       }
@@ -7897,72 +7907,72 @@ function getSaberColors() {
     current_micros_internal += delta_us;
     current_micros = current_micros_internal
     if (current_micros - last_micros > 1000000/45) {
-	bad_fps ++;
-	if (good_fps) good_fps--;
+  bad_fps ++;
+  if (good_fps) good_fps--;
     } else {
-	if (bad_fps) bad_fps --;
-	good_fps++;
+  if (bad_fps) bad_fps --;
+  good_fps++;
     }
     if (benchmarkState.get()) {
-	if (bad_fps > 20) {
+  if (bad_fps > 20) {
             if (AA_STEP_SIZE < 0) AA_STEP_SIZE-=1; else AA_STEP_SIZE=-1;
             AA+=AA_STEP_SIZE;
-	    if (AA < 1) AA = 1;
-	    compile();
-	    bad_fps = 0;
+      if (AA < 1) AA = 1;
+      compile();
+      bad_fps = 0;
             FIND("error_message").innerHTML = "AA="+AA;
-	}
-	if (good_fps > 20) {
+  }
+  if (good_fps > 20) {
             if (AA_STEP_SIZE > 0) AA_STEP_SIZE+=1; else AA_STEP_SIZE=1;
             AA+=AA_STEP_SIZE;
-	    compile();
-	    good_fps = 0;
+      compile();
+      good_fps = 0;
             FIND("error_message").innerHTML = "AA="+AA;
-	}
+  }
     }
     var num_leds = blade.num_leds()
     if (!pixels || pixels.length != num_leds * 3) {
-	pixels = new Float32Array(num_leds * 3);
+  pixels = new Float32Array(num_leds * 3);
     }
     var S = current_style;
     if (S != last_style) {
-	last_style = S;
-	if (S.getType) {
-	    S.set_right_side(current_focus || style_tree)
-	    if (S.getType() == "TRANSITION") {
-		S = TransitionLoop(Rgb(0,0,0), TrConcat(TrDelay(500), Rgb(255,0,0), S, Rgb(0,0,255), TrInstant()));
-	    }
-	    if (S.getType() == "FUNCTION") {
-		S = Mix(S, Rgb(0,0,0), Rgb(255,255,255));
-	    }
-	}
-	show_style = S;
+  last_style = S;
+  if (S.getType) {
+      S.set_right_side(current_focus || style_tree)
+      if (S.getType() == "TRANSITION") {
+    S = TransitionLoop(Rgb(0,0,0), TrConcat(TrDelay(500), Rgb(255,0,0), S, Rgb(0,0,255), TrInstant()));
+      }
+      if (S.getType() == "FUNCTION") {
+    S = Mix(S, Rgb(0,0,0), Rgb(255,255,255));
+      }
+  }
+  show_style = S;
     } else {
-	S = show_style;
+  S = show_style;
     }
     numTick++;
     if (S.getColor && S.getType && S.getType() == "COLOR" && numTick > framesPerUpdate) {
-	numTick = 0;
-	S.run(blade);
-	for (var i = 0; i < num_leds; i++) {
+  numTick = 0;
+  S.run(blade);
+  for (var i = 0; i < num_leds; i++) {
             var c = S.getColor(i);
             pixels[i*3 + 0] = c.r / 2;
             pixels[i*3 + 1] = c.g / 2;
             pixels[i*3 + 2] = c.b / 2;
-	}
-	if (last_micros != 0) {
-	    current_micros += delta_us / 2;
-	}
-	if (framesPerUpdate == 0) {
-	    S.run(blade);
-	}
-	for (var i = 0; i < num_leds; i++) {
+  }
+  if (last_micros != 0) {
+      current_micros += delta_us / 2;
+  }
+  if (framesPerUpdate == 0) {
+      S.run(blade);
+  }
+  for (var i = 0; i < num_leds; i++) {
             var c = S.getColor(i);
             pixels[i*3 + 0] += c.r / 2;
             pixels[i*3 + 1] += c.g / 2;
             pixels[i*3 + 2] += c.b / 2;
-	}
-	S.update_displays();
+  }
+  S.update_displays();
     }
     t += 1;
     return pixels;
@@ -7993,7 +8003,7 @@ function getSaberMove() {
  //  rotation = rotation.mult(Matrix.mkzrot(-Math.PI/2.0));
     //  rotation = rotation.mult(Matrix.mkyrot(-Math.PI/2.0));
     rotation = Matrix.fromValues(
-	0.0, -1.0, 0.0, 0.0,
+  0.0, -1.0, 0.0, 0.0,
         0.0, 0.0, -1.0, 0.0,
         1.0, 0.0, 0.0, 0.0,
         0.0, 0.0, 0.0, 1.0).mult(rotation);
@@ -8001,7 +8011,7 @@ function getSaberMove() {
     rotation = rotation.mult(Matrix.mktranslate(0.0, 0.0, -250.0));
 
     
-  return rotation;  
+  return rotation;
 }
 
 function drawScene() {
@@ -8024,16 +8034,16 @@ function drawScene() {
      if (bad_fps > 20) {
         if (AA_STEP_SIZE < 0) AA_STEP_SIZE-=1; else AA_STEP_SIZE=-1;
         AA+=AA_STEP_SIZE;
-	if (AA < 1) AA = 1;
-	compile();
-	bad_fps = 0;
+  if (AA < 1) AA = 1;
+  compile();
+  bad_fps = 0;
         FIND("error_message").innerHTML = "AA="+AA;
      }
      if (good_fps > 20) {
         if (AA_STEP_SIZE > 0) AA_STEP_SIZE+=1; else AA_STEP_SIZE=1;
         AA+=AA_STEP_SIZE;
-	compile();
-	good_fps = 0;
+  compile();
+  good_fps = 0;
         FIND("error_message").innerHTML = "AA="+AA;
      }
   }
@@ -8410,12 +8420,86 @@ function ClickRotate() {
   console.log("ROTATE");
 }
 
+/*
+THis function computes the delay for triggering ignition/postoff.
+In order to have ignition or postoff always wait for the longest relevant transition to finish,
+we use the longest transition time out of:
+- the corresponding transitions of an InOutTrL
+  • OUT_TR for ignition (PREON delay)
+  • IN_TR for retraction (POSTOFF delay)
+- or any TransitionEffectL layer with an EFFECT matching effectType
+  • EFFECT_PREON
+  • EFFECT_IGNITION
+  • EFFECT_RETRACTION
+  • EFFECT_POSTOFF
+*/
+function ComputeEffectDelay(style, inoutSelector, effectType) {
+  var delays = [];
+  var inout = style.LAYERS && style.LAYERS.find
+    ? style.LAYERS.find(l => l.constructor.name === 'InOutTrLClass')
+    : null;
+  // inoutSelector is OUT_TR or IN_TR
+  // If we have one, push it to the delays array.
+  if (inout && inout[inoutSelector] && inout[inoutSelector].MILLIS) {
+    var ms = inout[inoutSelector].MILLIS.getInteger(0);
+    delays.push(ms);
+}
+  // Recursively sum transition durations for TransitionEffectL layers.
+  function getDur(n) {
+    if (n.MILLIS) return n.MILLIS.getInteger(0);
+    var sum = 0;
+    if (n.args) for (let a of n.args) sum += getDur(a);
+    return sum;
+  }
+
+  // Use getDur and push to delays array.
+  if (style.LAYERS && Array.isArray(style.LAYERS)) {
+    style.LAYERS.forEach(function(l, idx) {
+      if (l.constructor.name === 'TransitionEffectLClass'
+          && l.EFFECT && typeof l.EFFECT.getInteger === 'function'
+          && l.EFFECT.getInteger(0) === effectType) {
+        let dur = getDur(l.TRANSITION, 0);
+        delays.push(dur);
+      }
+    });
+  }
+  // Finally, return the longest transition time found, or zero if we have none.
+  let result = delays.length ? Math.max.apply(null, delays) : 0;
+  return result;
+}
+
 function ClickPower() {
   STATE_ON = !STATE_ON; STATE_LOCKUP=0;
   var power_button = FIND("POWER_BUTTON");
   power_button.classList.toggle("button-latched", STATE_ON ? true : false);
   console.log("POWER");
-  blade.addEffect(STATE_ON ? EFFECT_IGNITION : EFFECT_RETRACTION, Math.random() * 0.7 + 0.2);
+
+  function hasPreonOrPostoff(style, effectType) {
+    return style.LAYERS && style.LAYERS.some(l =>
+      l.constructor && l.constructor.name === 'TransitionEffectLClass' &&
+      l.EFFECT && l.EFFECT.getInteger &&
+      l.EFFECT.getInteger(0) === effectType
+    );
+  }
+
+  // If turning ON and the style has PREON, trigger it and delay ignition until it finishes.
+  if (STATE_ON) {
+    if (effectIsPreonOrPostoff(current_style, EFFECT_PREON)) {
+      blade.addEffect(EFFECT_PREON, 0.0);
+      var preonDelay = ComputeEffectDelay(current_style, 'OUT_TR', EFFECT_PREON);
+      setTimeout(function(){ blade.addEffect(EFFECT_IGNITION, Math.random() * 0.7 + 0.2); }, preonDelay);
+    } else {
+      // If no PREON, just trigger ignition immediately.
+      blade.addEffect(EFFECT_IGNITION, Math.random() * 0.7 + 0.2);
+    }
+  } else {
+    blade.addEffect(EFFECT_RETRACTION, Math.random() * 0.7 + 0.2);
+    // Only trigger POSTOFF if the style actually contains it.
+    if (effectIsPreonOrPostoff(current_style, EFFECT_POSTOFF)) {
+      var postoffDelay = ComputeEffectDelay(current_style, 'IN_TR', EFFECT_RETRACTION);
+      setTimeout(function(){ blade.addEffect(EFFECT_POSTOFF, 0.0); }, postoffDelay);
+    }
+  }
 }
 
 var lockups_to_event = {};
@@ -8691,7 +8775,6 @@ function ActivateTab(tab) {
             EFFECT_FORCE,
             EFFECT_BOOT,
             EFFECT_NEWFONT,
-            EFFECT_PREON,
           ].includes(Number(value)));
 
         // Add sub-groups for the different categories of effects
@@ -8857,7 +8940,7 @@ var darkState = new SavedState("dark", false, (on) => {
   structuredView.classList.toggle("dark-mode", on);
 });
 
-var tipsState = new SavedState("tips", true, (on) => { 
+var tipsState = new SavedState("tips", true, (on) => {
  if (on) {
     const elementsWithDataTitles = document.querySelectorAll("[data-title]");
     elementsWithDataTitles.forEach((element) => {
