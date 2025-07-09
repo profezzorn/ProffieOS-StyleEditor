@@ -104,28 +104,28 @@ class Matrix {
     return ret;
   }
     static fromValues(a, b, c, d,
-		      e, f, g, h,
-		      i, j, k, l,
-		      m, n, o, p) {
-	var ret = new Matrix(4, 4);
-	ret.values[0] = a;
-	ret.values[1] = b;
-	ret.values[2] = c;
-	ret.values[3] = d;
-	ret.values[4] = e;
-	ret.values[5] = f;
-	ret.values[6] = g;
-	ret.values[7] = h;
-	ret.values[8] = i;
-	ret.values[9] = j;
-	ret.values[10] = k;
-	ret.values[11] = l;
-	ret.values[12] = m;
-	ret.values[13] = n;
-	ret.values[14] = o;
-	ret.values[15] = p;
-	return ret;
-	
+                    e, f, g, h,
+                    i, j, k, l,
+                    m, n, o, p) {
+        var ret = new Matrix(4, 4);
+        ret.values[0] = a;
+        ret.values[1] = b;
+        ret.values[2] = c;
+        ret.values[3] = d;
+        ret.values[4] = e;
+        ret.values[5] = f;
+        ret.values[6] = g;
+        ret.values[7] = h;
+        ret.values[8] = i;
+        ret.values[9] = j;
+        ret.values[10] = k;
+        ret.values[11] = l;
+        ret.values[12] = m;
+        ret.values[13] = n;
+        ret.values[14] = o;
+        ret.values[15] = p;
+        return ret;
+        
     }
 
   tostr() {
@@ -992,7 +992,7 @@ class CONFIG extends STYLE {
     var id = this.get_id();
     var ret = "";
     ret += "<span title='"+ note +"'>" + name + "</span>&lt;\n";
-    ret += "<div style='margin-left:1em'>\n";
+    ret += "<div>\n";
     var comma = false;
     for (var i = 2; i < arguments.length; i += 2) {
       if (comma) ret += ",<br>";
@@ -1044,14 +1044,6 @@ function ClickColor() {
   var B = FixColor(color_button.value.substr(5,2));
   SetTo("Rgb16<"+R+","+G+","+B+">");
 }
-
-//var qlinks = "<b>Colors</b> <input type=color id=COLOR value='#ff0000' onclick='ClickColor()' />";
-//var effect_links = "<b>Effects:</b>";
-//var layer_links = "";
-//var effect_type_links = "<b>Effect Types:</b>";
-//var template_links = "<b>Templates:</b>";
-//var function_links = "<b>Functions:</b>";
-//var transition_links = "<b>Transitions:</b>";
 
 var effect_links = [];
 var layer_links = [];
@@ -1333,13 +1325,11 @@ function encstr(s) {
 }
 
 function mkbutton2(name, val) {
-  return "<input type=button class=btn onclick='SetToAndFormat(\""+val+"\")' value='"+enc(name)+"'>\n";
-  //  return "<span class=btn onclick='SetTo(\""+name+"\")'>"+enc(name)+"</span>\n";
+  return "<input type=button class='btn' onclick='SetToAndFormat(\""+val+"\", event)' value='"+enc(name)+"'>\n";
 }
+
 function mkbutton(name) {
   return mkbutton2(name, name);
-//  return "<input type=button class=btn onclick='SetTo(\""+name+"\")' value='"+enc(name)+"'>\n";
-  //  return "<span class=btn onclick='SetTo(\""+name+"\")'>"+enc(name)+"</span>\n";
 }
 
 
@@ -1425,7 +1415,6 @@ function rgbToHsl(r, g, b) {
 
   return [ h, s, l ];
 }
-
 
 function mkcolorbutton(name, r, g, b) {
   r = mapcolor(r);
@@ -5144,7 +5133,7 @@ class TrConcatClass extends TRANSITION {
   done() {
     return this.pos_ >= this.ARGS.length;
   }
-  
+
   run(blade) {
     if (this.done()) return;
     if (this.c1p != -1) this.ARGS[this.c1p].run(blade);
@@ -5156,7 +5145,7 @@ class TrConcatClass extends TRANSITION {
       if (this.done()) break;
       if (this.ARGS[this.pos_].getType() != "TRANSITION") {
         this.c1p = this.c2p;
-	this.updateC2P()
+        this.updateC2P()
         if (this.c2p != -1) this.ARGS[this.c2p].run(blade);
         this.pos_++;
       }
@@ -7897,72 +7886,72 @@ function getSaberColors() {
     current_micros_internal += delta_us;
     current_micros = current_micros_internal
     if (current_micros - last_micros > 1000000/45) {
-	bad_fps ++;
-	if (good_fps) good_fps--;
+        bad_fps ++;
+        if (good_fps) good_fps--;
     } else {
-	if (bad_fps) bad_fps --;
-	good_fps++;
+        if (bad_fps) bad_fps --;
+        good_fps++;
     }
     if (benchmarkState.get()) {
-	if (bad_fps > 20) {
+        if (bad_fps > 20) {
             if (AA_STEP_SIZE < 0) AA_STEP_SIZE-=1; else AA_STEP_SIZE=-1;
             AA+=AA_STEP_SIZE;
-	    if (AA < 1) AA = 1;
-	    compile();
-	    bad_fps = 0;
+            if (AA < 1) AA = 1;
+            compile();
+            bad_fps = 0;
             FIND("error_message").innerHTML = "AA="+AA;
-	}
-	if (good_fps > 20) {
+        }
+        if (good_fps > 20) {
             if (AA_STEP_SIZE > 0) AA_STEP_SIZE+=1; else AA_STEP_SIZE=1;
             AA+=AA_STEP_SIZE;
-	    compile();
-	    good_fps = 0;
+            compile();
+            good_fps = 0;
             FIND("error_message").innerHTML = "AA="+AA;
-	}
+        }
     }
     var num_leds = blade.num_leds()
     if (!pixels || pixels.length != num_leds * 3) {
-	pixels = new Float32Array(num_leds * 3);
+        pixels = new Float32Array(num_leds * 3);
     }
     var S = current_style;
     if (S != last_style) {
-	last_style = S;
-	if (S.getType) {
-	    S.set_right_side(current_focus || style_tree)
-	    if (S.getType() == "TRANSITION") {
-		S = TransitionLoop(Rgb(0,0,0), TrConcat(TrDelay(500), Rgb(255,0,0), S, Rgb(0,0,255), TrInstant()));
-	    }
-	    if (S.getType() == "FUNCTION") {
-		S = Mix(S, Rgb(0,0,0), Rgb(255,255,255));
-	    }
-	}
-	show_style = S;
+        last_style = S;
+        if (S.getType) {
+            S.set_right_side(current_focus || style_tree)
+            if (S.getType() == "TRANSITION") {
+              S = TransitionLoop(Rgb(0,0,0), TrConcat(TrDelay(500), Rgb(255,0,0), S, Rgb(0,0,255), TrInstant()));
+            }
+            if (S.getType() == "FUNCTION") {
+              S = Mix(S, Rgb(0,0,0), Rgb(255,255,255));
+            }
+        }
+        show_style = S;
     } else {
-	S = show_style;
+        S = show_style;
     }
     numTick++;
     if (S.getColor && S.getType && S.getType() == "COLOR" && numTick > framesPerUpdate) {
-	numTick = 0;
-	S.run(blade);
-	for (var i = 0; i < num_leds; i++) {
+        numTick = 0;
+        S.run(blade);
+        for (var i = 0; i < num_leds; i++) {
             var c = S.getColor(i);
             pixels[i*3 + 0] = c.r / 2;
             pixels[i*3 + 1] = c.g / 2;
             pixels[i*3 + 2] = c.b / 2;
-	}
-	if (last_micros != 0) {
-	    current_micros += delta_us / 2;
-	}
-	if (framesPerUpdate == 0) {
-	    S.run(blade);
-	}
-	for (var i = 0; i < num_leds; i++) {
+        }
+        if (last_micros != 0) {
+            current_micros += delta_us / 2;
+        }
+        if (framesPerUpdate == 0) {
+            S.run(blade);
+        }
+        for (var i = 0; i < num_leds; i++) {
             var c = S.getColor(i);
             pixels[i*3 + 0] += c.r / 2;
             pixels[i*3 + 1] += c.g / 2;
             pixels[i*3 + 2] += c.b / 2;
-	}
-	S.update_displays();
+        }
+        S.update_displays();
     }
     t += 1;
     return pixels;
@@ -7993,7 +7982,7 @@ function getSaberMove() {
  //  rotation = rotation.mult(Matrix.mkzrot(-Math.PI/2.0));
     //  rotation = rotation.mult(Matrix.mkyrot(-Math.PI/2.0));
     rotation = Matrix.fromValues(
-	0.0, -1.0, 0.0, 0.0,
+        0.0, -1.0, 0.0, 0.0,
         0.0, 0.0, -1.0, 0.0,
         1.0, 0.0, 0.0, 0.0,
         0.0, 0.0, 0.0, 1.0).mult(rotation);
@@ -8024,16 +8013,16 @@ function drawScene() {
      if (bad_fps > 20) {
         if (AA_STEP_SIZE < 0) AA_STEP_SIZE-=1; else AA_STEP_SIZE=-1;
         AA+=AA_STEP_SIZE;
-	if (AA < 1) AA = 1;
-	compile();
-	bad_fps = 0;
+        if (AA < 1) AA = 1;
+        compile();
+        bad_fps = 0;
         FIND("error_message").innerHTML = "AA="+AA;
      }
      if (good_fps > 20) {
         if (AA_STEP_SIZE > 0) AA_STEP_SIZE+=1; else AA_STEP_SIZE=1;
         AA+=AA_STEP_SIZE;
-	compile();
-	good_fps = 0;
+        compile();
+        good_fps = 0;
         FIND("error_message").innerHTML = "AA="+AA;
      }
   }
@@ -8484,7 +8473,7 @@ function Variant() {
 /* Variant Slider functions */
 
 function updateVariantValue(newValue) {
-    if (newValue < 0) {
+  if (newValue < 0) {
     newValue = 0;
   } else if (newValue > 32768) {
     newValue = 32768;
@@ -8841,7 +8830,7 @@ class SavedState {
     state_by_checkbox.set(checkbox, this);
 }
   onload() {
-    this.set(getSavedState(this.name+"Save", this.def));
+    this.set(getSavedState(this.name + "Save", this.def));
   }
   set(value) {
     this.value = value;
@@ -8970,13 +8959,6 @@ function SetupRendering() {
 
   Run();
   DoLayerize();
-
-  //FIND("color_links").innerHTML = qlinks;
-  //FIND("effect_links").innerHTML = effect_links;
-  //FIND("effect_type_links").innerHTML = effect_type_links;
-  //FIND("template_links").innerHTML = template_links;
-  //FIND("function_links").innerHTML = function_links;
-  //FIND("transition_links").innerHTML = transition_links;
 
   // Start the event loop.
   tick();
