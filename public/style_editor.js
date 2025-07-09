@@ -280,6 +280,18 @@ class MyError {
   valueOf() { return this.desc; }
 };
 
+function SafeguardInputs(e) {
+  if (e.target.value == "") {
+    console.log("SafeguardInputs() run to avoid null value");
+    var changeEvent = new Event('change');
+    e.target.value = 0;
+    if (e.target.id === "VARIANT_VALUE") {
+      FIND("VARIANT_SLIDER").value = 0;
+    }
+    e.target.dispatchEvent(changeEvent);
+  }
+}
+
 function Arg(expected_type, arg, default_arg) {
   //console.log("ARGUMENT: " + expected_type);
   //console.log(arg);
@@ -6376,12 +6388,14 @@ class SyncAltToVarianceFClass extends FUNCTION {
       console.log("SYNC FIRST");
       FIND("ALT").value = VAR;
     } else if (VAR != this.last_) {
-      console.log("SYNC ALT");
+      if (isNaN(VAR)) VAR = 0;
+      console.log("SYNC ALT: " + VAR);
       FIND("ALT").value = VAR;
       blade.addEffect(EFFECT_ALT_SOUND, 0.0);
     } else {
-      console.log("SYNC VAR");
       VAR = Alt();
+      if (isNaN(VAR)) VAR = 0;
+      console.log("SYNC VAR: " + VAR);
       FIND("VARIANT_VALUE").value = VAR;
     }
     this.last_ = VAR;
@@ -8320,6 +8334,7 @@ function ArgChanged(ARG) {
   var N = ArgumentName_ENUM_BUILDER.value_to_name[ARG];
   var tag = FIND("ARGSTR_"+N);
   setARG(ARG, tag.value);
+  console.log("Updated " + N + " : " + tag.value)
 }
 
 function IncreaseArg(ARG, I) {
@@ -8327,6 +8342,7 @@ function IncreaseArg(ARG, I) {
   var tag = FIND("ARGSTR_"+N);
   tag.value = parseInt(tag.value) + I;
   setARG(ARG, tag.value);
+  console.log("Updated " + N + " : " + tag.value)
 }
 
 function ClickArgColor(ARG) {
@@ -8459,11 +8475,20 @@ function Alt() {
   return parseInt(FIND("ALT").value);
 }
 
+function updateAltValue(newValue) {
+  if (newValue > num_alternatives) {
+    newValue = num_alternatives;
+  }
+  FIND("ALT").value = newValue;
+  console.log("Updated Alt: " + newValue);
+}
+
 function IncreaseAlt(n) {
   var v = Alt() + n;
   if (v < 0) v += num_alternatives;
   if (v > num_alternatives) v -= num_alternatives;
   FIND("ALT").value = v;
+  console.log("Updated Alt: " + v)
 }
 
 function Variant() {
@@ -8896,7 +8921,7 @@ function SetupRendering() {
 
   // Add arg string.
   var A = "";
-  A += "Arg string: <input id=ARGSTR name=arg type=input size=80 value='builtin 0 1' onchange='ArgStringChanged()' /><br><table>";
+  A += "Arg string: <input id=ARGSTR name=arg type=text size=80 value='builtin 0 1' onchange='ArgStringChanged()' /><br><table>";
   var v = Object.keys(ArgumentName_ENUM_BUILDER.value_to_name);
   for (var i = 0; i < v.length; i++) {
     var V = parseInt(v[i]);
@@ -8906,7 +8931,7 @@ function SetupRendering() {
        A += "<input type=color id=ARGSTR_"+N+" onclick='ClickArgColor("+N+")' onchange='ClickArgColor("+N+")' >";
     } else {
        A += "<input type=button value='<'  onclick='IncreaseArg("+N+",-1)' >";
-       A += "<input id=ARGSTR_"+N+" type=input size=6 value=0 onchange='ArgChanged("+N+")' >";
+       A += "<input id=ARGSTR_"+N+" type='number' size=6 value=0 onchange='ArgChanged("+N+")' onfocusout='SafeguardInputs(event)' >";
        A += "<input type=button value='>'  onclick='IncreaseArg("+N+",1)' >";
     }
     A += "</td></tr>\n";
