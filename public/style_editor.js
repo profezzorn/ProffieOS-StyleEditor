@@ -8940,7 +8940,7 @@ var darkState = new SavedState("dark", false, (on) => {
   structuredView.classList.toggle("dark-mode", on);
 });
 
-var tipsState = new SavedState("tips", true, (on) => {
+var tipsState = new SavedState("tips", true, (on) => { 
  if (on) {
     const elementsWithDataTitles = document.querySelectorAll("[data-title]");
     elementsWithDataTitles.forEach((element) => {
