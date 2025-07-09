@@ -8443,7 +8443,7 @@ function ComputeEffectDelay(style, inoutSelector, effectType) {
   if (inout && inout[inoutSelector] && inout[inoutSelector].MILLIS) {
     var ms = inout[inoutSelector].MILLIS.getInteger(0);
     delays.push(ms);
-}
+  }
   // Recursively sum transition durations for TransitionEffectL layers.
   function getDur(n) {
     if (n.MILLIS) return n.MILLIS.getInteger(0);
