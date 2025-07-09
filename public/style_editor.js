@@ -1691,6 +1691,47 @@ AddColor("Tomato", 255, 31, 15);
 AddColor("White", 255, 255, 255);
 AddColor("Yellow", 255, 255, 0);
 
+// New in ProffieOS 8.x:
+AddColor("ElectricPurple", 127, 0, 255);
+AddColor("ElectricViolet", 71, 0, 255);
+AddColor("ElectricLime", 156, 255, 0);
+AddColor("Amber", 255, 135, 0);
+AddColor("CyberYellow", 255, 168, 0);
+AddColor("CanaryYellow", 255, 221, 0);
+AddColor("PaleGreen", 28, 255, 28);
+AddColor("Flamingo", 255, 80, 254);
+AddColor("VividViolet", 90, 0, 255);
+AddColor("PsychedelicPurple", 186, 0, 255);
+AddColor("HotMagenta", 255, 0, 156);
+AddColor("BrutalPink", 255, 0, 128);
+AddColor("NeonRose", 255, 0, 55);
+AddColor("VividRaspberry", 255, 0, 38);
+AddColor("HaltRed", 255, 0, 19);
+AddColor("MoltenCore", 255, 24, 0);
+AddColor("SafetyOrange", 255, 33, 0);
+AddColor("OrangeJuice", 255, 55, 0);
+AddColor("Orange", 255, 97, 0);
+AddColor("ImperialYellow", 255, 115, 0);
+AddColor("SchoolBus", 255, 176, 0);
+AddColor("SuperSaiyan", 255, 186, 0);
+AddColor("Star", 255, 201, 0);
+AddColor("Lemon", 255, 237, 0);
+AddColor("ElectricBanana", 246, 255, 0);
+AddColor("BusyBee", 231, 255, 0);
+AddColor("ZeusBolt", 219, 255, 0);
+AddColor("LimeZest", 186, 255, 0);
+AddColor("Limoncello", 135, 255, 0);
+AddColor("CathodeGreen", 0, 255, 22);
+AddColor("MintyParadise", 0, 255, 128);
+AddColor("PlungePool", 0, 255, 156);
+AddColor("VibrantMint", 0, 255, 201);
+AddColor("MasterSwordBlue", 0, 255, 219);
+AddColor("BrainFreeze", 0, 219, 255);
+AddColor("BlueRibbon", 0, 33, 255);
+AddColor("RareBlue", 0, 13, 255);
+AddColor("OverdueBlue", 13, 0, 255);
+AddColor("ViolentViolet", 55, 0, 255);
+
 AddLayer("InOutHelperL<InOutFuncX<Int<300>,Int<800>>>");
 AddLayer("InOutTrL<TrWipe<300>,TrWipeIn<500>>");
 
@@ -7574,6 +7615,46 @@ AddIdentifier("SteelBlue", Rgb.bind(null, 14, 57, 118));
 AddIdentifier("Tomato", Rgb.bind(null, 255, 31, 15));
 AddIdentifier("White", Rgb.bind(null, 255, 255, 255));
 AddIdentifier("Yellow", Rgb.bind(null, 255, 255, 0));
+
+// New in ProffieOS 8
+AddIdentifier("ElectricPurple", Rgb.bind(null, 127, 0, 255));
+AddIdentifier("ElectricViolet", Rgb.bind(null, 71, 0, 255));
+AddIdentifier("ElectricLime", Rgb.bind(null, 156, 255, 0));
+AddIdentifier("Amber", Rgb.bind(null, 255, 135, 0));
+AddIdentifier("CyberYellow", Rgb.bind(null, 255, 168, 0));
+AddIdentifier("CanaryYellow", Rgb.bind(null, 255, 221, 0));
+AddIdentifier("PaleGreen", Rgb.bind(null, 28, 255, 28));
+AddIdentifier("Flamingo", Rgb.bind(null, 255, 80, 254));
+AddIdentifier("VividViolet", Rgb.bind(null, 90, 0, 255));
+AddIdentifier("PsychedelicPurple", Rgb.bind(null, 186, 0, 255));
+AddIdentifier("HotMagenta", Rgb.bind(null, 255, 0, 156));
+AddIdentifier("BrutalPink", Rgb.bind(null, 255, 0, 128));
+AddIdentifier("NeonRose", Rgb.bind(null, 255, 0, 55));
+AddIdentifier("VividRaspberry", Rgb.bind(null, 255, 0, 38));
+AddIdentifier("HaltRed", Rgb.bind(null, 255, 0, 19));
+AddIdentifier("MoltenCore", Rgb.bind(null, 255, 24, 0));
+AddIdentifier("SafetyOrange", Rgb.bind(null, 255, 33, 0));
+AddIdentifier("OrangeJuice", Rgb.bind(null, 255, 55, 0));
+AddIdentifier("ImperialYellow", Rgb.bind(null, 255, 115, 0));
+AddIdentifier("SchoolBus", Rgb.bind(null, 255, 176, 0));
+AddIdentifier("SuperSaiyan", Rgb.bind(null, 255, 186, 0));
+AddIdentifier("Star", Rgb.bind(null, 255, 201, 0));
+AddIdentifier("Lemon", Rgb.bind(null, 255, 237, 0));
+AddIdentifier("ElectricBanana", Rgb.bind(null, 246, 255, 0));
+AddIdentifier("BusyBee", Rgb.bind(null, 231, 255, 0));
+AddIdentifier("ZeusBolt", Rgb.bind(null, 219, 255, 0));
+AddIdentifier("LimeZest", Rgb.bind(null, 186, 255, 0));
+AddIdentifier("Limoncello", Rgb.bind(null, 135, 255, 0));
+AddIdentifier("CathodeGreen", Rgb.bind(null, 0, 255, 22));
+AddIdentifier("MintyParadise", Rgb.bind(null, 0, 255, 128));
+AddIdentifier("PlungePool", Rgb.bind(null, 0, 255, 156));
+AddIdentifier("VibrantMint", Rgb.bind(null, 0, 255, 201));
+AddIdentifier("MasterSwordBlue", Rgb.bind(null, 0, 255, 219));
+AddIdentifier("BrainFreeze", Rgb.bind(null, 0, 219, 255));
+AddIdentifier("BlueRibbon", Rgb.bind(null, 0, 33, 255));
+AddIdentifier("RareBlue", Rgb.bind(null, 0, 13, 255));
+AddIdentifier("OverdueBlue", Rgb.bind(null, 13, 0, 255));
+AddIdentifier("ViolentViolet", Rgb.bind(null, 55, 0, 255));
 
 class Parser {
   constructor(str, classes, identifiers) {
