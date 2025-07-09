@@ -104,28 +104,28 @@ class Matrix {
     return ret;
   }
     static fromValues(a, b, c, d,
-          e, f, g, h,
-          i, j, k, l,
-          m, n, o, p) {
-  var ret = new Matrix(4, 4);
-  ret.values[0] = a;
-  ret.values[1] = b;
-  ret.values[2] = c;
-  ret.values[3] = d;
-  ret.values[4] = e;
-  ret.values[5] = f;
-  ret.values[6] = g;
-  ret.values[7] = h;
-  ret.values[8] = i;
-  ret.values[9] = j;
-  ret.values[10] = k;
-  ret.values[11] = l;
-  ret.values[12] = m;
-  ret.values[13] = n;
-  ret.values[14] = o;
-  ret.values[15] = p;
-  return ret;
-  
+		      e, f, g, h,
+		      i, j, k, l,
+		      m, n, o, p) {
+	var ret = new Matrix(4, 4);
+	ret.values[0] = a;
+	ret.values[1] = b;
+	ret.values[2] = c;
+	ret.values[3] = d;
+	ret.values[4] = e;
+	ret.values[5] = f;
+	ret.values[6] = g;
+	ret.values[7] = h;
+	ret.values[8] = i;
+	ret.values[9] = j;
+	ret.values[10] = k;
+	ret.values[11] = l;
+	ret.values[12] = m;
+	ret.values[13] = n;
+	ret.values[14] = o;
+	ret.values[15] = p;
+	return ret;
+	
     }
 
   tostr() {
