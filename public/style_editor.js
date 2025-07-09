@@ -5168,7 +5168,7 @@ class TrConcatClass extends TRANSITION {
       if (this.done()) break;
       if (this.ARGS[this.pos_].getType() != "TRANSITION") {
         this.c1p = this.c2p;
-  this.updateC2P()
+	this.updateC2P()
         if (this.c2p != -1) this.ARGS[this.c2p].run(blade);
         this.pos_++;
       }
@@ -7911,72 +7911,72 @@ function getSaberColors() {
     current_micros_internal += delta_us;
     current_micros = current_micros_internal
     if (current_micros - last_micros > 1000000/45) {
-  bad_fps ++;
-  if (good_fps) good_fps--;
+	bad_fps ++;
+	if (good_fps) good_fps--;
     } else {
-  if (bad_fps) bad_fps --;
-  good_fps++;
+	if (bad_fps) bad_fps --;
+	good_fps++;
     }
     if (benchmarkState.get()) {
-  if (bad_fps > 20) {
+	if (bad_fps > 20) {
             if (AA_STEP_SIZE < 0) AA_STEP_SIZE-=1; else AA_STEP_SIZE=-1;
             AA+=AA_STEP_SIZE;
-      if (AA < 1) AA = 1;
-      compile();
-      bad_fps = 0;
+	    if (AA < 1) AA = 1;
+	    compile();
+	    bad_fps = 0;
             FIND("error_message").innerHTML = "AA="+AA;
-  }
-  if (good_fps > 20) {
+	}
+	if (good_fps > 20) {
             if (AA_STEP_SIZE > 0) AA_STEP_SIZE+=1; else AA_STEP_SIZE=1;
             AA+=AA_STEP_SIZE;
-      compile();
-      good_fps = 0;
+	    compile();
+	    good_fps = 0;
             FIND("error_message").innerHTML = "AA="+AA;
-  }
+	}
     }
     var num_leds = blade.num_leds()
     if (!pixels || pixels.length != num_leds * 3) {
-  pixels = new Float32Array(num_leds * 3);
+	pixels = new Float32Array(num_leds * 3);
     }
     var S = current_style;
     if (S != last_style) {
-  last_style = S;
-  if (S.getType) {
-      S.set_right_side(current_focus || style_tree)
-      if (S.getType() == "TRANSITION") {
-    S = TransitionLoop(Rgb(0,0,0), TrConcat(TrDelay(500), Rgb(255,0,0), S, Rgb(0,0,255), TrInstant()));
-      }
-      if (S.getType() == "FUNCTION") {
-    S = Mix(S, Rgb(0,0,0), Rgb(255,255,255));
-      }
-  }
-  show_style = S;
+	last_style = S;
+	if (S.getType) {
+	    S.set_right_side(current_focus || style_tree)
+	    if (S.getType() == "TRANSITION") {
+		S = TransitionLoop(Rgb(0,0,0), TrConcat(TrDelay(500), Rgb(255,0,0), S, Rgb(0,0,255), TrInstant()));
+	    }
+	    if (S.getType() == "FUNCTION") {
+		S = Mix(S, Rgb(0,0,0), Rgb(255,255,255));
+	    }
+	}
+	show_style = S;
     } else {
-  S = show_style;
+	S = show_style;
     }
     numTick++;
     if (S.getColor && S.getType && S.getType() == "COLOR" && numTick > framesPerUpdate) {
-  numTick = 0;
-  S.run(blade);
-  for (var i = 0; i < num_leds; i++) {
+	numTick = 0;
+	S.run(blade);
+	for (var i = 0; i < num_leds; i++) {
             var c = S.getColor(i);
             pixels[i*3 + 0] = c.r / 2;
             pixels[i*3 + 1] = c.g / 2;
             pixels[i*3 + 2] = c.b / 2;
-  }
-  if (last_micros != 0) {
-      current_micros += delta_us / 2;
-  }
-  if (framesPerUpdate == 0) {
-      S.run(blade);
-  }
-  for (var i = 0; i < num_leds; i++) {
+	}
+	if (last_micros != 0) {
+	    current_micros += delta_us / 2;
+	}
+	if (framesPerUpdate == 0) {
+	    S.run(blade);
+	}
+	for (var i = 0; i < num_leds; i++) {
             var c = S.getColor(i);
             pixels[i*3 + 0] += c.r / 2;
             pixels[i*3 + 1] += c.g / 2;
             pixels[i*3 + 2] += c.b / 2;
-  }
-  S.update_displays();
+	}
+	S.update_displays();
     }
     t += 1;
     return pixels;
@@ -8007,7 +8007,7 @@ function getSaberMove() {
  //  rotation = rotation.mult(Matrix.mkzrot(-Math.PI/2.0));
     //  rotation = rotation.mult(Matrix.mkyrot(-Math.PI/2.0));
     rotation = Matrix.fromValues(
-  0.0, -1.0, 0.0, 0.0,
+	0.0, -1.0, 0.0, 0.0,
         0.0, 0.0, -1.0, 0.0,
         1.0, 0.0, 0.0, 0.0,
         0.0, 0.0, 0.0, 1.0).mult(rotation);
@@ -8038,16 +8038,16 @@ function drawScene() {
      if (bad_fps > 20) {
         if (AA_STEP_SIZE < 0) AA_STEP_SIZE-=1; else AA_STEP_SIZE=-1;
         AA+=AA_STEP_SIZE;
-  if (AA < 1) AA = 1;
-  compile();
-  bad_fps = 0;
+	if (AA < 1) AA = 1;
+	compile();
+	bad_fps = 0;
         FIND("error_message").innerHTML = "AA="+AA;
      }
      if (good_fps > 20) {
         if (AA_STEP_SIZE > 0) AA_STEP_SIZE+=1; else AA_STEP_SIZE=1;
         AA+=AA_STEP_SIZE;
-  compile();
-  good_fps = 0;
+	compile();
+	good_fps = 0;
         FIND("error_message").innerHTML = "AA="+AA;
      }
   }
