@@ -6126,7 +6126,15 @@ class WavLenClass extends FUNCTION {
     super("Length of associated wav file in MS", arguments);
     this.add_arg("EFFECT", "EFFECT", "Which effect to get the length of.", EFFECT(EFFECT_NONE));
   }
-  getInteger(led) { return 500; }
+
+  // WavLen value can be set in settings panel
+  setLength(value) {
+    this.wavlenValue = value;
+     console.log("Updated WavLen: ", this.wavlenValue);
+  }
+  getInteger(led) {
+    return myWavLen.wavlenValue;
+  }
 };
 
 function WavLen(EFFECT) { return new WavLenClass(EFFECT); }
@@ -8815,16 +8823,14 @@ var all_saved_states = [];
 var state_by_checkbox = new Map();
 var body = document.querySelector("body");
 var structuredView;
+var wavlenInput = FIND("WAVLEN_VALUE");
+var myWavLen = new WavLenClass();
 
 /* Settings buttons saved as local storage */
 function getSavedState(buttonState, defaultValue) {
   var value = localStorage.getItem(buttonState);
   console.log("Retrieved SavedState for " + buttonState + ": " + value);
-
-  if (value === null) {
-    return defaultValue;
-  }
-  return value !== "false";
+  return (value === null ? defaultValue : value);
 }
 
 function saveState(buttonState, settingIsOn) {
@@ -8837,27 +8843,47 @@ class SavedState {
     this.def = def;
     this.update_function = update_function;
     all_saved_states.push(this);
-    const checkbox = FIND(this.name.toUpperCase()+"_BUTTON");
-    state_by_checkbox.set(checkbox, this);
-}
-  onload() {
-    this.set(getSavedState(this.name+"Save", this.def));
   }
-  set(value) {
-    this.value = value;
-    FIND(this.name.toUpperCase()+"_BUTTON").checked = value ? true : false;
-    saveState(this.name+"Save", value);
-    this.update_function(value);
+  onload() {
+    this.set(getSavedState(this.name + "Save", this.def));
   }
   get() { return this.value; }
 }
 
-var darkState = new SavedState("dark", false, (on) => {
+class SavedStateBool extends SavedState {
+  constructor(name, def, update_function) {
+    super(name, def, update_function);
+    // For checkboxes, store the mapping for use in handleSettings().
+    const checkbox = FIND(name.toUpperCase() + "_BUTTON");
+    state_by_checkbox.set(checkbox, this);
+  }
+  set(value) {
+    const boolValue = (value === true || value === "true");
+    this.value = boolValue;
+    FIND(this.name.toUpperCase() + "_BUTTON").checked = boolValue;
+    saveState(this.name + "Save", boolValue);
+    this.update_function(boolValue);
+  }
+}
+
+class SavedStateNumber extends SavedState {
+  constructor(name, def, update_function) {
+    super(name, def, update_function);
+  }
+  set(value) {
+    this.value = value;
+    FIND(this.name.toUpperCase() + "_VALUE").value = value;
+    saveState(this.name + "Save", value);
+    this.update_function(value);
+  }
+}
+
+var darkState = new SavedStateBool("dark", false, (on) => {
   body.classList.toggle("dark-mode", on);
   structuredView.classList.toggle("dark-mode", on);
 });
 
-var tipsState = new SavedState("tips", true, (on) => { 
+var tipsState = new SavedStateBool("tips", true, (on) => {
  if (on) {
     const elementsWithDataTitles = document.querySelectorAll("[data-title]");
     elementsWithDataTitles.forEach((element) => {
@@ -8872,15 +8898,25 @@ var tipsState = new SavedState("tips", true, (on) => {
     });
   }
 });
-var colorsortState = new SavedState("colorsort", false, (on) => {
+var colorsortState = new SavedStateBool("colorsort", false, (on) => {
   updateRgbTabContent();
 });
-var graflexState = new SavedState("graflex", true, (on) => { compile(); });
-var mouseswingsState = new SavedState("mouseswings", false, (on) => {});
-var autoswingState = new SavedState("autoswing", true, (on) => {});
-var inhiltState = new SavedState("inhilt", false, (on) => { STATE_NUM_LEDS = on ? 1 : 144; });
-var slowState = new SavedState("slow", false, (on) => { framesPerUpdate = on ? 10 : 0; time_factor = framesPerUpdate == 0 ? 1000 : (500/framesPerUpdate)});
-var benchmarkState = new SavedState("benchmark", false, (on) => { AA=1; compile(); FIND("error_message").innerHTML = ""; });
+
+var graflexState = new SavedStateBool("graflex", true, (on) => { compile(); });
+var mouseswingsState = new SavedStateBool("mouseswings", false, (on) => {});
+var autoswingState = new SavedStateBool("autoswing", true, (on) => {});
+var inhiltState = new SavedStateBool("inhilt", false, (on) => { STATE_NUM_LEDS = on ? 1 : 144; });
+var slowState = new SavedStateBool("slow", false, (on) => { framesPerUpdate = on ? 10 : 0; time_factor = framesPerUpdate == 0 ? 1000 : (500/framesPerUpdate)});
+var benchmarkState = new SavedStateBool("benchmark", false, (on) => { AA=1; compile(); FIND("error_message").innerHTML = ""; });
+var wavlenState = new SavedStateNumber("wavlen", 500, (value) => {
+  myWavLen.setLength(value);
+});
+wavlenInput.addEventListener("input", function(e) {
+  var value = parseInt(this.value);
+  var newValue = (isNaN(value) || value < 1) ? 1 : value;
+  this.value = newValue;
+  wavlenState.set(newValue);
+});
 
 // Create n textures of about 1MB each.
 function SetupRendering() {
@@ -8990,7 +9026,7 @@ function onPageLoad() {
   });
 }
 
-function handleClick(checkbox) {
+function handleSettings(checkbox) {
   var state = state_by_checkbox.get(checkbox);
   state.set(!state.get());
 }

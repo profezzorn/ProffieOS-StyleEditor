@@ -465,6 +465,20 @@ span.MAGIC_CLASS_EFFECT input[type=button].btn {
   border-bottom: 2px solid #888;
   padding-bottom: 5px;
 }
+
+/* Align Wavlen Settings label */
+.wavlen-label {
+  display: block;
+  margin-top: 5px;
+}
+.wavlen-value {
+  width: 80px;
+  margin-left: 5px;
+}
+
+/*.tabs-container {
+  position: relative;
+}*/
 /* Style the tab */
 .tab {
   overflow: hidden;
@@ -1614,17 +1628,17 @@ void main() {
             <h4 class="settings-section-label" title="These settings apply to the whole page.">General:</h4>
 
             <label title="Toggles a Dark Mode look to this page.">
-              <input type="checkbox" id="DARK_BUTTON" name="darkmode" onclick="handleClick(this)">
+              <input type="checkbox" id="DARK_BUTTON" name="darkmode" onclick="handleSettings(this)">
               <span>Dark Mode</span>
             </label>
 
             <label title="Toggles pop-up tooltips On or Off.">
-              <input type="checkbox" id="TIPS_BUTTON" name="tooltips" onclick="handleClick(this)">
+              <input type="checkbox" id="TIPS_BUTTON" name="tooltips" onclick="handleSettings(this)">
               <span >Tool Tips</span>
             </label>
 
             <label title="Toggle between sorting the Colors tab hue or by name.">
-              <input type="checkbox" id="COLORSORT_BUTTON" name="colorsort" onclick="handleClick(this)">
+              <input type="checkbox" id="COLORSORT_BUTTON" name="colorsort" onclick="handleSettings(this)">
               <span>Sort Colors by name</span>
             </label>
 
@@ -1633,35 +1647,39 @@ void main() {
             <h4 class="settings-section-label" title="These settings apply to the blade preview above.">Blade Preview:</h4>
 
             <label title="Toggles the Graflex Hilt model in the preview.">
-              <input type="checkbox" id="GRAFLEX_BUTTON" name="graflex" onclick="handleClick(this)">
+              <input type="checkbox" id="GRAFLEX_BUTTON" name="graflex" onclick="handleSettings(this)">
               <span>Graflex Hilt</span>
             </label>
 
             <label title="Toggles the option for swinging around the preview blade above using mouse control.">
-              <input type="checkbox" id="MOUSESWINGS_BUTTON" name="mouseswings" onclick="handleClick(this)">
+              <input type="checkbox" id="MOUSESWINGS_BUTTON" name="mouseswings" onclick="handleSettings(this)">
               <span>Disable mouse swings</span>
             </label>
 
             <label title="Toggles automated swing emulation on the preview blade while at rest (ie: shown when using SwingSpeed<>). Swinging while hovering over the preview area always shows swing blade effects according to movements.">
-              <input type="checkbox" id="AUTOSWING_BUTTON" name="autoswing" onclick="handleClick(this)">
+              <input type="checkbox" id="AUTOSWING_BUTTON" name="autoswing" onclick="handleSettings(this)">
               <span>Swing Emulation</span>
             </label>
 
             <label title="Simulates In-Hilt LED blades, (no addressable pixel effects).">
-              <input type="checkbox" id="INHILT_BUTTON" name="inhilt" onclick="handleClick(this)">
+              <input type="checkbox" id="INHILT_BUTTON" name="inhilt" onclick="handleSettings(this)">
               <span>Inhilt LED</span>
             </label>
 
             <label title="Provides &quot;snapshots&quot; of rapidly moving things to see what they look like without fast movement. *Note* Graflex hilt model probably won't be able to render with this on.">
-              <input type="checkbox" id="SLOW_BUTTON" name="slow" onclick="handleClick(this)">
+              <input type="checkbox" id="SLOW_BUTTON" name="slow" onclick="handleSettings(this)">
               <span>Slow</span>
             </label>
           </div>
           <div class="settings-section">
             <h4 class="settings-section-label" title="These settings are useful for people making modifications to the style editor.">Developer Settings:</h4>
             <label title="Benchmark how many passes we can render per frame.">
-              <input type="checkbox" id="BENCHMARK_BUTTON" name="benchmark" onclick="handleClick(this)">
+              <input type="checkbox" id="BENCHMARK_BUTTON" name="benchmark" onclick="handleSettings(this)">
               <span>Benchmark</span>
+            </label>
+            <label title="Enter a custom WavLen value in milliseconds." class="wavlen-label">
+              WavLen time:
+              <input type='number' id="WAVLEN_VALUE" class="wavlen-value" value="500">
             </label>
           </div>
           <br>
