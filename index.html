@@ -182,10 +182,6 @@ size when padding and margins may change */
 .dark-mode .pp-container .running {
   border-color: chartreuse;
 }
-/* Keep color palette background white for reference. */
-.dark-mode .rgb-tabcontent {
-background-color: white;
-}
 
 /* Popup Window */
 .dark-mode .popup-window {
@@ -193,34 +189,71 @@ background-color: white;
   background: #777;
 }
 
-.dark-mode .footer-container {
+.dark-mode .header-container {
   background-color: #333;
 }
 
 /* Non-dark mode styles */
 
 body {
-  margin-top: -3px;
+  margin-top: -15px;
   margin-bottom: 0;
+  overflow: hidden;
+}
+.main-container {
+  display: flex;
+  flex-direction: row;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
 }
 .page-left {
   position: relative;
-  vertical-align: top;
-  width: 50%;
-  padding-bottom: 30px;
+  display: flex;
+  flex-direction: column;
+  flex: 0 0 65vw;
+  min-width: 200px;
+  overflow: hidden;
+  padding-right: 10px;
+  padding-top: 15px;
+  overflow: hidden;
+}
+.page-left-scrollable {
+  overflow-y: auto;
+  flex: 1 1 auto;
+  min-height: 0;
+  padding-top: 30px;
 }
 .page-right {
-  vertical-align: top;
- }
+  flex: 0 0 35vw;
+  min-width: 200px;
+  overflow-y: auto;
+  padding-top: 35px;
+  overflow: hidden;
+}
+
 .canvas-container {
   position: relative;
 }
+canvas#canvas_id {
+  display: block;
+  max-width: 100%;
+  width: 100%;   /* fill .canvas-container’s current width */
+  height: 100%;  /* fill .canvas-container’s current height */
+  box-sizing: border-box;
+}
+
 /* This keeps the More Effects menu and
 the Do Selected Effect button together */
 .more-menu-container {
   white-space: nowrap;
 }
-
+#ENLARGE {
+  position: absolute;
+  bottom: 10px;
+  right: 20px;
+  z-index: 10;
+}
 /* Do Selected Effect, Expand, and Layerize */
 .page-left .button-off,
 .page-left .button-off:hover {
@@ -546,6 +579,7 @@ span.MAGIC_CLASS_EFFECT input[type=button].btn {
   border-style: solid;
   border-width: 1px;
   padding: 2px;
+  padding-right: 20px;
 }
 .pp-content {
   margin-left: 1em;
@@ -564,20 +598,22 @@ Add, Delete, Move Up, Move Down */
   font-size: 16px;
 }
 
-/* Footer */
-.footer-title {
+/* header */
+.header-title {
   min-width: 180px;
   font-size: 16px;
 }
-.footer-container {
-  position: absolute;
-  bottom: 0;
+.header-container {
+  position: fixed;
+  top: 0;
   left: 0;
+  z-index: 1000;
   width: 100%;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background-color: #eee;
+  background: #eee;
+  height: 25px;
   padding: 2px 15px;
 }
 .other-sites {
@@ -585,7 +621,7 @@ Add, Delete, Move Up, Move Down */
   padding-right: 10px;
   margin-left: 35px;
 }
-.footer-links {
+.header-links {
   display: flex;
   align-items: center;
   white-space: nowrap;
@@ -593,19 +629,15 @@ Add, Delete, Move Up, Move Down */
   text-overflow: ellipsis;
   min-width: 100px;
 }
-.other-sites {
-  float: right;
-  padding-right: 10px;
-}
-.footer-links a img {
+.header-links a img {
   height: 16px;
   width: 16px;
   margin-right: 5px;
 }
-.footer-links a:hover {
+.header-links a:hover {
   color: #000;
 }
-	
+
 /* Popup Window */
 .popup-window.show {
   opacity: 1;
@@ -1452,263 +1484,245 @@ void main() {
 </head>
 
 <body>
+  <div class="header-container">
+    <span class="header-title">ProffieOS Style Editor</span>
+    <span class="header-links">
+      <span class="other-sites">Other sites: </span>
+      <a href="https://crucible.hubbe.net/" target="_blank"><img src="https://crucible.hubbe.net/uploads/default/optimized/1X/2237f551ca8f4f69ac478df5c64aee1c951c33f5_2_180x180.png" alt="Crucible logo"></a>
+      <a href="https://pod.hubbe.net/" target="_blank"><img src="https://pod.hubbe.net/images/favicon.png" alt="Pod logo"></a>
+      <a href="https://fredrik.hubbe.net/lightsaber/" target="_blank"><img src="https://fredrik.hubbe.net/favicon.ico" alt="Lightsaber logo"></a>
+      <a href="https://www.fett263.com/" target="_blank"><img src="https://www.fett263.com//favicon.ico" alt="Fett263 logo"></a>
+      <a href="https://www.facebook.com/groups/opensourcesabers/" target="_blank"><img src="https://www.facebook.com/favicon.ico" alt="Facebook logo"></a>
+    </span>
+  </div>
+
   <script type="module" src="render.js"></script>
 
-  <table>
-  <tr>
-    <td class="page-left">
-      <div class="canvas-container">      
-        <canvas
-          id="canvas_id"
-          onmousemove='mouse_move(event)' onmouseleave='mouse_leave(event)'
-          onclick='AddClickedEffect()'>
-        </canvas>
-        <button
-          id="ENLARGE"
-          title="Click to toggle blade preview window size."
-          style="position:absolute; bottom:10px; right:10px;">Enlarge</button>
-      </div>
-      <br>
-      <button
-        id="POWER_BUTTON" 
-        title="Turn the blade On and Off. Simulates ignition and retraction events on the blade."
-        onclick="ClickPower()">Power</button>
-      <button
-        title="Simulates an impact hit on the blade. Triggers style code using EFFECT_CLASH."
-        onclick="AddClash()">Clash</button>
-      <button
-        title="Simulates an impact hit on the tip of the blade. Triggers style code using EFFECT_STAB."
-        onclick="AddStab()">Stab</button>
-      <button
-        title="Simulates a blaster bolt deflection impact hit on the blade. Triggers style code using EFFECT_BLAST."
-        onclick="AddBlast()">Blast</button>
-      <button
-        title="Triggers style code using EFFECT_FORCE."
-        onclick="AddForce()">Force</button>
-      <button
-        title="Simulates powering on the Proffieboard. Triggers style code Int<using EFFECT_BOOT."
-        onclick="AddBoot()">Boot</button>
-      <button
-        title="Simulates changing presets. Triggers style code using EFFECT_NEWFONT."
-        onclick="AddNewfont()">NewFont</button>
-      <button
-        title="Simulates &quot;pre-ignition&quot;; pressing the power button when there are preon.wav files available in the current font. Triggers style code using EFFECT_PREON."
-        onclick="AddPreon()">Preon</button>
-
-      <select
-        id="LOCKUP" name="lockup"
-        title="Choose a Lockup Type to begin lockup effect. Choose &quot;No Lockup&quot; to end lockup."
-        onchange="OnLockupChange()" >
-        <option value=LOCKUP_NONE>No lockup</option>
-        <option value=LOCKUP_NORMAL>Lockup</option>
-        <option value=LOCKUP_DRAG>Drag</option>
-        <option value=LOCKUP_MELT>Melt</option>
-        <option value=LOCKUP_LIGHTNING_BLOCK>LB</option>
-      </select>
-
-    <span class="more-menu-container">
-      <select
-        id="more_effects_menu"
-        title="This menu contains all of the additional EFFECTS. Select one, then use the &quot;Do Selected Effect&quot; button to trigger the effect." >
-      <option value="">Select More Effects</option>
-      </select>
-      <input
-        type=button id="do_selected" value="Do Selected Effect"
-        title="Press this to trigger the EFFECT selected in the More Effects menu.">
-    </span>
-
-      <span class="variant-alt-container">
-        <span class="variant-alt-controls">
-          <span class="variant-label">Variant:</span>
-          <input
-            id="VARIANT_SLIDER" name=varslider type=range class="variant-slider"
-            title="Slide to adjust the Variant value."
-            min="0" max="32768" step="1" value="0"
-            oninput="updateVariantValue(this.value)" >
-          <input
-            id="VARIANT_MINUS" name=varminus type=button value="<"
-            title="Decreases the Variant value. Hold to increase speed of the changing value."
-            onmousedown="startAdjustingValue(-1, 'VARIANT_SLIDER')"
-            onmouseup="stopAdjustingValue()"
-            onmouseleave="stopAdjustingValue()" >
-          <input
-            id="VARIANT_VALUE" name=varvalue type=input size="6" value="0"
-            title="The current Variant value. You can also type in this field for direct entry of a value."
-            oninput="updateVariantValue(this.value)" >
-          <input
-            id="VARIANT_PLUS" name=varplus type=button value=">"
-            title="Increases the Variant value. Hold to increase speed of the changing value."
-            onmousedown="startAdjustingValue(1, 'VARIANT_SLIDER')"
-            onmouseup="stopAdjustingValue()"
-            onmouseleave="stopAdjustingValue()" >
-        <span class="alt-label">Alt:</span>
-          <input
-            id="ALT_MINUS" name=altminus type=button value="<"
-            title="Decreases the Alt value."
-            onclick="IncreaseAlt(-1)" >
-          <input
-            id="ALT" name=alt type=input size="3" value="0"
-            title="The current Alt value. You can also type in this field for direct entry of a value." >
-          <input
-            id="ALT_PLUS" name=altplus type=button value=">"
-            title="Increases the Alt value."
-            onclick="IncreaseAlt(1)" >
-        </span>
-      </span>
-      <br>
-
-      <span id="error_message" class="error-message"></span>
-
-        <pre><textarea
-          rows=10 cols=80 id=style wrap="off" class="textbox"
-          title="Style and value editing area. Edits in here are committed by clicking the Submit button below." >
-        </textarea></pre>
-
-        <span>
-          <button 
-            class="submit-button" title="Submit what is currently in the text box above."
-            onclick="Run()">
-            <i class="fa-solid fa-right-from-bracket"></i> Submit</button>
-          <button 
-            title="Adds StylePtr&lt;&gt;() wrapper and copies the style to the clipboard."
-            onclick="Copy()">
-            <i class="fa-solid fa-copy"></i> Copy</button>
-          <button 
-            id="expand_button"
-            title="Reveals the &quot;under the hood&quot; code that the shorthand macro uses. This allows access to otherwise omitted arguments, and allows functions to be used instead of just numbers. It is only an active button when applicable."
-            onclick="DoExpand()">
-            <i class="fa-solid fa-up-right-and-down-left-from-center"></i> Expand</button>
-          <button 
-            id="layerize_button"
-            title="Transforms nested version style code and breaks it out into more contemporary Layers format."
-            onclick="DoLayerize()">
-            <i class="fa-solid fa-layer-group"></i> Layerize</button>
+  <div class="main-container">
+    <div class="page-left">
+      <div class="page-left-scrollable">
+        <div class="canvas-container">
+          <canvas
+            id="canvas_id"
+            onmousemove='mouse_move(event)' onmouseleave='mouse_leave(event)'
+            onclick='AddClickedEffect()'>
+          </canvas>
           <button
-            title="Converts arguments to their ARG version counterparts for use with ProffieOS Workbench or Edit Mode. See the &quot;ArgString&quot; tab below."
-            onclick="DoArgify()">
-            <i class="fa-solid fa-list"></i> Argify</button>
-          <button
-            id="ROTATE_BUTTON" title="Toggles animation of the preview blade above."
-            onclick="ClickRotate()">
-            <i class="fa-solid fa-arrows-rotate"></i> Rotate</button>
-          <button 
-            title="Save the blade style to your computer."
-            onclick="ClickSave()">
-            <i class="fa-solid fa-save"></i> Save</button>
-          <button 
-            id="SETTINGS_BUTTON" class="icon-button" title="Settings"
-            onclick="toggleSettingsPanel()">
-            <i class="fa-solid fa-cog"></i> Settings</button>
-      </span>
-
-        <div id="settings_panel" class="settings-panel"
-          title="Turning on checkboxes saves your settings for future visits to the Style Editor page.">
-
-          <button
-           title="Close Settings Panel."
-            class="close-settings" onclick="toggleSettingsPanel()">X</button>
-
-          <h2 class="settings-header-label" title="Settings Panel">Settings</h2>
-
-          <div class="settings-section">
-            <h4 class="settings-section-label" title="These settings apply to the whole page.">General:</h4>
-
-            <label title="Toggles a Dark Mode look to this page.">
-              <input type="checkbox" id="DARK_BUTTON" name="darkmode" onclick="handleClick(this)">
-              <span>Dark Mode</span>
-            </label>
-
-            <label title="Toggles pop-up tooltips On or Off.">
-              <input type="checkbox" id="TIPS_BUTTON" name="tooltips" onclick="handleClick(this)">
-              <span >Tool Tips</span>
-            </label>
-
-            <label title="Toggle between sorting the Colors tab hue or by name.">
-              <input type="checkbox" id="COLORSORT_BUTTON" name="colorsort" onclick="handleClick(this)">
-              <span>Sort Colors by name</span>
-            </label>
-
-          </div>
-          <div class="settings-section">
-            <h4 class="settings-section-label" title="These settings apply to the blade preview above.">Blade Preview:</h4>
-
-            <label title="Toggles the Graflex Hilt model in the preview.">
-              <input type="checkbox" id="GRAFLEX_BUTTON" name="graflex" onclick="handleClick(this)">
-              <span>Graflex Hilt</span>
-            </label>
-
-            <label title="Toggles the option for swinging around the preview blade above using mouse control.">
-              <input type="checkbox" id="MOUSESWINGS_BUTTON" name="mouseswings" onclick="handleClick(this)">
-              <span>Disable mouse swings</span>
-            </label>
-
-            <label title="Toggles automated swing emulation on the preview blade while at rest (ie: shown when using SwingSpeed<>). Swinging while hovering over the preview area always shows swing blade effects according to movements.">
-              <input type="checkbox" id="AUTOSWING_BUTTON" name="autoswing" onclick="handleClick(this)">
-              <span>Swing Emulation</span>
-            </label>
-
-            <label title="Simulates In-Hilt LED blades, (no addressable pixel effects).">
-              <input type="checkbox" id="INHILT_BUTTON" name="inhilt" onclick="handleClick(this)">
-              <span>Inhilt LED</span>
-            </label>
-
-            <label title="Provides &quot;snapshots&quot; of rapidly moving things to see what they look like without fast movement. *Note* Graflex hilt model probably won't be able to render with this on.">
-              <input type="checkbox" id="SLOW_BUTTON" name="slow" onclick="handleClick(this)">
-              <span>Slow</span>
-            </label>
-          </div>
-          <div class="settings-section">
-            <h4 class="settings-section-label" title="These settings are useful for people making modifications to the style editor.">Developer Settings:</h4>
-            <label title="Benchmark how many passes we can render per frame.">
-              <input type="checkbox" id="BENCHMARK_BUTTON" name="benchmark" onclick="handleClick(this)">
-              <span>Benchmark</span>
-            </label>
-          </div>
-          <br>
-          <button
-            title="Restore all settings to default, including restoring popups."
-            id="restore_defaults" onclick="ClickRestore()">Restore Defaults</button>
+            id="ENLARGE"
+            title="Click to toggle blade preview window size.">Enlarge</button>
         </div>
-    <br>
-    <div id=TABS>
-      <div id=TABLINKS class=tab></div>
-      <div id=TABBODIES class=tabcontainer></div>
-    </div>
+        <br>
+        <button
+          id="POWER_BUTTON" 
+          title="Turn the blade On and Off. Simulates ignition and retraction events on the blade."
+          onclick="ClickPower()">Power</button>
+        <button
+          title="Simulates an impact hit on the blade. Triggers style code using EFFECT_CLASH."
+          onclick="AddClash()">Clash</button>
+        <button
+          title="Simulates an impact hit on the tip of the blade. Triggers style code using EFFECT_STAB."
+          onclick="AddStab()">Stab</button>
+        <button
+          title="Simulates a blaster bolt deflection impact hit on the blade. Triggers style code using EFFECT_BLAST."
+          onclick="AddBlast()">Blast</button>
+        <button
+          title="Triggers style code using EFFECT_FORCE."
+          onclick="AddForce()">Force</button>
+        <button
+          title="Simulates powering on the Proffieboard. Triggers style code Int<using EFFECT_BOOT."
+          onclick="AddBoot()">Boot</button>
+        <button
+          title="Simulates changing presets. Triggers style code using EFFECT_NEWFONT."
+          onclick="AddNewfont()">NewFont</button>
 
-    <div>
-      <font face="helvetica,arial" size=-1>
-      This page has been accessed <accessed type=comma_grouped> times since
-        <accessed since part=month type=string>
-         <accessed since part=date type=ordered>,
-         <accessed since part=year>.<br>
-      Last modified:
-        <modified part=month type=string>
-         <modified part=date type=ordered>,
-         <modified part=year>
-      </font>
-    </div>
+        <select
+          id="LOCKUP" name="lockup"
+          title="Choose a Lockup Type to begin lockup effect. Choose &quot;No Lockup&quot; to end lockup."
+          onchange="OnLockupChange()" >
+          <option value=LOCKUP_NONE>No lockup</option>
+          <option value=LOCKUP_NORMAL>Lockup</option>
+          <option value=LOCKUP_DRAG>Drag</option>
+          <option value=LOCKUP_MELT>Melt</option>
+          <option value=LOCKUP_LIGHTNING_BLOCK>LB</option>
+        </select>
 
-    <div class="footer-container">
-      <span class="footer-title">ProffieOS Style Editor</span>
-      <span class="footer-links">
-        <span class="other-sites">Other sites: </span>
-        <a href="https://crucible.hubbe.net/" target="_blank"><img src="https://crucible.hubbe.net/uploads/default/optimized/1X/2237f551ca8f4f69ac478df5c64aee1c951c33f5_2_180x180.png" alt="Crucible logo"></a>
-        <a href="https://pod.hubbe.net/" target="_blank"><img src="https://pod.hubbe.net/images/favicon.png" alt="Pod logo"></a>
-        <a href="https://fredrik.hubbe.net/lightsaber/" target="_blank"><img src="https://fredrik.hubbe.net/favicon.ico" alt="Lightsaber logo"></a>
-        <a href="https://www.fett263.com/" target="_blank"><img src="https://www.fett263.com//favicon.ico" alt="Fett263 logo"></a>
-        <a href="https://www.facebook.com/groups/opensourcesabers/" target="_blank"><img src="https://www.facebook.com/favicon.ico" alt="Facebook logo"></a>
-      </span>
-    </div>
+        <span class="more-menu-container">
+          <select
+            id="more_effects_menu"
+            title="This menu contains all of the additional EFFECTS. Select one, then use the &quot;Do Selected Effect&quot; button to trigger the effect." >
+          <option value="">Select More Effects</option>
+          </select>
+          <input
+            type=button id="do_selected" value="Do Selected Effect"
+            title="Press this to trigger the EFFECT selected in the More Effects menu.">
+        </span>
 
-    </td>
-    <td class="page-right">
+        <span class="variant-alt-container">
+          <span class="variant-alt-controls">
+            <span class="variant-label">Variant:</span>
+            <input
+              id="VARIANT_SLIDER" name=varslider type=range class="variant-slider"
+              title="Slide to adjust the Variant value."
+              min="0" max="32768" step="1" value="0"
+              oninput="updateVariantValue(this.value)" >
+            <input
+              id="VARIANT_MINUS" name=varminus type=button value="<"
+              title="Decreases the Variant value. Hold to increase speed of the changing value."
+              onmousedown="startAdjustingValue(-1, 'VARIANT_SLIDER')"
+              onmouseup="stopAdjustingValue()"
+              onmouseleave="stopAdjustingValue()" >
+            <input
+              id="VARIANT_VALUE" name=varvalue type=input size="6" value="0"
+              title="The current Variant value. You can also type in this field for direct entry of a value."
+              oninput="updateVariantValue(this.value)" >
+            <input
+              id="VARIANT_PLUS" name=varplus type=button value=">"
+              title="Increases the Variant value. Hold to increase speed of the changing value."
+              onmousedown="startAdjustingValue(1, 'VARIANT_SLIDER')"
+              onmouseup="stopAdjustingValue()"
+              onmouseleave="stopAdjustingValue()" >
+          <span class="alt-label">Alt:</span>
+            <input
+              id="ALT_MINUS" name=altminus type=button value="<"
+              title="Decreases the Alt value."
+              onclick="IncreaseAlt(-1)" >
+            <input
+              id="ALT" name=alt type=input size="3" value="0"
+              title="The current Alt value. You can also type in this field for direct entry of a value." >
+            <input
+              id="ALT_PLUS" name=altplus type=button value=">"
+              title="Increases the Alt value."
+              onclick="IncreaseAlt(1)" >
+          </span>
+        </span>
+        <br>
+
+        <span id="error_message" class="error-message"></span>
+
+          <pre><textarea
+            rows=10 cols=80 id=style wrap="off" class="textbox"
+            title="Style and value editing area. Edits in here are committed by clicking the Submit button below." >
+          </textarea></pre>
+
+          <span>
+            <button 
+              class="submit-button" title="Submit what is currently in the text box above."
+              onclick="Run()">
+              <i class="fa-solid fa-right-from-bracket"></i> Submit</button>
+            <button 
+              title="Adds StylePtr&lt;&gt;() wrapper and copies the style to the clipboard."
+              onclick="Copy()">
+              <i class="fa-solid fa-copy"></i> Copy</button>
+            <button 
+              id="expand_button"
+              title="Reveals the &quot;under the hood&quot; code that the shorthand macro uses. This allows access to otherwise omitted arguments, and allows functions to be used instead of just numbers. It is only an active button when applicable."
+              onclick="DoExpand()">
+              <i class="fa-solid fa-up-right-and-down-left-from-center"></i> Expand</button>
+            <button 
+              id="layerize_button"
+              title="Transforms nested version style code and breaks it out into more contemporary Layers format."
+              onclick="DoLayerize()">
+              <i class="fa-solid fa-layer-group"></i> Layerize</button>
+            <button
+              title="Converts arguments to their ARG version counterparts for use with ProffieOS Workbench or Edit Mode. See the &quot;ArgString&quot; tab below."
+              onclick="DoArgify()">
+              <i class="fa-solid fa-list"></i> Argify</button>
+            <button
+              id="ROTATE_BUTTON" title="Toggles animation of the preview blade above."
+              onclick="ClickRotate()">
+              <i class="fa-solid fa-arrows-rotate"></i> Rotate</button>
+            <button 
+              title="Save the blade style to your computer."
+              onclick="ClickSave()">
+              <i class="fa-solid fa-save"></i> Save</button>
+            <button 
+              id="SETTINGS_BUTTON" class="icon-button" title="Settings"
+              onclick="toggleSettingsPanel()">
+              <i class="fa-solid fa-cog"></i> Settings</button>
+        </span>
+
+          <div id="settings_panel" class="settings-panel"
+            title="Turning on checkboxes saves your settings for future visits to the Style Editor page.">
+
+            <button
+             title="Close Settings Panel."
+              class="close-settings" onclick="toggleSettingsPanel()">X</button>
+
+            <h2 class="settings-header-label" title="Settings Panel">Settings</h2>
+
+            <div class="settings-section">
+              <h4 class="settings-section-label" title="These settings apply to the whole page.">General:</h4>
+
+              <label title="Toggles a Dark Mode look to this page.">
+                <input type="checkbox" id="DARK_BUTTON" name="darkmode" onclick="handleClick(this)">
+                <span>Dark Mode</span>
+              </label>
+
+              <label title="Toggles pop-up tooltips On or Off.">
+                <input type="checkbox" id="TIPS_BUTTON" name="tooltips" onclick="handleClick(this)">
+                <span >Tool Tips</span>
+              </label>
+
+              <label title="Toggle between sorting the Colors tab hue or by name.">
+                <input type="checkbox" id="COLORSORT_BUTTON" name="colorsort" onclick="handleClick(this)">
+                <span>Sort Colors by name</span>
+              </label>
+
+            </div>
+            <div class="settings-section">
+              <h4 class="settings-section-label" title="These settings apply to the blade preview above.">Blade Preview:</h4>
+
+              <label title="Toggles the Graflex Hilt model in the preview.">
+                <input type="checkbox" id="GRAFLEX_BUTTON" name="graflex" onclick="handleClick(this)">
+                <span>Graflex Hilt</span>
+              </label>
+
+              <label title="Toggles the option for swinging around the preview blade above using mouse control.">
+                <input type="checkbox" id="MOUSESWINGS_BUTTON" name="mouseswings" onclick="handleClick(this)">
+                <span>Disable mouse swings</span>
+              </label>
+
+              <label title="Toggles automated swing emulation on the preview blade while at rest (ie: shown when using SwingSpeed<>). Swinging while hovering over the preview area always shows swing blade effects according to movements.">
+                <input type="checkbox" id="AUTOSWING_BUTTON" name="autoswing" onclick="handleClick(this)">
+                <span>Swing Emulation</span>
+              </label>
+
+              <label title="Simulates In-Hilt LED blades, (no addressable pixel effects).">
+                <input type="checkbox" id="INHILT_BUTTON" name="inhilt" onclick="handleClick(this)">
+                <span>Inhilt LED</span>
+              </label>
+
+              <label title="Provides &quot;snapshots&quot; of rapidly moving things to see what they look like without fast movement. *Note* Graflex hilt model probably won't be able to render with this on.">
+                <input type="checkbox" id="SLOW_BUTTON" name="slow" onclick="handleClick(this)">
+                <span>Slow</span>
+              </label>
+            </div>
+            <div class="settings-section">
+              <h4 class="settings-section-label" title="These settings are useful for people making modifications to the style editor.">Developer Settings:</h4>
+              <label title="Benchmark how many passes we can render per frame.">
+                <input type="checkbox" id="BENCHMARK_BUTTON" name="benchmark" onclick="handleClick(this)">
+                <span>Benchmark</span>
+              </label>
+            </div>
+            <br>
+            <button
+              title="Restore all settings to default, including restoring popups."
+              id="restore_defaults" onclick="ClickRestore()">Restore Defaults</button>
+          </div>
+        <br>
+        <div id=TABS>
+          <div id=TABLINKS class=tab></div>
+          <div id=TABBODIES></div>
+        </div>
+      </div>
+    </div> <!-- page-left -->
+    <div class="page-right">
       <div id="structured_view" class="structured-view">
         <span class="structured-view-label">Structured view, click to edit.</span>
         <div id="pp" class="pp"></div>
       </div>
-    </td>
-    </tr>
-  </table>
+    </div>
+  </div> <!-- main-container -->
   <script src="style_editor.js"></script>
   </body>
 </html>
