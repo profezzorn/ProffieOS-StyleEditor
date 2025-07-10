@@ -8811,14 +8811,6 @@ function toggleSettingsPanel() {
 // Call the onPageLoad function when the page is loaded
 window.addEventListener('DOMContentLoaded', onPageLoad);
 
-let resizeTimeout;
-window.addEventListener('resize', () => {
-  clearTimeout(resizeTimeout);
-  resizeTimeout = setTimeout(() => {
-    location.reload();
-  }, 500);
-});
-
 var all_saved_states = [];
 var state_by_checkbox = new Map();
 var body = document.querySelector("body");
