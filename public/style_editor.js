@@ -8421,53 +8421,11 @@ function ClickRotate() {
 }
 
 /*
-This function computes the delay for triggering ignition/postoff.
-In order to have ignition or postoff always wait for the longest relevant transition to finish,
-we use the longest transition time out of:
-- the corresponding transitions of an InOutTrL
-  • OUT_TR for ignition (PREON delay)
-  • IN_TR for retraction (POSTOFF delay)
-- or any TransitionEffectL layer with an EFFECT matching effectType
-  • EFFECT_PREON
-  • EFFECT_IGNITION
-  • EFFECT_RETRACTION
-  • EFFECT_POSTOFF
+Compute delay for triggering ignition/postoff.
+Use whichever has the longest transition.
+For ignition delay, check any/all EFFECT_PREON layers.
+For POSTOFF delay, check any/all IN_TR, EFFECT_IGNITION, or EFFECT_RETRACTION layers.
 */
-function ComputeEffectDelay(style, inoutSelector, effectType) {
-  var delays = [];
-  var inout = style.LAYERS && style.LAYERS.find
-    ? style.LAYERS.find(l => l.constructor.name === 'InOutTrLClass')
-    : null;
-  // inoutSelector is OUT_TR or IN_TR
-  // If we have one, push it to the delays array.
-  if (inout && inout[inoutSelector] && inout[inoutSelector].MILLIS) {
-    var ms = inout[inoutSelector].MILLIS.getInteger(0);
-    delays.push(ms);
-  }
-  // Recursively sum transition durations for TransitionEffectL layers.
-  function getDur(n) {
-    if (n.MILLIS) return n.MILLIS.getInteger(0);
-    var sum = 0;
-    if (n.args) for (let a of n.args) sum += getDur(a);
-    return sum;
-  }
-
-  // Use getDur and push to delays array.
-  if (style.LAYERS && Array.isArray(style.LAYERS)) {
-    style.LAYERS.forEach(function(l, idx) {
-      if (l.constructor.name === 'TransitionEffectLClass'
-          && l.EFFECT && typeof l.EFFECT.getInteger === 'function'
-          && l.EFFECT.getInteger(0) === effectType) {
-        let dur = getDur(l.TRANSITION, 0);
-        delays.push(dur);
-      }
-    });
-  }
-  // Finally, return the longest transition time found, or zero if we have none.
-  let result = delays.length ? Math.max.apply(null, delays) : 0;
-  return result;
-}
-
 function ClickPower() {
   STATE_ON = !STATE_ON; STATE_LOCKUP=0;
   var power_button = FIND("POWER_BUTTON");
@@ -8482,21 +8440,58 @@ function ClickPower() {
     );
   }
 
+  // Recursively sum transition durations
+  function getDur(n) {
+    if (n.MILLIS) return n.MILLIS.getInteger(0);
+    var sum = 0;
+    if (n.args) for (let a of n.args) sum += getDur(a);
+    return sum;
+  }
+
   // If turning ON and the style has PREON, trigger it and delay ignition until it finishes.
   if (STATE_ON) {
     if (effectIsPreonOrPostoff(current_style, EFFECT_PREON)) {
       blade.addEffect(EFFECT_PREON, 0.0);
-      var preonDelay = ComputeEffectDelay(current_style, 'OUT_TR', EFFECT_PREON);
+      // Only use the max PREON transition delay, NOT OUT_TR!
+      var preonDelay = 0;
+      if (current_style.LAYERS && Array.isArray(current_style.LAYERS)) {
+        current_style.LAYERS.forEach(function(l) {
+          if (
+            l.constructor.name === 'TransitionEffectLClass' &&
+            l.EFFECT && typeof l.EFFECT.getInteger === 'function' &&
+            l.EFFECT.getInteger(0) === EFFECT_PREON
+          ) {
+            let dur = getDur(l.TRANSITION);
+            if (dur > preonDelay) preonDelay = dur;
+          }
+        });
+      }
       setTimeout(function(){ blade.addEffect(EFFECT_IGNITION, Math.random() * 0.7 + 0.2); }, preonDelay);
     } else {
-      // If no PREON, just trigger ignition immediately.
       blade.addEffect(EFFECT_IGNITION, Math.random() * 0.7 + 0.2);
     }
   } else {
     blade.addEffect(EFFECT_RETRACTION, Math.random() * 0.7 + 0.2);
     // Only trigger POSTOFF if the style actually contains it.
     if (effectIsPreonOrPostoff(current_style, EFFECT_POSTOFF)) {
-      var postoffDelay = ComputeEffectDelay(current_style, 'IN_TR', EFFECT_RETRACTION);
+      // Use the max delay from: IN_TR or any EFFECT_RETRACTION
+      var postoffDelay = 0;
+      if (current_style.LAYERS && Array.isArray(current_style.LAYERS)) {
+        let inout = current_style.LAYERS.find(l => l.constructor.name === 'InOutTrLClass');
+        if (inout && inout.IN_TR && inout.IN_TR.MILLIS) {
+          postoffDelay = inout.IN_TR.MILLIS.getInteger(0);
+        }
+        current_style.LAYERS.forEach(function(l) {
+          if (
+            l.constructor.name === 'TransitionEffectLClass' &&
+            l.EFFECT && typeof l.EFFECT.getInteger === 'function' &&
+            l.EFFECT.getInteger(0) === EFFECT_RETRACTION
+          ) {
+            let dur = getDur(l.TRANSITION);
+            if (dur > postoffDelay) postoffDelay = dur;
+          }
+        });
+      }
       setTimeout(function(){ blade.addEffect(EFFECT_POSTOFF, 0.0); }, postoffDelay);
     }
   }
