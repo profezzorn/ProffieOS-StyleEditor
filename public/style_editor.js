@@ -8474,7 +8474,7 @@ function ClickPower() {
   power_button.classList.toggle("button-latched", STATE_ON ? true : false);
   console.log("POWER");
 
-  function hasPreonOrPostoff(style, effectType) {
+  function effectIsPreonOrPostoff(style, effectType) {
     return style.LAYERS && style.LAYERS.some(l =>
       l.constructor && l.constructor.name === 'TransitionEffectLClass' &&
       l.EFFECT && l.EFFECT.getInteger &&
