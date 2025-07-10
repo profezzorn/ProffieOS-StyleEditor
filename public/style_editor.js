@@ -104,28 +104,28 @@ class Matrix {
     return ret;
   }
     static fromValues(a, b, c, d,
-		      e, f, g, h,
-		      i, j, k, l,
-		      m, n, o, p) {
-	var ret = new Matrix(4, 4);
-	ret.values[0] = a;
-	ret.values[1] = b;
-	ret.values[2] = c;
-	ret.values[3] = d;
-	ret.values[4] = e;
-	ret.values[5] = f;
-	ret.values[6] = g;
-	ret.values[7] = h;
-	ret.values[8] = i;
-	ret.values[9] = j;
-	ret.values[10] = k;
-	ret.values[11] = l;
-	ret.values[12] = m;
-	ret.values[13] = n;
-	ret.values[14] = o;
-	ret.values[15] = p;
-	return ret;
-	
+                    e, f, g, h,
+                    i, j, k, l,
+                    m, n, o, p) {
+        var ret = new Matrix(4, 4);
+        ret.values[0] = a;
+        ret.values[1] = b;
+        ret.values[2] = c;
+        ret.values[3] = d;
+        ret.values[4] = e;
+        ret.values[5] = f;
+        ret.values[6] = g;
+        ret.values[7] = h;
+        ret.values[8] = i;
+        ret.values[9] = j;
+        ret.values[10] = k;
+        ret.values[11] = l;
+        ret.values[12] = m;
+        ret.values[13] = n;
+        ret.values[14] = o;
+        ret.values[15] = p;
+        return ret;
+        
     }
 
   tostr() {
@@ -992,7 +992,7 @@ class CONFIG extends STYLE {
     var id = this.get_id();
     var ret = "";
     ret += "<span title='"+ note +"'>" + name + "</span>&lt;\n";
-    ret += "<div style='margin-left:1em'>\n";
+    ret += "<div>\n";
     var comma = false;
     for (var i = 2; i < arguments.length; i += 2) {
       if (comma) ret += ",<br>";
@@ -1044,14 +1044,6 @@ function ClickColor() {
   var B = FixColor(color_button.value.substr(5,2));
   SetTo("Rgb16<"+R+","+G+","+B+">");
 }
-
-//var qlinks = "<b>Colors</b> <input type=color id=COLOR value='#ff0000' onclick='ClickColor()' />";
-//var effect_links = "<b>Effects:</b>";
-//var layer_links = "";
-//var effect_type_links = "<b>Effect Types:</b>";
-//var template_links = "<b>Templates:</b>";
-//var function_links = "<b>Functions:</b>";
-//var transition_links = "<b>Transitions:</b>";
 
 var effect_links = [];
 var layer_links = [];
@@ -1333,13 +1325,11 @@ function encstr(s) {
 }
 
 function mkbutton2(name, val) {
-  return "<input type=button class=btn onclick='SetToAndFormat(\""+val+"\")' value='"+enc(name)+"'>\n";
-  //  return "<span class=btn onclick='SetTo(\""+name+"\")'>"+enc(name)+"</span>\n";
+  return "<input type=button class='btn' onclick='SetToAndFormat(\""+val+"\", event)' value='"+enc(name)+"'>\n";
 }
+
 function mkbutton(name) {
   return mkbutton2(name, name);
-//  return "<input type=button class=btn onclick='SetTo(\""+name+"\")' value='"+enc(name)+"'>\n";
-  //  return "<span class=btn onclick='SetTo(\""+name+"\")'>"+enc(name)+"</span>\n";
 }
 
 
@@ -1425,7 +1415,6 @@ function rgbToHsl(r, g, b) {
 
   return [ h, s, l ];
 }
-
 
 function mkcolorbutton(name, r, g, b) {
   r = mapcolor(r);
@@ -1690,6 +1679,47 @@ AddColor("SteelBlue", 14, 57, 118);
 AddColor("Tomato", 255, 31, 15);
 AddColor("White", 255, 255, 255);
 AddColor("Yellow", 255, 255, 0);
+
+// New in ProffieOS 8.x:
+AddColor("ElectricPurple", 127, 0, 255);
+AddColor("ElectricViolet", 71, 0, 255);
+AddColor("ElectricLime", 156, 255, 0);
+AddColor("Amber", 255, 135, 0);
+AddColor("CyberYellow", 255, 168, 0);
+AddColor("CanaryYellow", 255, 221, 0);
+AddColor("PaleGreen", 28, 255, 28);
+AddColor("Flamingo", 255, 80, 254);
+AddColor("VividViolet", 90, 0, 255);
+AddColor("PsychedelicPurple", 186, 0, 255);
+AddColor("HotMagenta", 255, 0, 156);
+AddColor("BrutalPink", 255, 0, 128);
+AddColor("NeonRose", 255, 0, 55);
+AddColor("VividRaspberry", 255, 0, 38);
+AddColor("HaltRed", 255, 0, 19);
+AddColor("MoltenCore", 255, 24, 0);
+AddColor("SafetyOrange", 255, 33, 0);
+AddColor("OrangeJuice", 255, 55, 0);
+AddColor("Orange", 255, 97, 0);
+AddColor("ImperialYellow", 255, 115, 0);
+AddColor("SchoolBus", 255, 176, 0);
+AddColor("SuperSaiyan", 255, 186, 0);
+AddColor("Star", 255, 201, 0);
+AddColor("Lemon", 255, 237, 0);
+AddColor("ElectricBanana", 246, 255, 0);
+AddColor("BusyBee", 231, 255, 0);
+AddColor("ZeusBolt", 219, 255, 0);
+AddColor("LimeZest", 186, 255, 0);
+AddColor("Limoncello", 135, 255, 0);
+AddColor("CathodeGreen", 0, 255, 22);
+AddColor("MintyParadise", 0, 255, 128);
+AddColor("PlungePool", 0, 255, 156);
+AddColor("VibrantMint", 0, 255, 201);
+AddColor("MasterSwordBlue", 0, 255, 219);
+AddColor("BrainFreeze", 0, 219, 255);
+AddColor("BlueRibbon", 0, 33, 255);
+AddColor("RareBlue", 0, 13, 255);
+AddColor("OverdueBlue", 13, 0, 255);
+AddColor("ViolentViolet", 55, 0, 255);
 
 AddLayer("InOutHelperL<InOutFuncX<Int<300>,Int<800>>>");
 AddLayer("InOutTrL<TrWipe<300>,TrWipeIn<500>>");
@@ -5144,7 +5174,7 @@ class TrConcatClass extends TRANSITION {
   done() {
     return this.pos_ >= this.ARGS.length;
   }
-  
+
   run(blade) {
     if (this.done()) return;
     if (this.c1p != -1) this.ARGS[this.c1p].run(blade);
@@ -5156,7 +5186,7 @@ class TrConcatClass extends TRANSITION {
       if (this.done()) break;
       if (this.ARGS[this.pos_].getType() != "TRANSITION") {
         this.c1p = this.c2p;
-	this.updateC2P()
+        this.updateC2P()
         if (this.c2p != -1) this.ARGS[this.c2p].run(blade);
         this.pos_++;
       }
@@ -7575,6 +7605,46 @@ AddIdentifier("Tomato", Rgb.bind(null, 255, 31, 15));
 AddIdentifier("White", Rgb.bind(null, 255, 255, 255));
 AddIdentifier("Yellow", Rgb.bind(null, 255, 255, 0));
 
+// New in ProffieOS 8
+AddIdentifier("ElectricPurple", Rgb.bind(null, 127, 0, 255));
+AddIdentifier("ElectricViolet", Rgb.bind(null, 71, 0, 255));
+AddIdentifier("ElectricLime", Rgb.bind(null, 156, 255, 0));
+AddIdentifier("Amber", Rgb.bind(null, 255, 135, 0));
+AddIdentifier("CyberYellow", Rgb.bind(null, 255, 168, 0));
+AddIdentifier("CanaryYellow", Rgb.bind(null, 255, 221, 0));
+AddIdentifier("PaleGreen", Rgb.bind(null, 28, 255, 28));
+AddIdentifier("Flamingo", Rgb.bind(null, 255, 80, 254));
+AddIdentifier("VividViolet", Rgb.bind(null, 90, 0, 255));
+AddIdentifier("PsychedelicPurple", Rgb.bind(null, 186, 0, 255));
+AddIdentifier("HotMagenta", Rgb.bind(null, 255, 0, 156));
+AddIdentifier("BrutalPink", Rgb.bind(null, 255, 0, 128));
+AddIdentifier("NeonRose", Rgb.bind(null, 255, 0, 55));
+AddIdentifier("VividRaspberry", Rgb.bind(null, 255, 0, 38));
+AddIdentifier("HaltRed", Rgb.bind(null, 255, 0, 19));
+AddIdentifier("MoltenCore", Rgb.bind(null, 255, 24, 0));
+AddIdentifier("SafetyOrange", Rgb.bind(null, 255, 33, 0));
+AddIdentifier("OrangeJuice", Rgb.bind(null, 255, 55, 0));
+AddIdentifier("ImperialYellow", Rgb.bind(null, 255, 115, 0));
+AddIdentifier("SchoolBus", Rgb.bind(null, 255, 176, 0));
+AddIdentifier("SuperSaiyan", Rgb.bind(null, 255, 186, 0));
+AddIdentifier("Star", Rgb.bind(null, 255, 201, 0));
+AddIdentifier("Lemon", Rgb.bind(null, 255, 237, 0));
+AddIdentifier("ElectricBanana", Rgb.bind(null, 246, 255, 0));
+AddIdentifier("BusyBee", Rgb.bind(null, 231, 255, 0));
+AddIdentifier("ZeusBolt", Rgb.bind(null, 219, 255, 0));
+AddIdentifier("LimeZest", Rgb.bind(null, 186, 255, 0));
+AddIdentifier("Limoncello", Rgb.bind(null, 135, 255, 0));
+AddIdentifier("CathodeGreen", Rgb.bind(null, 0, 255, 22));
+AddIdentifier("MintyParadise", Rgb.bind(null, 0, 255, 128));
+AddIdentifier("PlungePool", Rgb.bind(null, 0, 255, 156));
+AddIdentifier("VibrantMint", Rgb.bind(null, 0, 255, 201));
+AddIdentifier("MasterSwordBlue", Rgb.bind(null, 0, 255, 219));
+AddIdentifier("BrainFreeze", Rgb.bind(null, 0, 219, 255));
+AddIdentifier("BlueRibbon", Rgb.bind(null, 0, 33, 255));
+AddIdentifier("RareBlue", Rgb.bind(null, 0, 13, 255));
+AddIdentifier("OverdueBlue", Rgb.bind(null, 13, 0, 255));
+AddIdentifier("ViolentViolet", Rgb.bind(null, 55, 0, 255));
+
 class Parser {
   constructor(str, classes, identifiers) {
     console.log("PARSING: " + str);
@@ -7897,72 +7967,72 @@ function getSaberColors() {
     current_micros_internal += delta_us;
     current_micros = current_micros_internal
     if (current_micros - last_micros > 1000000/45) {
-	bad_fps ++;
-	if (good_fps) good_fps--;
+        bad_fps ++;
+        if (good_fps) good_fps--;
     } else {
-	if (bad_fps) bad_fps --;
-	good_fps++;
+        if (bad_fps) bad_fps --;
+        good_fps++;
     }
     if (benchmarkState.get()) {
-	if (bad_fps > 20) {
+        if (bad_fps > 20) {
             if (AA_STEP_SIZE < 0) AA_STEP_SIZE-=1; else AA_STEP_SIZE=-1;
             AA+=AA_STEP_SIZE;
-	    if (AA < 1) AA = 1;
-	    compile();
-	    bad_fps = 0;
+            if (AA < 1) AA = 1;
+            compile();
+            bad_fps = 0;
             FIND("error_message").innerHTML = "AA="+AA;
-	}
-	if (good_fps > 20) {
+        }
+        if (good_fps > 20) {
             if (AA_STEP_SIZE > 0) AA_STEP_SIZE+=1; else AA_STEP_SIZE=1;
             AA+=AA_STEP_SIZE;
-	    compile();
-	    good_fps = 0;
+            compile();
+            good_fps = 0;
             FIND("error_message").innerHTML = "AA="+AA;
-	}
+        }
     }
     var num_leds = blade.num_leds()
     if (!pixels || pixels.length != num_leds * 3) {
-	pixels = new Float32Array(num_leds * 3);
+        pixels = new Float32Array(num_leds * 3);
     }
     var S = current_style;
     if (S != last_style) {
-	last_style = S;
-	if (S.getType) {
-	    S.set_right_side(current_focus || style_tree)
-	    if (S.getType() == "TRANSITION") {
-		S = TransitionLoop(Rgb(0,0,0), TrConcat(TrDelay(500), Rgb(255,0,0), S, Rgb(0,0,255), TrInstant()));
-	    }
-	    if (S.getType() == "FUNCTION") {
-		S = Mix(S, Rgb(0,0,0), Rgb(255,255,255));
-	    }
-	}
-	show_style = S;
+        last_style = S;
+        if (S.getType) {
+            S.set_right_side(current_focus || style_tree)
+            if (S.getType() == "TRANSITION") {
+              S = TransitionLoop(Rgb(0,0,0), TrConcat(TrDelay(500), Rgb(255,0,0), S, Rgb(0,0,255), TrInstant()));
+            }
+            if (S.getType() == "FUNCTION") {
+              S = Mix(S, Rgb(0,0,0), Rgb(255,255,255));
+            }
+        }
+        show_style = S;
     } else {
-	S = show_style;
+        S = show_style;
     }
     numTick++;
     if (S.getColor && S.getType && S.getType() == "COLOR" && numTick > framesPerUpdate) {
-	numTick = 0;
-	S.run(blade);
-	for (var i = 0; i < num_leds; i++) {
+        numTick = 0;
+        S.run(blade);
+        for (var i = 0; i < num_leds; i++) {
             var c = S.getColor(i);
             pixels[i*3 + 0] = c.r / 2;
             pixels[i*3 + 1] = c.g / 2;
             pixels[i*3 + 2] = c.b / 2;
-	}
-	if (last_micros != 0) {
-	    current_micros += delta_us / 2;
-	}
-	if (framesPerUpdate == 0) {
-	    S.run(blade);
-	}
-	for (var i = 0; i < num_leds; i++) {
+        }
+        if (last_micros != 0) {
+            current_micros += delta_us / 2;
+        }
+        if (framesPerUpdate == 0) {
+            S.run(blade);
+        }
+        for (var i = 0; i < num_leds; i++) {
             var c = S.getColor(i);
             pixels[i*3 + 0] += c.r / 2;
             pixels[i*3 + 1] += c.g / 2;
             pixels[i*3 + 2] += c.b / 2;
-	}
-	S.update_displays();
+        }
+        S.update_displays();
     }
     t += 1;
     return pixels;
@@ -7993,7 +8063,7 @@ function getSaberMove() {
  //  rotation = rotation.mult(Matrix.mkzrot(-Math.PI/2.0));
     //  rotation = rotation.mult(Matrix.mkyrot(-Math.PI/2.0));
     rotation = Matrix.fromValues(
-	0.0, -1.0, 0.0, 0.0,
+        0.0, -1.0, 0.0, 0.0,
         0.0, 0.0, -1.0, 0.0,
         1.0, 0.0, 0.0, 0.0,
         0.0, 0.0, 0.0, 1.0).mult(rotation);
@@ -8024,16 +8094,16 @@ function drawScene() {
      if (bad_fps > 20) {
         if (AA_STEP_SIZE < 0) AA_STEP_SIZE-=1; else AA_STEP_SIZE=-1;
         AA+=AA_STEP_SIZE;
-	if (AA < 1) AA = 1;
-	compile();
-	bad_fps = 0;
+        if (AA < 1) AA = 1;
+        compile();
+        bad_fps = 0;
         FIND("error_message").innerHTML = "AA="+AA;
      }
      if (good_fps > 20) {
         if (AA_STEP_SIZE > 0) AA_STEP_SIZE+=1; else AA_STEP_SIZE=1;
         AA+=AA_STEP_SIZE;
-	compile();
-	good_fps = 0;
+        compile();
+        good_fps = 0;
         FIND("error_message").innerHTML = "AA="+AA;
      }
   }
@@ -8484,7 +8554,7 @@ function Variant() {
 /* Variant Slider functions */
 
 function updateVariantValue(newValue) {
-    if (newValue < 0) {
+  if (newValue < 0) {
     newValue = 0;
   } else if (newValue > 32768) {
     newValue = 32768;
@@ -8841,7 +8911,7 @@ class SavedState {
     state_by_checkbox.set(checkbox, this);
 }
   onload() {
-    this.set(getSavedState(this.name+"Save", this.def));
+    this.set(getSavedState(this.name + "Save", this.def));
   }
   set(value) {
     this.value = value;
@@ -8970,13 +9040,6 @@ function SetupRendering() {
 
   Run();
   DoLayerize();
-
-  //FIND("color_links").innerHTML = qlinks;
-  //FIND("effect_links").innerHTML = effect_links;
-  //FIND("effect_type_links").innerHTML = effect_type_links;
-  //FIND("template_links").innerHTML = template_links;
-  //FIND("function_links").innerHTML = function_links;
-  //FIND("transition_links").innerHTML = transition_links;
 
   // Start the event loop.
   tick();
