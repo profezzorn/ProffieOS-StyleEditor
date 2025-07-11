@@ -8432,7 +8432,7 @@ function ClickPower() {
   power_button.classList.toggle("button-latched", STATE_ON ? true : false);
   console.log("POWER");
 
-  function effectIsPreonOrPostoff(style, effectType) {
+  function styleHasPreonOrPostoff(style, effectType) {
     return style.LAYERS && style.LAYERS.some(l =>
       l.constructor && l.constructor.name === 'TransitionEffectLClass' &&
       l.EFFECT && l.EFFECT.getInteger &&
@@ -8450,7 +8450,7 @@ function ClickPower() {
 
   // If turning ON and the style has PREON, trigger it and delay ignition until it finishes.
   if (STATE_ON) {
-    if (effectIsPreonOrPostoff(current_style, EFFECT_PREON)) {
+    if (styleHasPreonOrPostoff(current_style, EFFECT_PREON)) {
       blade.addEffect(EFFECT_PREON, 0.0);
       // Only use the max PREON transition delay, NOT OUT_TR!
       var preonDelay = 0;
@@ -8473,7 +8473,7 @@ function ClickPower() {
   } else {
     blade.addEffect(EFFECT_RETRACTION, Math.random() * 0.7 + 0.2);
     // Only trigger POSTOFF if the style actually contains it.
-    if (effectIsPreonOrPostoff(current_style, EFFECT_POSTOFF)) {
+    if (styleHasPreonOrPostoff(current_style, EFFECT_POSTOFF)) {
       // Use the max delay from: IN_TR or any EFFECT_RETRACTION
       var postoffDelay = 0;
       if (current_style.LAYERS && Array.isArray(current_style.LAYERS)) {
