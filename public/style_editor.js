@@ -8452,7 +8452,7 @@ function ClickPower() {
   if (STATE_ON) {
     if (styleHasPreonOrPostoff(current_style, EFFECT_PREON)) {
       blade.addEffect(EFFECT_PREON, 0.0);
-      // Only use the max PREON transition delay, NOT OUT_TR!
+      // Use the longest PREON transition to delay ignition.
       var preonDelay = 0;
       if (current_style.LAYERS && Array.isArray(current_style.LAYERS)) {
         current_style.LAYERS.forEach(function(l) {
@@ -8474,23 +8474,13 @@ function ClickPower() {
     blade.addEffect(EFFECT_RETRACTION, Math.random() * 0.7 + 0.2);
     // Only trigger POSTOFF if the style actually contains it.
     if (styleHasPreonOrPostoff(current_style, EFFECT_POSTOFF)) {
-      // Use the max delay from: IN_TR or any EFFECT_RETRACTION
+      // Use the longest PREON transition to delay ignition.
       var postoffDelay = 0;
       if (current_style.LAYERS && Array.isArray(current_style.LAYERS)) {
         let inout = current_style.LAYERS.find(l => l.constructor.name === 'InOutTrLClass');
         if (inout && inout.IN_TR && inout.IN_TR.MILLIS) {
           postoffDelay = inout.IN_TR.MILLIS.getInteger(0);
         }
-        current_style.LAYERS.forEach(function(l) {
-          if (
-            l.constructor.name === 'TransitionEffectLClass' &&
-            l.EFFECT && typeof l.EFFECT.getInteger === 'function' &&
-            l.EFFECT.getInteger(0) === EFFECT_RETRACTION
-          ) {
-            let dur = getDur(l.TRANSITION);
-            if (dur > postoffDelay) postoffDelay = dur;
-          }
-        });
       }
       setTimeout(function(){ blade.addEffect(EFFECT_POSTOFF, 0.0); }, postoffDelay);
     }
