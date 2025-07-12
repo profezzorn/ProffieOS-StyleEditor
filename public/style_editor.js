@@ -1699,7 +1699,6 @@ AddColor("HaltRed", 255, 0, 19);
 AddColor("MoltenCore", 255, 24, 0);
 AddColor("SafetyOrange", 255, 33, 0);
 AddColor("OrangeJuice", 255, 55, 0);
-AddColor("Orange", 255, 97, 0);
 AddColor("ImperialYellow", 255, 115, 0);
 AddColor("SchoolBus", 255, 176, 0);
 AddColor("SuperSaiyan", 255, 186, 0);
