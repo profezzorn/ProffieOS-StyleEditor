@@ -3072,9 +3072,6 @@ function AddNewfont() {
 function AddBoot() {
   blade.addEffect(EFFECT_BOOT, Math.random() * 0.7 + 0.2);
 }
-function AddPreon() {
-  blade.addEffect(EFFECT_PREON, 0.0);
-}
 
 var blast_hump = [ 255,255,252,247,240,232,222,211,
                    199,186,173,159,145,132,119,106,
@@ -3692,7 +3689,10 @@ class Blade {
     return STATE_NUM_LEDS;
   }
   addEffect(type, location) {
-    console.log("Add effect " + type + " @ " + location);
+    // Use actual effect name for console logging clarity.
+    const effectName = Object.keys(window).find(
+      key => window[key] === type && key.indexOf("EFFECT_") === 0) || type;
+    console.log("Add effect " + effectName + " (" + type + ") @ " + location);
     this.effects_.push(new BladeEffect(type, micros(), location));
   }
   GetEffects() {
@@ -4337,18 +4337,28 @@ class InOutTrLClass extends STYLE {
     this.on_ = false;
     this.out_active_ = false;
     this.in_active_ = false;
+    this.ignitionDetector = new OneshotEffectDetector(EFFECT_IGNITION);
   }
   run(blade) {
     this.OFF.run(blade);
 
     if (this.on_ != blade.is_on()) {
-      this.on_ = blade.is_on();
-      if (this.on_) {
-        this.OUT_TR.begin();
-        this.out_active_ = true;
-      } else {
+      if (!blade.is_on()) {
+        this.on_ = false;
+        this.ignitionDetector.last_detected_ = micros();
+        this.out_active_ = false;
         this.IN_TR.begin();
         this.in_active_ = true;
+      } else {
+        this.on_ = true;
+        this.in_active_ = false;
+      }
+    }
+    // Ignition based on EFFECT_IGNITION
+    if (blade.is_on()) {
+      if (this.ignitionDetector.Detect(blade)) {
+        this.OUT_TR.begin();
+        this.out_active_ = true;
       }
     }
 
@@ -8479,12 +8489,71 @@ function ClickRotate() {
   console.log("ROTATE");
 }
 
+/*
+Compute delay for triggering ignition/postoff.
+Use whichever has the longest transition.
+For ignition delay, check any/all EFFECT_PREON layers.
+For POSTOFF delay, check any/all IN_TR, EFFECT_IGNITION, or EFFECT_RETRACTION layers.
+*/
 function ClickPower() {
   STATE_ON = !STATE_ON; STATE_LOCKUP=0;
   var power_button = FIND("POWER_BUTTON");
   power_button.classList.toggle("button-latched", STATE_ON ? true : false);
   console.log("POWER");
-  blade.addEffect(STATE_ON ? EFFECT_IGNITION : EFFECT_RETRACTION, Math.random() * 0.7 + 0.2);
+
+  function styleHasPreonOrPostoff(style, effectType) {
+    return style.LAYERS && style.LAYERS.some(l =>
+      l.constructor && l.constructor.name === 'TransitionEffectLClass' &&
+      l.EFFECT && l.EFFECT.getInteger &&
+      l.EFFECT.getInteger(0) === effectType
+    );
+  }
+
+  // Recursively sum transition durations
+  function getDur(n) {
+    if (n.MILLIS) return n.MILLIS.getInteger(0);
+    var sum = 0;
+    if (n.args) for (let a of n.args) sum += getDur(a);
+    return sum;
+  }
+
+  // If turning ON and the style has PREON, trigger it and delay ignition until it finishes.
+  if (STATE_ON) {
+    if (styleHasPreonOrPostoff(current_style, EFFECT_PREON)) {
+      blade.addEffect(EFFECT_PREON, 0.0);
+      // Use the longest PREON transition to delay ignition.
+      var preonDelay = 0;
+      if (current_style.LAYERS && Array.isArray(current_style.LAYERS)) {
+        current_style.LAYERS.forEach(function(l) {
+          if (
+            l.constructor.name === 'TransitionEffectLClass' &&
+            l.EFFECT && typeof l.EFFECT.getInteger === 'function' &&
+            l.EFFECT.getInteger(0) === EFFECT_PREON
+          ) {
+            let dur = getDur(l.TRANSITION);
+            if (dur > preonDelay) preonDelay = dur;
+          }
+        });
+      }
+      setTimeout(function(){ blade.addEffect(EFFECT_IGNITION, Math.random() * 0.7 + 0.2); }, preonDelay);
+    } else {
+      blade.addEffect(EFFECT_IGNITION, Math.random() * 0.7 + 0.2);
+    }
+  } else {
+    blade.addEffect(EFFECT_RETRACTION, Math.random() * 0.7 + 0.2);
+    // Only trigger POSTOFF if the style actually contains it.
+    if (styleHasPreonOrPostoff(current_style, EFFECT_POSTOFF)) {
+      // Use the longest PREON transition to delay ignition.
+      var postoffDelay = 0;
+      if (current_style.LAYERS && Array.isArray(current_style.LAYERS)) {
+        let inout = current_style.LAYERS.find(l => l.constructor.name === 'InOutTrLClass');
+        if (inout && inout.IN_TR && inout.IN_TR.MILLIS) {
+          postoffDelay = inout.IN_TR.MILLIS.getInteger(0);
+        }
+      }
+      setTimeout(function(){ blade.addEffect(EFFECT_POSTOFF, 0.0); }, postoffDelay);
+    }
+  }
 }
 
 var lockups_to_event = {};
@@ -8760,7 +8829,6 @@ function ActivateTab(tab) {
             EFFECT_FORCE,
             EFFECT_BOOT,
             EFFECT_NEWFONT,
-            EFFECT_PREON,
           ].includes(Number(value)));
 
         // Add sub-groups for the different categories of effects
