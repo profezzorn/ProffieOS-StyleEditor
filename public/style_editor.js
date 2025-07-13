@@ -280,6 +280,20 @@ class MyError {
   valueOf() { return this.desc; }
 };
 
+function ValidateInput(e) {
+  e.target.classList.remove('invalid');
+
+  if (e.target.value === "" || isNaN(Number(e.target.value))) {
+    e.target.classList.add('invalid');
+    // Force focus to keep user in the field
+    setTimeout(() => {
+      e.target.focus();
+      e.target.select();
+    }, 0);
+    return false;
+  }
+}
+
 function Arg(expected_type, arg, default_arg) {
   //console.log("ARGUMENT: " + expected_type);
   //console.log(arg);
@@ -6155,7 +6169,14 @@ class WavLenClass extends FUNCTION {
     super("Length of associated wav file in MS", arguments);
     this.add_arg("EFFECT", "EFFECT", "Which effect to get the length of.", EFFECT(EFFECT_NONE));
   }
-  getInteger(led) { return 500; }
+  // WavLen value can be set in settings panel
+  setLength(value) {
+    this.wavlenValue = value;
+     console.log("Updated WavLen: ", this.wavlenValue);
+  }
+  getInteger(led) {
+    return myWavLen.wavlenValue;
+  }
 };
 
 function WavLen(EFFECT) { return new WavLenClass(EFFECT); }
@@ -6414,14 +6435,16 @@ class SyncAltToVarianceFClass extends FUNCTION {
     if (VAR == this.last_ && Alt() == this.last_) return;
     if (this.last_ == 0x7fffffff) {
       console.log("SYNC FIRST");
-      FIND("ALT").value = VAR;
+      FIND("ALT_VALUE").value = VAR;
     } else if (VAR != this.last_) {
-      console.log("SYNC ALT");
-      FIND("ALT").value = VAR;
+      if (isNaN(VAR)) VAR = 0;
+      console.log("SYNC ALT: " + VAR);
+      FIND("ALT_VALUE").value = VAR;
       blade.addEffect(EFFECT_ALT_SOUND, 0.0);
     } else {
-      console.log("SYNC VAR");
       VAR = Alt();
+      if (isNaN(VAR)) VAR = 0;
+      console.log("SYNC VAR: " + VAR);
       FIND("VARIANT_VALUE").value = VAR;
     }
     this.last_ = VAR;
@@ -8400,6 +8423,7 @@ function ArgChanged(ARG) {
   var N = ArgumentName_ENUM_BUILDER.value_to_name[ARG];
   var tag = FIND("ARGSTR_"+N);
   setARG(ARG, tag.value);
+  console.log("Updated " + N + " : " + tag.value)
 }
 
 function IncreaseArg(ARG, I) {
@@ -8407,6 +8431,7 @@ function IncreaseArg(ARG, I) {
   var tag = FIND("ARGSTR_"+N);
   tag.value = parseInt(tag.value) + I;
   setARG(ARG, tag.value);
+  console.log("Updated " + N + " : " + tag.value)
 }
 
 function ClickArgColor(ARG) {
@@ -8536,14 +8561,23 @@ function ClickSave() {
 var num_alternatives = 1000;
 
 function Alt() {
-  return parseInt(FIND("ALT").value);
+  return parseInt(FIND("ALT_VALUE").value);
+}
+
+function updateAltValue(newValue) {
+  if (newValue > num_alternatives) {
+    newValue = num_alternatives;
+  }
+  FIND("ALT_VALUE").value = newValue;
+  console.log("Updated Alt: " + newValue);
 }
 
 function IncreaseAlt(n) {
   var v = Alt() + n;
   if (v < 0) v += num_alternatives;
   if (v > num_alternatives) v -= num_alternatives;
-  FIND("ALT").value = v;
+  FIND("ALT_VALUE").value = v;
+  console.log("Updated Alt: " + v)
 }
 
 function Variant() {
@@ -8854,13 +8888,14 @@ function ActivateTab(tab) {
           }
         };
 
-function toggleSettingsPanel() {
   var settingsButton = FIND("SETTINGS_BUTTON");
   var settingsPanel = FIND("settings_panel");
+  var soundButton = FIND("SOUND_BUTTON");
+  var soundPanel = FIND("sound_panel");
 
+  function toggleSettingsPanel() {
   settingsPanel.classList.toggle("show");
 
-  // Mouseleave event listener
   if (settingsPanel.classList.contains("show")) {
     var timeoutId = null;
     settingsPanel.addEventListener("mouseleave", function(e) {
@@ -8877,6 +8912,60 @@ function toggleSettingsPanel() {
   }
 }
 
+function toggleSoundPanel() {
+  // Prevent close button if invlaid input.
+  if (document.querySelector('input.invalid')) {
+    console.log(`*** INVALID INPUT - Not closing panel.`);
+    return;
+  }
+  soundPanel.classList.toggle("show");
+
+// Set position of sound panel correctly when it shows.
+  if (soundPanel.classList.contains("show")) {
+    positionSoundPanel();
+  }
+}
+
+function positionSoundPanel() {
+  const settingsPanel = document.getElementById("settings_panel");
+  const soundPanel = document.getElementById("sound_panel");
+  const settingsRect = settingsPanel.getBoundingClientRect();
+  const soundRect = soundPanel.getBoundingClientRect();
+
+  // Set the sound panel to the left of settings with 20px gap, vertically centered
+  soundPanel.style.position = "fixed";
+  soundPanel.style.left = (settingsRect.left - soundRect.width - 20) + "px";
+  soundPanel.style.top = (settingsRect.top + (settingsRect.height - soundRect.height) / 2) + "px";
+}
+
+// Minimal universal "click outside to close" for both panels
+document.body.addEventListener('click', function(e) {
+  // Don't close panel if there's invalid input.
+  if (document.querySelector('input.invalid')) {
+    console.log(`*** INVALID INPUT - Not closing panel.`);
+    return;
+  }
+  const soundPanel = FIND('sound_panel');
+  const soundButton = FIND('SOUND_BUTTON');
+  if (
+    soundPanel.classList.contains('show') &&
+    !soundPanel.contains(e.target) &&
+    e.target !== soundButton
+  ) {
+    soundPanel.classList.remove('show');
+  }
+
+  const settingsPanel = FIND('settings_panel');
+  const settingsButton = FIND('SETTINGS_BUTTON');
+  if (
+    settingsPanel.classList.contains('show') &&
+    !settingsPanel.contains(e.target) &&
+    e.target !== settingsButton
+  ) {
+    settingsPanel.classList.remove('show');
+  }
+});
+
 // Call the onPageLoad function when the page is loaded
 window.addEventListener('DOMContentLoaded', onPageLoad);
 
@@ -8884,16 +8973,14 @@ var all_saved_states = [];
 var state_by_checkbox = new Map();
 var body = document.querySelector("body");
 var structuredView;
+var wavlenInput = FIND("WAVLEN_VALUE");
+var myWavLen = new WavLenClass();
 
 /* Settings buttons saved as local storage */
 function getSavedState(buttonState, defaultValue) {
   var value = localStorage.getItem(buttonState);
   console.log("Retrieved SavedState for " + buttonState + ": " + value);
-
-  if (value === null) {
-    return defaultValue;
-  }
-  return value !== "false";
+  return (value === null ? defaultValue : value);
 }
 
 function saveState(buttonState, settingIsOn) {
@@ -8906,27 +8993,47 @@ class SavedState {
     this.def = def;
     this.update_function = update_function;
     all_saved_states.push(this);
-    const checkbox = FIND(this.name.toUpperCase()+"_BUTTON");
-    state_by_checkbox.set(checkbox, this);
-}
+  }
   onload() {
     this.set(getSavedState(this.name + "Save", this.def));
-  }
-  set(value) {
-    this.value = value;
-    FIND(this.name.toUpperCase()+"_BUTTON").checked = value ? true : false;
-    saveState(this.name+"Save", value);
-    this.update_function(value);
   }
   get() { return this.value; }
 }
 
-var darkState = new SavedState("dark", false, (on) => {
+class SavedStateBool extends SavedState {
+  constructor(name, def, update_function) {
+    super(name, def, update_function);
+    // For checkboxes, store the mapping for use in handleSettings().
+    const checkbox = FIND(name.toUpperCase() + "_BUTTON");
+    state_by_checkbox.set(checkbox, this);
+  }
+  set(value) {
+    const boolValue = (value === true || value === "true");
+    this.value = boolValue;
+    FIND(this.name.toUpperCase() + "_BUTTON").checked = boolValue;
+    saveState(this.name + "Save", boolValue);
+    this.update_function(boolValue);
+  }
+}
+
+class SavedStateNumber extends SavedState {
+  constructor(name, def, update_function) {
+    super(name, def, update_function);
+  }
+  set(value) {
+    this.value = value;
+    FIND(this.name.toUpperCase() + "_VALUE").value = value;
+    saveState(this.name + "Save", value);
+    this.update_function(value);
+  }
+}
+
+var darkState = new SavedStateBool("dark", false, (on) => {
   body.classList.toggle("dark-mode", on);
   structuredView.classList.toggle("dark-mode", on);
 });
 
-var tipsState = new SavedState("tips", true, (on) => { 
+var tipsState = new SavedStateBool("tips", true, (on) => {
  if (on) {
     const elementsWithDataTitles = document.querySelectorAll("[data-title]");
     elementsWithDataTitles.forEach((element) => {
@@ -8941,15 +9048,23 @@ var tipsState = new SavedState("tips", true, (on) => {
     });
   }
 });
-var colorsortState = new SavedState("colorsort", false, (on) => {
+var colorsortState = new SavedStateBool("colorsort", false, (on) => {
   updateRgbTabContent();
 });
-var graflexState = new SavedState("graflex", true, (on) => { compile(); });
-var mouseswingsState = new SavedState("mouseswings", false, (on) => {});
-var autoswingState = new SavedState("autoswing", true, (on) => {});
-var inhiltState = new SavedState("inhilt", false, (on) => { STATE_NUM_LEDS = on ? 1 : 144; });
-var slowState = new SavedState("slow", false, (on) => { framesPerUpdate = on ? 10 : 0; time_factor = framesPerUpdate == 0 ? 1000 : (500/framesPerUpdate)});
-var benchmarkState = new SavedState("benchmark", false, (on) => { AA=1; compile(); FIND("error_message").innerHTML = ""; });
+
+var graflexState = new SavedStateBool("graflex", true, (on) => { compile(); });
+var mouseswingsState = new SavedStateBool("mouseswings", false, (on) => {});
+var autoswingState = new SavedStateBool("autoswing", true, (on) => {});
+var inhiltState = new SavedStateBool("inhilt", false, (on) => { STATE_NUM_LEDS = on ? 1 : 144; });
+var slowState = new SavedStateBool("slow", false, (on) => { framesPerUpdate = on ? 10 : 0; time_factor = framesPerUpdate == 0 ? 1000 : (500/framesPerUpdate)});
+var benchmarkState = new SavedStateBool("benchmark", false, (on) => { AA=1; compile(); FIND("error_message").innerHTML = ""; });
+var wavlenState = new SavedStateNumber("wavlen", 500, (value) => {
+  myWavLen.setLength(value);
+});
+wavlenInput.addEventListener("focusout", function(e) {
+  ValidateInput(e);
+  wavlenState.set(Number(e.target.value));
+});
 
 // Create n textures of about 1MB each.
 function SetupRendering() {
@@ -8976,18 +9091,18 @@ function SetupRendering() {
 
   // Add arg string.
   var A = "";
-  A += "Arg string: <input id=ARGSTR name=arg type=input size=80 value='builtin 0 1' onchange='ArgStringChanged()' /><br><table>";
+  A += "Arg string: <input id=ARGSTR name=arg type=text size=80 value='builtin 0 1' onchange='ArgStringChanged()' /><br><table>";
   var v = Object.keys(ArgumentName_ENUM_BUILDER.value_to_name);
   for (var i = 0; i < v.length; i++) {
     var V = parseInt(v[i]);
     var N = ArgumentName_ENUM_BUILDER.value_to_name[V];
     A += "<tr><td>" + N + "</td><td>";
     if (N.search("COLOR") >= 0) {
-       A += "<input type=color id=ARGSTR_"+N+" onclick='ClickArgColor("+N+")' onchange='ClickArgColor("+N+")' >";
+      A += "<input type=color id=ARGSTR_"+N+" onclick='ClickArgColor("+N+")' onchange='ClickArgColor("+N+")' >";
     } else {
-       A += "<input type=button value='<'  onclick='IncreaseArg("+N+",-1)' >";
-       A += "<input id=ARGSTR_"+N+" type=input size=6 value=0 onchange='ArgChanged("+N+")' >";
-       A += "<input type=button value='>'  onclick='IncreaseArg("+N+",1)' >";
+      A += "<input type=button value='<'  onclick='IncreaseArg("+N+",-1)' >";
+      A += "<input id=ARGSTR_"+N+" type='text' size=6 value=0 class='nofocus' onchange='ArgChanged("+N+")' onfocusout='ValidateInput(event)' >";
+      A += "<input type=button value='>'  onclick='IncreaseArg("+N+",1)' >";
     }
     A += "</td></tr>\n";
   }
@@ -9052,7 +9167,7 @@ function onPageLoad() {
   });
 }
 
-function handleClick(checkbox) {
+function handleSettings(checkbox) {
   var state = state_by_checkbox.get(checkbox);
   state.set(!state.get());
 }
