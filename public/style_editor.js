@@ -125,7 +125,6 @@ class Matrix {
         ret.values[14] = o;
         ret.values[15] = p;
         return ret;
-        
     }
 
   tostr() {
