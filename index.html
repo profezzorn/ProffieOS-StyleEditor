@@ -53,6 +53,9 @@
 .fa-cog::before {
   content: "\f013"; }
 
+.fa-volume-high::before {
+  content: "\f028"; }
+
 .fa-solid {
   font-weight: 900; }
 
@@ -109,10 +112,23 @@ size when padding and margins may change */
 .dark-mode input[type="button"]:hover {
   background-color: #9F9F9F;
 }
+.dark-mode .settings-panel button,
+.dark-mode .sound-panel button {
+  background-color: steelblue;
+}
 .dark-mode button:active,
 .dark-mode .settings-panel button:active,
+.dark-mode .sound-panel button:active,
 .dark-mode input[type="button"]:active {
   background-color: steelblue;
+}
+.dark-mode .settings-panel button:hover,
+.dark-mode .sound-panel button:hover {
+ background-color: lightsteelblue;
+}
+.dark-mode .settings-panel label input[type="checkbox"],
+.dark-mode .sound-panel label input[type="checkbox"] {
+  accent-color: steelblue;
 }
 .dark-mode button.submit-button {
   background-color: forestgreen;
@@ -145,12 +161,14 @@ size when padding and margins may change */
   background-color: #333;
   color: white;
 }
-.dark-mode .settings-panel {
+.dark-mode .settings-panel,
+.dark-mode .sound-panel {
   border: 3px solid #ccc;
   background: #777;
   color: black;
 }
-.dark-mode .settings-panel .settings-panel-arrow {
+.dark-mode .sound-panel .sound-panel-arrow,
+.dark-mode .sound-panel .sound-panel-arrow {
   border-color: transparent #777 transparent transparent;
 }
 
@@ -181,10 +199,6 @@ size when padding and margins may change */
 
 .dark-mode .pp-container .running {
   border-color: chartreuse;
-}
-/* Keep color palette background white for reference. */
-.dark-mode .rgb-tabcontent {
-background-color: white;
 }
 
 /* Popup Window */
@@ -245,18 +259,25 @@ select:hover {
 }
 /* Settings Panel buttons
 need to be here to not override Other Buttons below */
-.settings-panel button {
-  background-color: #f44336;
+.settings-panel button,
+.sound-panel button {
+  background-color: #A1D1F3;
   color: black;
   margin-left: 46px;
   border: 1px solid black;
 }
-.settings-panel button.close-settings {
+.settings-panel button:hover,
+.sound-panel button:hover {
+  background-color: dodgerblue;
+}
+.settings-panel button.close-settings,
+.sound-panel button.close-sound {
   position: absolute;
   top: 0px;
   left: -40px;
   padding: 0px 4px;
   font-weight: bold;
+  background-color: Red;
 }
 /* Other buttons */
 button,
@@ -287,7 +308,15 @@ button.submit-button {
 button.submit-button:active {
   background-color: dodgerblue;
 }
-
+/*Guard against NaN in value inputs */
+input.invalid {
+  border: 2px dashed #000;
+  background-color: red;
+}
+input.nofocus:focus {
+  outline: none;
+  box-shadow: none;
+}
 /* Power and Rotate latching buttons */
 .page-left .button-latched,
 .page-left .button-latched:hover {
@@ -420,11 +449,12 @@ span.MAGIC_CLASS_EFFECT input[type=button].btn {
   padding: 2px 3px;
 }
 
-.settings-panel.show {
+.settings-panel.show,
+.sound-panel.show {
   opacity: 1;
   pointer-events: auto;
 }
-.settings-panel {
+.settings-panel{
   position: fixed;
   left: 50%;
   top: 50%;
@@ -442,14 +472,36 @@ span.MAGIC_CLASS_EFFECT input[type=button].btn {
   transition: opacity 0.25s ease-in-out;
   z-index: 1000;
 }
-.settings-panel label {
+
+.sound-panel {
+  position: fixed;
+  transform: none;
+  color: black;
+  border: 3px solid #888;
+  background: #ddd;
+  padding: 10px;
+  padding-left: 30px;
+  padding-right: 30px;
+  border-radius: 9px;
+  box-shadow: 6px 10px 10px rgba(0, 0, 0, 0.9);
+  opacity: 0; 
+  pointer-events: none;
+  transition: opacity 0.25s ease-in-out;
+  z-index: 1000;
+}
+
+.settings-panel label,
+.sound-panel label {
   display: flex;
   align-items: center;
 }
-.settings-panel label input[type="checkbox"] {
+.settings-panel label input[type="checkbox"],
+.sound-panel label input[type="checkbox"] {
+  accent-color: #A1D1F3;
   margin-right: 8px;
 }
-.settings-section {
+.settings-section,
+.sound-section {
   margin-bottom: 10px;
 }
 .settings-panel .settings-header-label {
@@ -458,13 +510,42 @@ span.MAGIC_CLASS_EFFECT input[type=button].btn {
   color: #333;
   font-size: 22px;
 }
-.settings-section-label {
+
+.settings-section-label,
+.sound-section-label {
   font-weight: bold;
   color: #333;
   margin-bottom: 5px;
   border-bottom: 2px solid #888;
   padding-bottom: 5px;
 }
+
+.wavlen-controls {
+  display: block;
+  margin-top: 5px;
+}
+.wavlen-label {
+  display: block;
+  margin-top: 5px;
+}
+.wavlen-value {
+  margin-left: 5px;
+}
+
+.wavlen-global-label.disabled {
+  color: #aaa !important;
+  opacity: 0.7;
+  pointer-events: none;
+}
+.wavlen-global-label.disabled input {
+  background-color: #eee;
+  color: #888;
+  cursor: not-allowed;
+}
+
+/*.tabs-container {
+  position: relative;
+}*/
 /* Style the tab */
 .tab {
   overflow: hidden;
@@ -1460,8 +1541,8 @@ void main() {
       <div class="canvas-container">      
         <canvas
           id="canvas_id"
-          onmousemove='mouse_move(event)' onmouseleave='mouse_leave(event)'
-          onclick='AddClickedEffect()'>
+          onmousemove="mouse_move(event)" onmouseleave="mouse_leave(event)"
+          onclick="AddClickedEffect()">
         </canvas>
         <button
           id="ENLARGE"
@@ -1521,39 +1602,36 @@ void main() {
         <span class="variant-alt-controls">
           <span class="variant-label">Variant:</span>
           <input
-            id="VARIANT_SLIDER" name=varslider type=range class="variant-slider"
+            id="VARIANT_SLIDER" name="varslider" type="range" class="variant-slider"
             title="Slide to adjust the Variant value."
             min="0" max="32768" step="1" value="0"
             oninput="updateVariantValue(this.value)" >
           <input
-            id="VARIANT_MINUS" name=varminus type=button value="<"
+            id="VARIANT_MINUS" name="varminus" type="button" value="<"
             title="Decreases the Variant value. Hold to increase speed of the changing value."
             onmousedown="startAdjustingValue(-1, 'VARIANT_SLIDER')"
             onmouseup="stopAdjustingValue()"
             onmouseleave="stopAdjustingValue()" >
           <input
-            id="VARIANT_VALUE" name=varvalue type='number' value="0"
+            id="VARIANT_VALUE" name="varvalue" type="text" size="6" value="0"
             title="The current Variant value. You can also type in this field for direct entry of a value."
-            oninput="updateVariantValue(this.value)"
-            onfocusout="SafeguardInputs(event)" >
+            oninput="updateVariantValue(this.value)" >
           <input
-            id="VARIANT_PLUS" name=varplus type=button value=">"
+            id="VARIANT_PLUS" name="varplus" type="button" value=">"
             title="Increases the Variant value. Hold to increase speed of the changing value."
             onmousedown="startAdjustingValue(1, 'VARIANT_SLIDER')"
             onmouseup="stopAdjustingValue()"
             onmouseleave="stopAdjustingValue()" >
         <span class="alt-label">Alt:</span>
           <input
-            id="ALT_MINUS" name=altminus type=button value="<"
+            id="ALT_MINUS" name="altminus" type="button" value="<"
             title="Decreases the Alt value."
             onclick="IncreaseAlt(-1)" >
           <input
-            id="ALT" name=alt type='number' value="0"
-            title="The current Alt value. You can also type in this field for direct entry of a value."
-            oninput="updateAltValue(this.value)"
-            onfocusout="SafeguardInputs(event)" >
+            id="ALT_VALUE" name="alt" type="text" size="3" value="0"
+            title="The current Alt value. You can also type in this field for direct entry of a value." >
           <input
-            id="ALT_PLUS" name=altplus type=button value=">"
+            id="ALT_PLUS" name="altplus" type="button" value=">"
             title="Increases the Alt value."
             onclick="IncreaseAlt(1)" >
         </span>
@@ -1563,7 +1641,7 @@ void main() {
       <span id="error_message" class="error-message"></span>
 
         <pre><textarea
-          rows=10 cols=80 id=style wrap="off" class="textbox"
+          rows="10" cols="80" id=style wrap="off" class="textbox"
           title="Style and value editing area. Edits in here are committed by clicking the Submit button below." >
         </textarea></pre>
 
@@ -1602,7 +1680,36 @@ void main() {
             id="SETTINGS_BUTTON" class="icon-button" title="Settings"
             onclick="toggleSettingsPanel()">
             <i class="fa-solid fa-cog"></i> Settings</button>
+          <button 
+            id="SOUND_BUTTON" title="Sound"
+            onclick="toggleSoundPanel()">
+            <i class="fa-solid fa-volume-high"></i> Sound</button>
       </span>
+
+        <div id="sound_panel" class="sound-panel"
+          title="Choose saber sound font sounds to accompany the emulator.">
+          <button
+           title="Close Sound Panel."
+            class="close-sound" onclick="toggleSoundPanel()">X</button>
+
+          <div class="sound-section">
+            <h4 class="sound-section-label" title="Choose sound font.">Sound Settings</h4>
+                <div class="wavlen-controls">
+                  <br>
+                  <label
+                    id="wavlen-global-label" class="wavlen-global-label" title="Set a global WavLen duration in milliseconds.">
+                      Global WavLen time:
+                    <input
+                      type="text" id="WAVLEN_VALUE" class="wavlen-value nofocus" size="6" value="500">
+                  </label>
+                </div>
+          </div> <!-- sound-section -->
+        </div> <!--  sound-panel -->
+
+
+
+
+
 
         <div id="settings_panel" class="settings-panel"
           title="Turning on checkboxes saves your settings for future visits to the Style Editor page.">
@@ -1617,17 +1724,17 @@ void main() {
             <h4 class="settings-section-label" title="These settings apply to the whole page.">General:</h4>
 
             <label title="Toggles a Dark Mode look to this page.">
-              <input type="checkbox" id="DARK_BUTTON" name="darkmode" onclick="handleClick(this)">
+              <input type="checkbox" id="DARK_BUTTON" name="darkmode" onclick="handleSettings(this)">
               <span>Dark Mode</span>
             </label>
 
             <label title="Toggles pop-up tooltips On or Off.">
-              <input type="checkbox" id="TIPS_BUTTON" name="tooltips" onclick="handleClick(this)">
+              <input type="checkbox" id="TIPS_BUTTON" name="tooltips" onclick="handleSettings(this)">
               <span >Tool Tips</span>
             </label>
 
             <label title="Toggle between sorting the Colors tab hue or by name.">
-              <input type="checkbox" id="COLORSORT_BUTTON" name="colorsort" onclick="handleClick(this)">
+              <input type="checkbox" id="COLORSORT_BUTTON" name="colorsort" onclick="handleSettings(this)">
               <span>Sort Colors by name</span>
             </label>
 
@@ -1636,35 +1743,39 @@ void main() {
             <h4 class="settings-section-label" title="These settings apply to the blade preview above.">Blade Preview:</h4>
 
             <label title="Toggles the Graflex Hilt model in the preview.">
-              <input type="checkbox" id="GRAFLEX_BUTTON" name="graflex" onclick="handleClick(this)">
+              <input type="checkbox" id="GRAFLEX_BUTTON" name="graflex" onclick="handleSettings(this)">
               <span>Graflex Hilt</span>
             </label>
 
             <label title="Toggles the option for swinging around the preview blade above using mouse control.">
-              <input type="checkbox" id="MOUSESWINGS_BUTTON" name="mouseswings" onclick="handleClick(this)">
+              <input type="checkbox" id="MOUSESWINGS_BUTTON" name="mouseswings" onclick="handleSettings(this)">
               <span>Disable mouse swings</span>
             </label>
 
             <label title="Toggles automated swing emulation on the preview blade while at rest (ie: shown when using SwingSpeed<>). Swinging while hovering over the preview area always shows swing blade effects according to movements.">
-              <input type="checkbox" id="AUTOSWING_BUTTON" name="autoswing" onclick="handleClick(this)">
+              <input type="checkbox" id="AUTOSWING_BUTTON" name="autoswing" onclick="handleSettings(this)">
               <span>Swing Emulation</span>
             </label>
 
             <label title="Simulates In-Hilt LED blades, (no addressable pixel effects).">
-              <input type="checkbox" id="INHILT_BUTTON" name="inhilt" onclick="handleClick(this)">
+              <input type="checkbox" id="INHILT_BUTTON" name="inhilt" onclick="handleSettings(this)">
               <span>Inhilt LED</span>
             </label>
 
             <label title="Provides &quot;snapshots&quot; of rapidly moving things to see what they look like without fast movement. *Note* Graflex hilt model probably won't be able to render with this on.">
-              <input type="checkbox" id="SLOW_BUTTON" name="slow" onclick="handleClick(this)">
+              <input type="checkbox" id="SLOW_BUTTON" name="slow" onclick="handleSettings(this)">
               <span>Slow</span>
             </label>
           </div>
           <div class="settings-section">
             <h4 class="settings-section-label" title="These settings are useful for people making modifications to the style editor.">Developer Settings:</h4>
             <label title="Benchmark how many passes we can render per frame.">
-              <input type="checkbox" id="BENCHMARK_BUTTON" name="benchmark" onclick="handleClick(this)">
+              <input type="checkbox" id="BENCHMARK_BUTTON" name="benchmark" onclick="handleSettings(this)">
               <span>Benchmark</span>
+            </label>
+            <label title="Enter a custom WavLen value in milliseconds." class="wavlen-label">
+              WavLen time:
+              <input type='number' id="WAVLEN_VALUE" class="wavlen-value" value="500">
             </label>
           </div>
           <br>
