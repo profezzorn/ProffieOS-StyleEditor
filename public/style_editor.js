@@ -104,28 +104,28 @@ class Matrix {
     return ret;
   }
     static fromValues(a, b, c, d,
-		      e, f, g, h,
-		      i, j, k, l,
-		      m, n, o, p) {
-	var ret = new Matrix(4, 4);
-	ret.values[0] = a;
-	ret.values[1] = b;
-	ret.values[2] = c;
-	ret.values[3] = d;
-	ret.values[4] = e;
-	ret.values[5] = f;
-	ret.values[6] = g;
-	ret.values[7] = h;
-	ret.values[8] = i;
-	ret.values[9] = j;
-	ret.values[10] = k;
-	ret.values[11] = l;
-	ret.values[12] = m;
-	ret.values[13] = n;
-	ret.values[14] = o;
-	ret.values[15] = p;
-	return ret;
-	
+                    e, f, g, h,
+                    i, j, k, l,
+                    m, n, o, p) {
+        var ret = new Matrix(4, 4);
+        ret.values[0] = a;
+        ret.values[1] = b;
+        ret.values[2] = c;
+        ret.values[3] = d;
+        ret.values[4] = e;
+        ret.values[5] = f;
+        ret.values[6] = g;
+        ret.values[7] = h;
+        ret.values[8] = i;
+        ret.values[9] = j;
+        ret.values[10] = k;
+        ret.values[11] = l;
+        ret.values[12] = m;
+        ret.values[13] = n;
+        ret.values[14] = o;
+        ret.values[15] = p;
+        return ret;
+        
     }
 
   tostr() {
@@ -280,15 +280,17 @@ class MyError {
   valueOf() { return this.desc; }
 };
 
-function SafeguardInputs(e) {
-  if (e.target.value == "") {
-    console.log("SafeguardInputs() run to avoid null value");
-    var changeEvent = new Event('change');
-    e.target.value = 0;
-    if (e.target.id === "VARIANT_VALUE") {
-      FIND("VARIANT_SLIDER").value = 0;
-    }
-    e.target.dispatchEvent(changeEvent);
+function ValidateInput(e) {
+  e.target.classList.remove('invalid');
+
+  if (e.target.value === "" || isNaN(Number(e.target.value))) {
+    e.target.classList.add('invalid');
+    // Force focus to keep user in the field
+    setTimeout(() => {
+      e.target.focus();
+      e.target.select();
+    }, 0);
+    return false;
   }
 }
 
@@ -1004,7 +1006,7 @@ class CONFIG extends STYLE {
     var id = this.get_id();
     var ret = "";
     ret += "<span title='"+ note +"'>" + name + "</span>&lt;\n";
-    ret += "<div style='margin-left:1em'>\n";
+    ret += "<div>\n";
     var comma = false;
     for (var i = 2; i < arguments.length; i += 2) {
       if (comma) ret += ",<br>";
@@ -1056,14 +1058,6 @@ function ClickColor() {
   var B = FixColor(color_button.value.substr(5,2));
   SetTo("Rgb16<"+R+","+G+","+B+">");
 }
-
-//var qlinks = "<b>Colors</b> <input type=color id=COLOR value='#ff0000' onclick='ClickColor()' />";
-//var effect_links = "<b>Effects:</b>";
-//var layer_links = "";
-//var effect_type_links = "<b>Effect Types:</b>";
-//var template_links = "<b>Templates:</b>";
-//var function_links = "<b>Functions:</b>";
-//var transition_links = "<b>Transitions:</b>";
 
 var effect_links = [];
 var layer_links = [];
@@ -1345,13 +1339,11 @@ function encstr(s) {
 }
 
 function mkbutton2(name, val) {
-  return "<input type=button class=btn onclick='SetToAndFormat(\""+val+"\")' value='"+enc(name)+"'>\n";
-  //  return "<span class=btn onclick='SetTo(\""+name+"\")'>"+enc(name)+"</span>\n";
+  return "<input type=button class='btn' onclick='SetToAndFormat(\""+val+"\", event)' value='"+enc(name)+"'>\n";
 }
+
 function mkbutton(name) {
   return mkbutton2(name, name);
-//  return "<input type=button class=btn onclick='SetTo(\""+name+"\")' value='"+enc(name)+"'>\n";
-  //  return "<span class=btn onclick='SetTo(\""+name+"\")'>"+enc(name)+"</span>\n";
 }
 
 
@@ -1437,7 +1429,6 @@ function rgbToHsl(r, g, b) {
 
   return [ h, s, l ];
 }
-
 
 function mkcolorbutton(name, r, g, b) {
   r = mapcolor(r);
@@ -1702,6 +1693,46 @@ AddColor("SteelBlue", 14, 57, 118);
 AddColor("Tomato", 255, 31, 15);
 AddColor("White", 255, 255, 255);
 AddColor("Yellow", 255, 255, 0);
+
+// New in ProffieOS 8.x:
+AddColor("ElectricPurple", 127, 0, 255);
+AddColor("ElectricViolet", 71, 0, 255);
+AddColor("ElectricLime", 156, 255, 0);
+AddColor("Amber", 255, 135, 0);
+AddColor("CyberYellow", 255, 168, 0);
+AddColor("CanaryYellow", 255, 221, 0);
+AddColor("PaleGreen", 28, 255, 28);
+AddColor("Flamingo", 255, 80, 254);
+AddColor("VividViolet", 90, 0, 255);
+AddColor("PsychedelicPurple", 186, 0, 255);
+AddColor("HotMagenta", 255, 0, 156);
+AddColor("BrutalPink", 255, 0, 128);
+AddColor("NeonRose", 255, 0, 55);
+AddColor("VividRaspberry", 255, 0, 38);
+AddColor("HaltRed", 255, 0, 19);
+AddColor("MoltenCore", 255, 24, 0);
+AddColor("SafetyOrange", 255, 33, 0);
+AddColor("OrangeJuice", 255, 55, 0);
+AddColor("ImperialYellow", 255, 115, 0);
+AddColor("SchoolBus", 255, 176, 0);
+AddColor("SuperSaiyan", 255, 186, 0);
+AddColor("Star", 255, 201, 0);
+AddColor("Lemon", 255, 237, 0);
+AddColor("ElectricBanana", 246, 255, 0);
+AddColor("BusyBee", 231, 255, 0);
+AddColor("ZeusBolt", 219, 255, 0);
+AddColor("LimeZest", 186, 255, 0);
+AddColor("Limoncello", 135, 255, 0);
+AddColor("CathodeGreen", 0, 255, 22);
+AddColor("MintyParadise", 0, 255, 128);
+AddColor("PlungePool", 0, 255, 156);
+AddColor("VibrantMint", 0, 255, 201);
+AddColor("MasterSwordBlue", 0, 255, 219);
+AddColor("BrainFreeze", 0, 219, 255);
+AddColor("BlueRibbon", 0, 33, 255);
+AddColor("RareBlue", 0, 13, 255);
+AddColor("OverdueBlue", 13, 0, 255);
+AddColor("ViolentViolet", 55, 0, 255);
 
 AddLayer("InOutHelperL<InOutFuncX<Int<300>,Int<800>>>");
 AddLayer("InOutTrL<TrWipe<300>,TrWipeIn<500>>");
@@ -5156,7 +5187,7 @@ class TrConcatClass extends TRANSITION {
   done() {
     return this.pos_ >= this.ARGS.length;
   }
-  
+
   run(blade) {
     if (this.done()) return;
     if (this.c1p != -1) this.ARGS[this.c1p].run(blade);
@@ -5168,7 +5199,7 @@ class TrConcatClass extends TRANSITION {
       if (this.done()) break;
       if (this.ARGS[this.pos_].getType() != "TRANSITION") {
         this.c1p = this.c2p;
-	this.updateC2P()
+        this.updateC2P()
         if (this.c2p != -1) this.ARGS[this.c2p].run(blade);
         this.pos_++;
       }
@@ -6138,7 +6169,14 @@ class WavLenClass extends FUNCTION {
     super("Length of associated wav file in MS", arguments);
     this.add_arg("EFFECT", "EFFECT", "Which effect to get the length of.", EFFECT(EFFECT_NONE));
   }
-  getInteger(led) { return 500; }
+  // WavLen value can be set in settings panel
+  setLength(value) {
+    this.wavlenValue = value;
+     console.log("Updated WavLen: ", this.wavlenValue);
+  }
+  getInteger(led) {
+    return myWavLen.wavlenValue;
+  }
 };
 
 function WavLen(EFFECT) { return new WavLenClass(EFFECT); }
@@ -6397,11 +6435,11 @@ class SyncAltToVarianceFClass extends FUNCTION {
     if (VAR == this.last_ && Alt() == this.last_) return;
     if (this.last_ == 0x7fffffff) {
       console.log("SYNC FIRST");
-      FIND("ALT").value = VAR;
+      FIND("ALT_VALUE").value = VAR;
     } else if (VAR != this.last_) {
       if (isNaN(VAR)) VAR = 0;
       console.log("SYNC ALT: " + VAR);
-      FIND("ALT").value = VAR;
+      FIND("ALT_VALUE").value = VAR;
       blade.addEffect(EFFECT_ALT_SOUND, 0.0);
     } else {
       VAR = Alt();
@@ -7589,6 +7627,46 @@ AddIdentifier("Tomato", Rgb.bind(null, 255, 31, 15));
 AddIdentifier("White", Rgb.bind(null, 255, 255, 255));
 AddIdentifier("Yellow", Rgb.bind(null, 255, 255, 0));
 
+// New in ProffieOS 8
+AddIdentifier("ElectricPurple", Rgb.bind(null, 127, 0, 255));
+AddIdentifier("ElectricViolet", Rgb.bind(null, 71, 0, 255));
+AddIdentifier("ElectricLime", Rgb.bind(null, 156, 255, 0));
+AddIdentifier("Amber", Rgb.bind(null, 255, 135, 0));
+AddIdentifier("CyberYellow", Rgb.bind(null, 255, 168, 0));
+AddIdentifier("CanaryYellow", Rgb.bind(null, 255, 221, 0));
+AddIdentifier("PaleGreen", Rgb.bind(null, 28, 255, 28));
+AddIdentifier("Flamingo", Rgb.bind(null, 255, 80, 254));
+AddIdentifier("VividViolet", Rgb.bind(null, 90, 0, 255));
+AddIdentifier("PsychedelicPurple", Rgb.bind(null, 186, 0, 255));
+AddIdentifier("HotMagenta", Rgb.bind(null, 255, 0, 156));
+AddIdentifier("BrutalPink", Rgb.bind(null, 255, 0, 128));
+AddIdentifier("NeonRose", Rgb.bind(null, 255, 0, 55));
+AddIdentifier("VividRaspberry", Rgb.bind(null, 255, 0, 38));
+AddIdentifier("HaltRed", Rgb.bind(null, 255, 0, 19));
+AddIdentifier("MoltenCore", Rgb.bind(null, 255, 24, 0));
+AddIdentifier("SafetyOrange", Rgb.bind(null, 255, 33, 0));
+AddIdentifier("OrangeJuice", Rgb.bind(null, 255, 55, 0));
+AddIdentifier("ImperialYellow", Rgb.bind(null, 255, 115, 0));
+AddIdentifier("SchoolBus", Rgb.bind(null, 255, 176, 0));
+AddIdentifier("SuperSaiyan", Rgb.bind(null, 255, 186, 0));
+AddIdentifier("Star", Rgb.bind(null, 255, 201, 0));
+AddIdentifier("Lemon", Rgb.bind(null, 255, 237, 0));
+AddIdentifier("ElectricBanana", Rgb.bind(null, 246, 255, 0));
+AddIdentifier("BusyBee", Rgb.bind(null, 231, 255, 0));
+AddIdentifier("ZeusBolt", Rgb.bind(null, 219, 255, 0));
+AddIdentifier("LimeZest", Rgb.bind(null, 186, 255, 0));
+AddIdentifier("Limoncello", Rgb.bind(null, 135, 255, 0));
+AddIdentifier("CathodeGreen", Rgb.bind(null, 0, 255, 22));
+AddIdentifier("MintyParadise", Rgb.bind(null, 0, 255, 128));
+AddIdentifier("PlungePool", Rgb.bind(null, 0, 255, 156));
+AddIdentifier("VibrantMint", Rgb.bind(null, 0, 255, 201));
+AddIdentifier("MasterSwordBlue", Rgb.bind(null, 0, 255, 219));
+AddIdentifier("BrainFreeze", Rgb.bind(null, 0, 219, 255));
+AddIdentifier("BlueRibbon", Rgb.bind(null, 0, 33, 255));
+AddIdentifier("RareBlue", Rgb.bind(null, 0, 13, 255));
+AddIdentifier("OverdueBlue", Rgb.bind(null, 13, 0, 255));
+AddIdentifier("ViolentViolet", Rgb.bind(null, 55, 0, 255));
+
 class Parser {
   constructor(str, classes, identifiers) {
     console.log("PARSING: " + str);
@@ -7911,72 +7989,72 @@ function getSaberColors() {
     current_micros_internal += delta_us;
     current_micros = current_micros_internal
     if (current_micros - last_micros > 1000000/45) {
-	bad_fps ++;
-	if (good_fps) good_fps--;
+        bad_fps ++;
+        if (good_fps) good_fps--;
     } else {
-	if (bad_fps) bad_fps --;
-	good_fps++;
+        if (bad_fps) bad_fps --;
+        good_fps++;
     }
     if (benchmarkState.get()) {
-	if (bad_fps > 20) {
+        if (bad_fps > 20) {
             if (AA_STEP_SIZE < 0) AA_STEP_SIZE-=1; else AA_STEP_SIZE=-1;
             AA+=AA_STEP_SIZE;
-	    if (AA < 1) AA = 1;
-	    compile();
-	    bad_fps = 0;
+            if (AA < 1) AA = 1;
+            compile();
+            bad_fps = 0;
             FIND("error_message").innerHTML = "AA="+AA;
-	}
-	if (good_fps > 20) {
+        }
+        if (good_fps > 20) {
             if (AA_STEP_SIZE > 0) AA_STEP_SIZE+=1; else AA_STEP_SIZE=1;
             AA+=AA_STEP_SIZE;
-	    compile();
-	    good_fps = 0;
+            compile();
+            good_fps = 0;
             FIND("error_message").innerHTML = "AA="+AA;
-	}
+        }
     }
     var num_leds = blade.num_leds()
     if (!pixels || pixels.length != num_leds * 3) {
-	pixels = new Float32Array(num_leds * 3);
+        pixels = new Float32Array(num_leds * 3);
     }
     var S = current_style;
     if (S != last_style) {
-	last_style = S;
-	if (S.getType) {
-	    S.set_right_side(current_focus || style_tree)
-	    if (S.getType() == "TRANSITION") {
-		S = TransitionLoop(Rgb(0,0,0), TrConcat(TrDelay(500), Rgb(255,0,0), S, Rgb(0,0,255), TrInstant()));
-	    }
-	    if (S.getType() == "FUNCTION") {
-		S = Mix(S, Rgb(0,0,0), Rgb(255,255,255));
-	    }
-	}
-	show_style = S;
+        last_style = S;
+        if (S.getType) {
+            S.set_right_side(current_focus || style_tree)
+            if (S.getType() == "TRANSITION") {
+              S = TransitionLoop(Rgb(0,0,0), TrConcat(TrDelay(500), Rgb(255,0,0), S, Rgb(0,0,255), TrInstant()));
+            }
+            if (S.getType() == "FUNCTION") {
+              S = Mix(S, Rgb(0,0,0), Rgb(255,255,255));
+            }
+        }
+        show_style = S;
     } else {
-	S = show_style;
+        S = show_style;
     }
     numTick++;
     if (S.getColor && S.getType && S.getType() == "COLOR" && numTick > framesPerUpdate) {
-	numTick = 0;
-	S.run(blade);
-	for (var i = 0; i < num_leds; i++) {
+        numTick = 0;
+        S.run(blade);
+        for (var i = 0; i < num_leds; i++) {
             var c = S.getColor(i);
             pixels[i*3 + 0] = c.r / 2;
             pixels[i*3 + 1] = c.g / 2;
             pixels[i*3 + 2] = c.b / 2;
-	}
-	if (last_micros != 0) {
-	    current_micros += delta_us / 2;
-	}
-	if (framesPerUpdate == 0) {
-	    S.run(blade);
-	}
-	for (var i = 0; i < num_leds; i++) {
+        }
+        if (last_micros != 0) {
+            current_micros += delta_us / 2;
+        }
+        if (framesPerUpdate == 0) {
+            S.run(blade);
+        }
+        for (var i = 0; i < num_leds; i++) {
             var c = S.getColor(i);
             pixels[i*3 + 0] += c.r / 2;
             pixels[i*3 + 1] += c.g / 2;
             pixels[i*3 + 2] += c.b / 2;
-	}
-	S.update_displays();
+        }
+        S.update_displays();
     }
     t += 1;
     return pixels;
@@ -8007,7 +8085,7 @@ function getSaberMove() {
  //  rotation = rotation.mult(Matrix.mkzrot(-Math.PI/2.0));
     //  rotation = rotation.mult(Matrix.mkyrot(-Math.PI/2.0));
     rotation = Matrix.fromValues(
-	0.0, -1.0, 0.0, 0.0,
+        0.0, -1.0, 0.0, 0.0,
         0.0, 0.0, -1.0, 0.0,
         1.0, 0.0, 0.0, 0.0,
         0.0, 0.0, 0.0, 1.0).mult(rotation);
@@ -8038,16 +8116,16 @@ function drawScene() {
      if (bad_fps > 20) {
         if (AA_STEP_SIZE < 0) AA_STEP_SIZE-=1; else AA_STEP_SIZE=-1;
         AA+=AA_STEP_SIZE;
-	if (AA < 1) AA = 1;
-	compile();
-	bad_fps = 0;
+        if (AA < 1) AA = 1;
+        compile();
+        bad_fps = 0;
         FIND("error_message").innerHTML = "AA="+AA;
      }
      if (good_fps > 20) {
         if (AA_STEP_SIZE > 0) AA_STEP_SIZE+=1; else AA_STEP_SIZE=1;
         AA+=AA_STEP_SIZE;
-	compile();
-	good_fps = 0;
+        compile();
+        good_fps = 0;
         FIND("error_message").innerHTML = "AA="+AA;
      }
   }
@@ -8483,14 +8561,14 @@ function ClickSave() {
 var num_alternatives = 1000;
 
 function Alt() {
-  return parseInt(FIND("ALT").value);
+  return parseInt(FIND("ALT_VALUE").value);
 }
 
 function updateAltValue(newValue) {
   if (newValue > num_alternatives) {
     newValue = num_alternatives;
   }
-  FIND("ALT").value = newValue;
+  FIND("ALT_VALUE").value = newValue;
   console.log("Updated Alt: " + newValue);
 }
 
@@ -8498,7 +8576,7 @@ function IncreaseAlt(n) {
   var v = Alt() + n;
   if (v < 0) v += num_alternatives;
   if (v > num_alternatives) v -= num_alternatives;
-  FIND("ALT").value = v;
+  FIND("ALT_VALUE").value = v;
   console.log("Updated Alt: " + v)
 }
 
@@ -8509,7 +8587,7 @@ function Variant() {
 /* Variant Slider functions */
 
 function updateVariantValue(newValue) {
-    if (newValue < 0) {
+  if (newValue < 0) {
     newValue = 0;
   } else if (newValue > 32768) {
     newValue = 32768;
@@ -8810,13 +8888,14 @@ function ActivateTab(tab) {
           }
         };
 
-function toggleSettingsPanel() {
   var settingsButton = FIND("SETTINGS_BUTTON");
   var settingsPanel = FIND("settings_panel");
+  var soundButton = FIND("SOUND_BUTTON");
+  var soundPanel = FIND("sound_panel");
 
+  function toggleSettingsPanel() {
   settingsPanel.classList.toggle("show");
 
-  // Mouseleave event listener
   if (settingsPanel.classList.contains("show")) {
     var timeoutId = null;
     settingsPanel.addEventListener("mouseleave", function(e) {
@@ -8833,6 +8912,60 @@ function toggleSettingsPanel() {
   }
 }
 
+function toggleSoundPanel() {
+  // Prevent close button if invlaid input.
+  if (document.querySelector('input.invalid')) {
+    console.log(`*** INVALID INPUT - Not closing panel.`);
+    return;
+  }
+  soundPanel.classList.toggle("show");
+
+// Set position of sound panel correctly when it shows.
+  if (soundPanel.classList.contains("show")) {
+    positionSoundPanel();
+  }
+}
+
+function positionSoundPanel() {
+  const settingsPanel = document.getElementById("settings_panel");
+  const soundPanel = document.getElementById("sound_panel");
+  const settingsRect = settingsPanel.getBoundingClientRect();
+  const soundRect = soundPanel.getBoundingClientRect();
+
+  // Set the sound panel to the left of settings with 20px gap, vertically centered
+  soundPanel.style.position = "fixed";
+  soundPanel.style.left = (settingsRect.left - soundRect.width - 20) + "px";
+  soundPanel.style.top = (settingsRect.top + (settingsRect.height - soundRect.height) / 2) + "px";
+}
+
+// Minimal universal "click outside to close" for both panels
+document.body.addEventListener('click', function(e) {
+  // Don't close panel if there's invalid input.
+  if (document.querySelector('input.invalid')) {
+    console.log(`*** INVALID INPUT - Not closing panel.`);
+    return;
+  }
+  const soundPanel = FIND('sound_panel');
+  const soundButton = FIND('SOUND_BUTTON');
+  if (
+    soundPanel.classList.contains('show') &&
+    !soundPanel.contains(e.target) &&
+    e.target !== soundButton
+  ) {
+    soundPanel.classList.remove('show');
+  }
+
+  const settingsPanel = FIND('settings_panel');
+  const settingsButton = FIND('SETTINGS_BUTTON');
+  if (
+    settingsPanel.classList.contains('show') &&
+    !settingsPanel.contains(e.target) &&
+    e.target !== settingsButton
+  ) {
+    settingsPanel.classList.remove('show');
+  }
+});
+
 // Call the onPageLoad function when the page is loaded
 window.addEventListener('DOMContentLoaded', onPageLoad);
 
@@ -8840,16 +8973,14 @@ var all_saved_states = [];
 var state_by_checkbox = new Map();
 var body = document.querySelector("body");
 var structuredView;
+var wavlenInput = FIND("WAVLEN_VALUE");
+var myWavLen = new WavLenClass();
 
 /* Settings buttons saved as local storage */
 function getSavedState(buttonState, defaultValue) {
   var value = localStorage.getItem(buttonState);
   console.log("Retrieved SavedState for " + buttonState + ": " + value);
-
-  if (value === null) {
-    return defaultValue;
-  }
-  return value !== "false";
+  return (value === null ? defaultValue : value);
 }
 
 function saveState(buttonState, settingIsOn) {
@@ -8862,27 +8993,47 @@ class SavedState {
     this.def = def;
     this.update_function = update_function;
     all_saved_states.push(this);
-    const checkbox = FIND(this.name.toUpperCase()+"_BUTTON");
-    state_by_checkbox.set(checkbox, this);
-}
-  onload() {
-    this.set(getSavedState(this.name+"Save", this.def));
   }
-  set(value) {
-    this.value = value;
-    FIND(this.name.toUpperCase()+"_BUTTON").checked = value ? true : false;
-    saveState(this.name+"Save", value);
-    this.update_function(value);
+  onload() {
+    this.set(getSavedState(this.name + "Save", this.def));
   }
   get() { return this.value; }
 }
 
-var darkState = new SavedState("dark", false, (on) => {
+class SavedStateBool extends SavedState {
+  constructor(name, def, update_function) {
+    super(name, def, update_function);
+    // For checkboxes, store the mapping for use in handleSettings().
+    const checkbox = FIND(name.toUpperCase() + "_BUTTON");
+    state_by_checkbox.set(checkbox, this);
+  }
+  set(value) {
+    const boolValue = (value === true || value === "true");
+    this.value = boolValue;
+    FIND(this.name.toUpperCase() + "_BUTTON").checked = boolValue;
+    saveState(this.name + "Save", boolValue);
+    this.update_function(boolValue);
+  }
+}
+
+class SavedStateNumber extends SavedState {
+  constructor(name, def, update_function) {
+    super(name, def, update_function);
+  }
+  set(value) {
+    this.value = value;
+    FIND(this.name.toUpperCase() + "_VALUE").value = value;
+    saveState(this.name + "Save", value);
+    this.update_function(value);
+  }
+}
+
+var darkState = new SavedStateBool("dark", false, (on) => {
   body.classList.toggle("dark-mode", on);
   structuredView.classList.toggle("dark-mode", on);
 });
 
-var tipsState = new SavedState("tips", true, (on) => { 
+var tipsState = new SavedStateBool("tips", true, (on) => {
  if (on) {
     const elementsWithDataTitles = document.querySelectorAll("[data-title]");
     elementsWithDataTitles.forEach((element) => {
@@ -8897,15 +9048,23 @@ var tipsState = new SavedState("tips", true, (on) => {
     });
   }
 });
-var colorsortState = new SavedState("colorsort", false, (on) => {
+var colorsortState = new SavedStateBool("colorsort", false, (on) => {
   updateRgbTabContent();
 });
-var graflexState = new SavedState("graflex", true, (on) => { compile(); });
-var mouseswingsState = new SavedState("mouseswings", false, (on) => {});
-var autoswingState = new SavedState("autoswing", true, (on) => {});
-var inhiltState = new SavedState("inhilt", false, (on) => { STATE_NUM_LEDS = on ? 1 : 144; });
-var slowState = new SavedState("slow", false, (on) => { framesPerUpdate = on ? 10 : 0; time_factor = framesPerUpdate == 0 ? 1000 : (500/framesPerUpdate)});
-var benchmarkState = new SavedState("benchmark", false, (on) => { AA=1; compile(); FIND("error_message").innerHTML = ""; });
+
+var graflexState = new SavedStateBool("graflex", true, (on) => { compile(); });
+var mouseswingsState = new SavedStateBool("mouseswings", false, (on) => {});
+var autoswingState = new SavedStateBool("autoswing", true, (on) => {});
+var inhiltState = new SavedStateBool("inhilt", false, (on) => { STATE_NUM_LEDS = on ? 1 : 144; });
+var slowState = new SavedStateBool("slow", false, (on) => { framesPerUpdate = on ? 10 : 0; time_factor = framesPerUpdate == 0 ? 1000 : (500/framesPerUpdate)});
+var benchmarkState = new SavedStateBool("benchmark", false, (on) => { AA=1; compile(); FIND("error_message").innerHTML = ""; });
+var wavlenState = new SavedStateNumber("wavlen", 500, (value) => {
+  myWavLen.setLength(value);
+});
+wavlenInput.addEventListener("focusout", function(e) {
+  ValidateInput(e);
+  wavlenState.set(Number(e.target.value));
+});
 
 // Create n textures of about 1MB each.
 function SetupRendering() {
@@ -8939,11 +9098,11 @@ function SetupRendering() {
     var N = ArgumentName_ENUM_BUILDER.value_to_name[V];
     A += "<tr><td>" + N + "</td><td>";
     if (N.search("COLOR") >= 0) {
-       A += "<input type=color id=ARGSTR_"+N+" onclick='ClickArgColor("+N+")' onchange='ClickArgColor("+N+")' >";
+      A += "<input type=color id=ARGSTR_"+N+" onclick='ClickArgColor("+N+")' onchange='ClickArgColor("+N+")' >";
     } else {
-       A += "<input type=button value='<'  onclick='IncreaseArg("+N+",-1)' >";
-       A += "<input id=ARGSTR_"+N+" type='number' size=6 value=0 onchange='ArgChanged("+N+")' onfocusout='SafeguardInputs(event)' >";
-       A += "<input type=button value='>'  onclick='IncreaseArg("+N+",1)' >";
+      A += "<input type=button value='<'  onclick='IncreaseArg("+N+",-1)' >";
+      A += "<input id=ARGSTR_"+N+" type='text' size=6 value=0 class='nofocus' onchange='ArgChanged("+N+")' onfocusout='ValidateInput(event)' >";
+      A += "<input type=button value='>'  onclick='IncreaseArg("+N+",1)' >";
     }
     A += "</td></tr>\n";
   }
@@ -8996,13 +9155,6 @@ function SetupRendering() {
   Run();
   DoLayerize();
 
-  //FIND("color_links").innerHTML = qlinks;
-  //FIND("effect_links").innerHTML = effect_links;
-  //FIND("effect_type_links").innerHTML = effect_type_links;
-  //FIND("template_links").innerHTML = template_links;
-  //FIND("function_links").innerHTML = function_links;
-  //FIND("transition_links").innerHTML = transition_links;
-
   // Start the event loop.
   tick();
 }
@@ -9015,7 +9167,7 @@ function onPageLoad() {
   });
 }
 
-function handleClick(checkbox) {
+function handleSettings(checkbox) {
   var state = state_by_checkbox.get(checkbox);
   state.set(!state.get());
 }
