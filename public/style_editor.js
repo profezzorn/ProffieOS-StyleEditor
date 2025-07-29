@@ -810,7 +810,7 @@ class EnumBuilder {
   }
 }
 
-EFFECT_ENUM_BUILDER = new EnumBuilder("EFFECT");
+const EFFECT_ENUM_BUILDER = new EnumBuilder("EFFECT");
 EFFECT_ENUM_BUILDER.addValue("EFFECT_NONE", 0);
 EFFECT_ENUM_BUILDER.addValue("EFFECT_CLASH");
 EFFECT_ENUM_BUILDER.addValue("EFFECT_BLAST");
@@ -887,7 +887,7 @@ EFFECT_ENUM_BUILDER.addValue("EFFECT_ERROR_IN_BLADE_ARRAY");
 EFFECT_ENUM_BUILDER.addValue("EFFECT_FONT_DIRECTORY_NOT_FOUND");
 EFFECT_ENUM_BUILDER.build();
 
-LOCKUP_ENUM_BUILDER = new EnumBuilder("LOCKUP_TYPE", "SaberBase::");
+const LOCKUP_ENUM_BUILDER = new EnumBuilder("LOCKUP_TYPE", "SaberBase::");
 LOCKUP_ENUM_BUILDER.addValue("LOCKUP_NONE", 0);
 LOCKUP_ENUM_BUILDER.addValue("LOCKUP_NORMAL");
 LOCKUP_ENUM_BUILDER.addValue("LOCKUP_DRAG");
@@ -897,7 +897,7 @@ LOCKUP_ENUM_BUILDER.addValue("LOCKUP_MELT");
 LOCKUP_ENUM_BUILDER.addValue("LOCKUP_LIGHTNING_BLOCK");
 LOCKUP_ENUM_BUILDER.build();
 
-ArgumentName_ENUM_BUILDER = new EnumBuilder("ArgumentName");
+const ArgumentName_ENUM_BUILDER = new EnumBuilder("ArgumentName");
 ArgumentName_ENUM_BUILDER.addValue("BASE_COLOR_ARG", 1);
 ArgumentName_ENUM_BUILDER.addValue("ALT_COLOR_ARG", 2);
 ArgumentName_ENUM_BUILDER.addValue("STYLE_OPTION_ARG", 3);
@@ -1136,7 +1136,7 @@ class RgbClass extends STYLE {
 
   argify(state) {
     if (state.color_argument) {
-      ret = RgbArg_(ArgumentName(state.color_argument), this);
+      var ret = RgbArg_(ArgumentName(state.color_argument), this);
       state.color_argument = false;
       return ret;
     } else {
@@ -8708,6 +8708,7 @@ function sortByName() {
 }
 
 function updateRgbTabContent() {
+  let sortedRgbLinks;
   if (colorsortState.get()) {
     console.log("Sort colors by Name");
     sortedRgbLinks = sortByName();
