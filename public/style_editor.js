@@ -8343,7 +8343,7 @@ function Run() {
   ReplaceCurrentFocus(str);
   compile();
   if (current_style.argstring) {
-    FIND("ARGSTR").value = "builtin 0 1 " + current_style.argstring
+    FIND("ARGSTR").value = "builtin 0 1 " + current_style.argstring;
     ArgStringChanged();
   }
 }
