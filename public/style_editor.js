@@ -103,30 +103,29 @@ class Matrix {
     ret.set(2,3,z);
     return ret;
   }
-    static fromValues(a, b, c, d,
-                    e, f, g, h,
-                    i, j, k, l,
-                    m, n, o, p) {
-        var ret = new Matrix(4, 4);
-        ret.values[0] = a;
-        ret.values[1] = b;
-        ret.values[2] = c;
-        ret.values[3] = d;
-        ret.values[4] = e;
-        ret.values[5] = f;
-        ret.values[6] = g;
-        ret.values[7] = h;
-        ret.values[8] = i;
-        ret.values[9] = j;
-        ret.values[10] = k;
-        ret.values[11] = l;
-        ret.values[12] = m;
-        ret.values[13] = n;
-        ret.values[14] = o;
-        ret.values[15] = p;
-        return ret;
-        
-    }
+  static fromValues(a, b, c, d,
+                  e, f, g, h,
+                  i, j, k, l,
+                  m, n, o, p) {
+      var ret = new Matrix(4, 4);
+      ret.values[0] = a;
+      ret.values[1] = b;
+      ret.values[2] = c;
+      ret.values[3] = d;
+      ret.values[4] = e;
+      ret.values[5] = f;
+      ret.values[6] = g;
+      ret.values[7] = h;
+      ret.values[8] = i;
+      ret.values[9] = j;
+      ret.values[10] = k;
+      ret.values[11] = l;
+      ret.values[12] = m;
+      ret.values[13] = n;
+      ret.values[14] = o;
+      ret.values[15] = p;
+      return ret;
+  }
 
   tostr() {
     var ret = "{";
@@ -195,7 +194,7 @@ function mouse_move(e) {
   if (e.shiftKey) {
     MOVE_MATRIX = default_move_matrix();
   } else {
-      var SCALE = 100.0;
+    var SCALE = 100.0;
     BLADE_ANGLE=-y;
 //    MOVE_MATRIX = Matrix.mkzrot(Math.PI/2.0).mult(Matrix.mkxrot(-y)).mult(Matrix.mkzrot(y));
 
@@ -1316,7 +1315,6 @@ function Layers(BASE, Layer1, Layer2) {
   return new LayersClass(Array.from(arguments));
 }
 
-
 function enc(s) {
   return s.replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
@@ -1331,7 +1329,6 @@ function mkbutton2(name, val) {
 function mkbutton(name) {
   return mkbutton2(name, name);
 }
-
 
 function AddTemplate(name) {
   var val = name;
@@ -1470,7 +1467,7 @@ AddLayer("BrownNoiseFlickerL<Magenta, Int<50>>");
 AddEffect("ColorChange<TrInstant, Red, Green, Blue>");
 AddEffect("ColorSelect<Variation, TrInstant, Red, Green, Blue>");
 AddFunction("IntSelect<Variation, 0, 8192,32768>");
-AddEffect("ColorCycle<Blue,  0, 1, Cyan,  100, 3000, 5000>");
+AddEffect("ColorCycle<Blue, 0, 1, Cyan, 100, 3000, 5000>");
 AddEffect("ColorSequence<500, Red, Green, Blue>");
 AddEffect("EffectSequence<EFFECT_CLASH, Red, Green, Blue>");
 AddEffect("Cylon<Red, 5, 20>");
@@ -1744,7 +1741,6 @@ var MAGENTA = Rgb(255,0,255);
 var WHITE = Rgb(255,255,255);
 var BLACK = Rgb(0,0,0);
 var OrangeRed = Rgb(255,14,0);
-
 
 //--
 class RainbowClass extends STYLE {
@@ -3945,7 +3941,6 @@ function InOutHelperL(EX, O, AD) {
   return new InOutHelperLClass(EX, O, AD);
 }
 
-
 class InOutHelperXClass extends MACRO {
   constructor(T, EXTENSION, OFF_COLOR, ALLOW_DISABLE) {
     super("0=retracted, 32768=extended", arguments);
@@ -3960,7 +3955,6 @@ class InOutHelperXClass extends MACRO {
 function InOutHelperX(T, EX, O, AD) {
   return new InOutHelperXClass(T, EX, O, AD);
 }
-
 
 //--
 class InOutHelperClass extends MACRO {
@@ -3977,7 +3971,6 @@ class InOutHelperClass extends MACRO {
 function InOutHelper(T, I, O, OFF) {
   return new InOutHelperClass(T, I, O, OFF);
 }
-
 
 class InOutSparkTipClass extends STYLE {
   constructor(T, OUT_MILLIS, IN_MILLIS, OFF_COLOR) {
@@ -4567,7 +4560,6 @@ function ReverseTime(MILLIS) {
   return new ReverseTimeClass(MILLIS);
 }
 
-
 class TrInstantClass extends TRANSITION {
   constructor() {
     super("Instant transition");
@@ -4751,7 +4743,6 @@ class TrBoingClass extends MACRO {
 }
 
 function TrBoing(MILLIS, N) { return new TrBoingClass(MILLIS, N); }
-
 
 class TrWipeXClass extends TRANSITION_BASE {
   constructor(MILLIS) {
@@ -4977,7 +4968,6 @@ class TrWipeInSparkTipClass extends MACRO {
 };
 
 function TrWipeInSparkTip(C, M, S) { return new TrWipeInSparkTipClass(C, M, S); }
-
 
 class TrWaveXClass extends TRANSITION {
   constructor(COLOR, FADEOUT_MS, WAVE_SIZE, WAVE_MS, WAVE_CENTER) {
@@ -5479,7 +5469,6 @@ function TrDoEffectAlways(TRANSITION, EFFECT, WAVNUM, LOCATION) {
   return new TrDoEffectAlwaysClass(TRANSITION, EFFECT, WAVNUM, LOCATION);
 }
 
-
 class TrDoEffectXClass extends TRANSITION {
   constructor(TRANSITION, EFFECT, WAVNUM, LOCATION) {
     super("Do effect", arguments);
@@ -5702,7 +5691,6 @@ class BumpClass extends FUNCTION {
 function Bump(P, F) {
   return new BumpClass(P, F);
 }
-
 
 class ChangeSlowlyClass extends FUNCTION {
   constructor(F, SPEED) {
@@ -7922,34 +7910,34 @@ var bad_fps = 0;
 var good_fps = 0;
 
 
-  var popupIdentifier;
-  var popupWindow = FIND("popup_window");
-  var overlay = FIND("overlay");
+var popupIdentifier;
+var popupWindow = FIND("popup_window");
+var popupOverlay = FIND("popup_overlay");
 
-  function showPopupMessage(message, currentPopup) {
-    popupIdentifier = currentPopup;
-    var checkbox = FIND("dont_show_again");
-    checkbox.checked = localStorage.getItem(popupIdentifier) === "false";
+function showPopupMessage(message, currentPopup) {
+  popupIdentifier = currentPopup;
+  var checkbox = FIND("dont_show_again");
+  checkbox.checked = localStorage.getItem(popupIdentifier) === "false";
 
-    if (localStorage.getItem(popupIdentifier) === "false") {
-      console.log(popupIdentifier + " is disabled.");
-    } else {
-      FIND("popup_message").innerHTML = message;
-      popupWindow.classList.add("show");
-      overlay.classList.add("show");
-    }
+  if (localStorage.getItem(popupIdentifier) === "false") {
+    console.log(popupIdentifier + " is disabled.");
+  } else {
+    FIND("popup_message").innerHTML = message;
+    popupWindow.classList.add("show");
+    popupOverlay.classList.add("show");
   }
+}
 
-  function dismissPopupMessage() {
-    popupWindow.classList.remove("show");
-    overlay.classList.remove("show");
-  }
+function dismissPopupMessage() {
+  popupWindow.classList.remove("show");
+  popupOverlay.classList.remove("show");
+}
 
-  function DontShowAgain(checkboxState) {
-    checkboxState = !checkboxState;
-    localStorage.setItem(popupIdentifier, checkboxState);
-    console.log("Saving " + popupIdentifier + " " + checkboxState);
-  }
+function DontShowAgain(checkboxState) {
+  checkboxState = !checkboxState;
+  localStorage.setItem(popupIdentifier, checkboxState);
+  console.log("Saving " + popupIdentifier + " " + checkboxState);
+}
 
 var pixels;
 var AA = 1;
@@ -8310,35 +8298,34 @@ function Run() {
     console.log(e.stack);
     console.log(typeof(e));
     if (typeof(e) == "string") {
+      err.innerHTML = e;
+      sty.focus();
+      sty.setSelectionRange(parser.pos, parser.pos);
 
-        err.innerHTML = e;
-        sty.focus();
-        sty.setSelectionRange(parser.pos, parser.pos);
-
-        parser = new Parser("BLACK",
-                            classes,
-                            identifiers);
-        current_style = parser.parse();
-        compile();
-        return;
-      } else if (typeof(e) == "object" && e.constructor == MyError) {
-        err.innerHTML = e.desc;
-        sty.focus();
-        if (e.begin_pos > -1) {
-          sty.setSelectionRange(e.begin_pos, e.end_pos);
-        } else {
-          sty.setSelectionRange(parser.pos, parser.pos);
-        }
-
-        parser = new Parser("BLACK",
-                            classes,
-                            identifiers);
-        current_style = parser.parse();
-        compile();
-        return;
+      parser = new Parser("BLACK",
+                          classes,
+                          identifiers);
+      current_style = parser.parse();
+      compile();
+      return;
+    } else if (typeof(e) == "object" && e.constructor == MyError) {
+      err.innerHTML = e.desc;
+      sty.focus();
+      if (e.begin_pos > -1) {
+        sty.setSelectionRange(e.begin_pos, e.end_pos);
       } else {
-        throw e;
+        sty.setSelectionRange(parser.pos, parser.pos);
       }
+
+      parser = new Parser("BLACK",
+                          classes,
+                          identifiers);
+      current_style = parser.parse();
+      compile();
+      return;
+    } else {
+      throw e;
+    }
   }
   ReplaceCurrentFocus(str);
   compile();
@@ -8746,114 +8733,114 @@ function ActivateTab(tab) {
 }
 
 
-         // Get the menu and button elements
-        const menu = FIND('more_effects_menu');
-        const do_selected_button = FIND('do_selected');
+// Get the menu and button elements
+const menu = FIND('more_effects_menu');
+const do_selected_button = FIND('do_selected');
 
-        /* Add values from the enum builder to an array and sort alphabetically,
-        excluding effects with dedicated buttons.*/
-        const values = Object.entries(EFFECT_ENUM_BUILDER.value_to_name)
-          .sort((a, b) => a[1].localeCompare(b[1]))
-          .filter(([value]) => ![
-            EFFECT_CLASH,
-            EFFECT_STAB,
-            EFFECT_BLAST,
-            EFFECT_FORCE,
-            EFFECT_BOOT,
-            EFFECT_NEWFONT,
-            EFFECT_PREON,
-          ].includes(Number(value)));
+/* Add values from the enum builder to an array and sort alphabetically,
+excluding effects with dedicated buttons.*/
+const values = Object.entries(EFFECT_ENUM_BUILDER.value_to_name)
+  .sort((a, b) => a[1].localeCompare(b[1]))
+  .filter(([value]) => ![
+    EFFECT_CLASH,
+    EFFECT_STAB,
+    EFFECT_BLAST,
+    EFFECT_FORCE,
+    EFFECT_BOOT,
+    EFFECT_NEWFONT,
+    EFFECT_PREON,
+  ].includes(Number(value)));
 
-        // Add sub-groups for the different categories of effects
-        const generalEffectsMenu = document.createElement('optgroup');
-        generalEffectsMenu.label = 'General Effects';
-        const userEffectsMenu = document.createElement('optgroup');
-        userEffectsMenu.label = 'User Effects';
-        const blasterEffectsMenu = document.createElement('optgroup');
-        blasterEffectsMenu.label = 'Blaster Effects';
-        const gameEffectsMenu = document.createElement('optgroup');
-        gameEffectsMenu.label = 'Game Effects';
-        const errorMessagesMenu = document.createElement('optgroup');
-        errorMessagesMenu.label = 'Error Messages';
+// Add sub-groups for the different categories of effects
+const generalEffectsMenu = document.createElement('optgroup');
+generalEffectsMenu.label = 'General Effects';
+const userEffectsMenu = document.createElement('optgroup');
+userEffectsMenu.label = 'User Effects';
+const blasterEffectsMenu = document.createElement('optgroup');
+blasterEffectsMenu.label = 'Blaster Effects';
+const gameEffectsMenu = document.createElement('optgroup');
+gameEffectsMenu.label = 'Game Effects';
+const errorMessagesMenu = document.createElement('optgroup');
+errorMessagesMenu.label = 'Error Messages';
 
-        // Add sorted values to the menu and actions dictionary,
-        for (const [value, name] of values) {
-          const nameWithoutEffect = name.replace(/^EFFECT_/, '');
-          const option = document.createElement('option');
-          option.value = value;
-          option.text = nameWithoutEffect;
+// Add sorted values to the menu and actions dictionary,
+for (const [value, name] of values) {
+  const nameWithoutEffect = name.replace(/^EFFECT_/, '');
+  const option = document.createElement('option');
+  option.value = value;
+  option.text = nameWithoutEffect;
 
-          // Check if the effect belongs to a certain category and add it to the corresponding sub-group
-          if (name.startsWith('EFFECT_GAME')) {
-            gameEffectsMenu.appendChild(option);
-          } else if (name.startsWith('EFFECT_USER')) {
-            userEffectsMenu.appendChild(option);
-          } else {
-            switch (Number(value)) {
-              case EFFECT_STUN:
-              case EFFECT_FIRE:
-              case EFFECT_CLIP_IN:
-              case EFFECT_CLIP_OUT:
-              case EFFECT_RELOAD:
-              case EFFECT_MODE:
-              case EFFECT_RANGE:
-              case EFFECT_EMPTY:
-              case EFFECT_FULL:
-              case EFFECT_JAM:
-              case EFFECT_UNJAM:
-              case EFFECT_PLI_ON:
-              case EFFECT_PLI_OFF:
-                blasterEffectsMenu.appendChild(option);
-                break;
-              case EFFECT_ERROR_IN_BLADE_ARRAY:
-              case EFFECT_ERROR_IN_FONT_DIRECTORY:
-              case EFFECT_FONT_DIRECTORY_NOT_FOUND:
-              case EFFECT_SD_CARD_NOT_FOUND:
-              case EFFECT_LOW_BATTERY:
-                errorMessagesMenu.appendChild(option);
-                break;
-              default:
-                generalEffectsMenu.appendChild(option);
-                break;
-            }
-          }
-        }
+  // Check if the effect belongs to a certain category and add it to the corresponding sub-group
+  if (name.startsWith('EFFECT_GAME')) {
+    gameEffectsMenu.appendChild(option);
+  } else if (name.startsWith('EFFECT_USER')) {
+    userEffectsMenu.appendChild(option);
+  } else {
+    switch (Number(value)) {
+      case EFFECT_STUN:
+      case EFFECT_FIRE:
+      case EFFECT_CLIP_IN:
+      case EFFECT_CLIP_OUT:
+      case EFFECT_RELOAD:
+      case EFFECT_MODE:
+      case EFFECT_RANGE:
+      case EFFECT_EMPTY:
+      case EFFECT_FULL:
+      case EFFECT_JAM:
+      case EFFECT_UNJAM:
+      case EFFECT_PLI_ON:
+      case EFFECT_PLI_OFF:
+        blasterEffectsMenu.appendChild(option);
+        break;
+      case EFFECT_ERROR_IN_BLADE_ARRAY:
+      case EFFECT_ERROR_IN_FONT_DIRECTORY:
+      case EFFECT_FONT_DIRECTORY_NOT_FOUND:
+      case EFFECT_SD_CARD_NOT_FOUND:
+      case EFFECT_LOW_BATTERY:
+        errorMessagesMenu.appendChild(option);
+        break;
+      default:
+        generalEffectsMenu.appendChild(option);
+        break;
+    }
+  }
+}
 
-        // Add the sub-groups to the main menu
-        menu.appendChild(generalEffectsMenu);
-        menu.appendChild(userEffectsMenu);
-        menu.appendChild(blasterEffectsMenu);
-        menu.appendChild(gameEffectsMenu);
-        menu.appendChild(errorMessagesMenu);
+// Add the sub-groups to the main menu
+menu.appendChild(generalEffectsMenu);
+menu.appendChild(userEffectsMenu);
+menu.appendChild(blasterEffectsMenu);
+menu.appendChild(gameEffectsMenu);
+menu.appendChild(errorMessagesMenu);
 
-        // Set up the event listener for the menu
-        menu.addEventListener('change', function() {
-          // If the selected value is not the default, enable the button and set its action
-          if (menu.value !== '') {
-            do_selected_button.disabled = false;
-            do_selected_button.className = "button-on"
-            do_selected_button.onclick = function() {
-              AddClickedEffect();
-            };
-          } else {
-            // If the selected value is the default, disable the button
-            do_selected_button.disabled = true;
-            do_selected_button.onclick = null;
-            do_selected_button.className = "button-off"
-          }
-        });
-        // Disable the button initially
-        do_selected_button.disabled = true;
-        do_selected_button.className = "button-off"
+// Set up the event listener for the menu
+menu.addEventListener('change', function() {
+  // If the selected value is not the default, enable the button and set its action
+  if (menu.value !== '') {
+    do_selected_button.disabled = false;
+    do_selected_button.className = "button-on"
+    do_selected_button.onclick = function() {
+      AddClickedEffect();
+    };
+  } else {
+    // If the selected value is the default, disable the button
+    do_selected_button.disabled = true;
+    do_selected_button.onclick = null;
+    do_selected_button.className = "button-off"
+  }
+});
+// Disable the button initially
+do_selected_button.disabled = true;
+do_selected_button.className = "button-off"
 
-        // What to do when preview saber area is clicked
-        function AddClickedEffect() {
-          if (do_selected_button.disabled) {
-            AddClash();
-          } else {
-            blade.addEffect(menu.value, 0.0)
-          }
-        };
+// What to do when preview saber area is clicked
+function AddClickedEffect() {
+  if (do_selected_button.disabled) {
+    AddClash();
+  } else {
+    blade.addEffect(menu.value, 0.0)
+  }
+};
 
 function toggleSettingsPanel() {
   var settingsButton = FIND("SETTINGS_BUTTON");
