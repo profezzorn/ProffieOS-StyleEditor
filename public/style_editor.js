@@ -1507,6 +1507,7 @@ AddEffectWL("SimpleClash<Red, White, 40>");
 AddEffect("Sparkle<Blue>");
 AddLayer("SparkleL");
 AddEffect("Stripes<1000, 1000, Cyan, Magenta, Yellow, Blue>");
+AddEffect("HardStripes<1000, 1000, Cyan, Magenta, Yellow, Blue>");
 AddEffect("Strobe<Black, White, 15, 1>");
 AddLayer("StrobeL<White, Int<15>, Int<1>>");
 AddEffect("StyleFire<Blue, Cyan>");
@@ -1805,6 +1806,26 @@ class Range {
   Intersect(other) {
     return new Range(max(this.start, other.start), min(this.end, other.end));
   }
+
+    // Stripe is 0..stripe_width and repeats every |mod|
+    // Returns interesection from 0..end
+    intersect_with_stripes3(stripe_width, mod, end) {
+	return Math.floor(end / mod) * stripe_width + min(stripe_width, end % mod);
+    }
+
+    // Stripe is 0..stripe_width and repeats every |mod|
+    // Returns intersection with |this|
+    intersect_with_stripes2(stripe_width, mod) {
+	return this.intersect_with_stripes3(stripe_width, mod, this.end) - this.intersect_with_stripes3(stripe_width, mod, this.start);
+    }
+    // |stripe| is a range that represents a single stripe, which repeats every |mod|.
+    // Returns intersection with |this|.
+    // |this| can be of arbitrary size and include an arbitrary number of stripes.
+    intersect_with_stripes(stripe, mod) {
+	const shift = mod - stripe.start % mod;
+	const tmp = new Range(this.start + shift, this.end + shift);
+	return tmp.intersect_with_stripes2(stripe.Size(), mod);
+    }
 };
 
 // TODO
@@ -2660,6 +2681,75 @@ class StripesClass extends MACRO {
 
 function Stripes(W,S,C) {
   return new StripesClass(Array.from(arguments));
+}
+
+// HardStripes
+class HardStripesXClass extends STYLE {
+  constructor(ARGS) {
+    super("Configurable rainbow", ARGS);
+    this.add_arg("WIDTH", "FUNCTION", "Stripe width");
+    this.add_arg("SPEED", "FUNCTION", "Scroll speed");
+    this.COLORS = ARGS.slice(2);
+    for (var i = 1; i < this.COLORS.length + 1; i++)
+      this.add_arg("COLOR" + i, "COLOR", "COLOR " + i);
+    this.last_micros = 0;
+    this.m = 0;
+  }
+  run(blade) {
+    super.run(blade);
+    var now_micros = micros();
+    var delta_micros = now_micros - this.last_micros;
+    this.last_micros = now_micros;
+    this.m = MOD( (this.m + delta_micros * this.SPEED.getInteger(0) / 333), (this.COLORS.length * 341 * 1024))
+    this.mult = (50000 * 1024 / this.WIDTH.getInteger(0));
+  }
+
+  HARDGET(N, pixel_range, led, p, mod, ret) {
+      if (N >= this.COLORS.length) return;
+      const segment_size = 341;
+      var weight = pixel_range.intersect_with_stripes(new Range(p, p + segment_size), mod);
+      if (weight) {
+	  var tmp = this.COLORS[N].getColor(led);
+	  if (weight == pixel_range.Size()) {
+	      ret.r = tmp.r;
+	      ret.g = tmp.g;
+	      ret.b = tmp.b;
+	  } else {
+              weight = weight * 1.0 / pixel_range.Size();
+              ret.r = clamp(ret.r + (tmp.r * weight), 0, 1.0);
+              ret.g = clamp(ret.g + (tmp.g * weight), 0, 1.0);
+              ret.b = clamp(ret.b + (tmp.b * weight), 0, 1.0);
+	  }
+    }
+    this.HARDGET(N+1, pixel_range, led, p + segment_size, mod, ret);
+  }
+  getColor(led) {
+    var p = ((this.m + led * this.mult) >> 10) % (this.COLORS.length * 341);
+    var ret = Rgb(0,0,0);
+      this.HARDGET(0, new Range(0, this.mult >> 10), led, p, this.COLORS.length * 341, ret);
+    return ret;
+  }
+}
+
+function HardStripesX(W,S,C) {
+  return new HardStripesXClass(Array.from(arguments));
+}
+
+class HardStripesClass extends MACRO {
+  constructor(ARGS) {
+    super("Configurable rainbow", ARGS);
+    this.add_arg("WIDTH", "INT", "Stripe width");
+    this.add_arg("SPEED", "INT", "Scroll speed");
+    this.COLORS = ARGS.slice(2);
+    for (var i = 1; i < this.COLORS.length + 1; i++)
+      this.add_arg("COLOR" + i, "COLOR", "COLOR " + i);
+
+    this.SetExpansion(new HardStripesXClass([Int(this.WIDTH), Int(this.SPEED)].concat(this.COLORS)));
+  }
+}
+
+function HardStripes(W,S,C) {
+  return new HardStripesClass(Array.from(arguments));
 }
 
 class AudioFlickerLClass extends MACRO {
@@ -7310,6 +7400,8 @@ function newCall(Cls) {
     FOCUS : Focus,
     FireConfig : FireConfig,
     Gradient : Gradient,
+    HardStripes : HardStripes,
+    HardStripesX : HardStripesX,
     HumpFlicker : HumpFlicker,
     HumpFlickerL : HumpFlickerL,
     HumpFlickerF : HumpFlickerF,
