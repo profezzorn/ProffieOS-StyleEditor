@@ -1540,6 +1540,7 @@ AddEffect("RetractionDelay<500, InOutHelper<EasyBlade<OnSpark<Green>, White>, 30
 AddLayer("TransitionEffectL<TrConcat<TrWipe<50>, White, TrWipe<50>>, EFFECT_BLAST>");
 AddLayer("MultiTransitionEffectL<TrConcat<TrWipe<50>, White, TrWipe<50>>, EFFECT_BLAST>");
 AddLayer("TransitionPulseL<TrConcat<TrFade<200>, Red, TrFade<200>>, ThresholdPulseF<Saw<Int<60>>, Int<16384>>>")
+AddLayer("TransitionLoopWhileL<TrConcat<TrFade<200>, Red, TrFade<200>>, TrFade<1000>, Ifon<Int<0>, Int<32768>>>");
 
 AddTransition("TrBoing<300, 2>");
 AddTransition("TrBlink<1000, 3>");
@@ -4220,6 +4221,8 @@ function IntSelect(ARGS) {
   return new IntSelectClass(Array.from(arguments));
 }
 
+// TransitionLoopL
+
 class TransitionLoopLClass extends STYLE {
   constructor(TRANSITION) {
     super("Continiously loop a transition",arguments);
@@ -4237,6 +4240,8 @@ class TransitionLoopLClass extends STYLE {
 
 function TransitionLoopL(T) { return new TransitionLoopLClass(T); }
 
+// TransitionLoop
+
 class TransitionLoopClass extends MACRO {
   constructor(COLOR, TRANSITION) {
     super("Continiously loop a transition",arguments);
@@ -4247,6 +4252,54 @@ class TransitionLoopClass extends MACRO {
 };
 
 function TransitionLoop(C, T) { return new TransitionLoopClass(C, T); }
+
+// TransitionLoopWhileL
+
+class TransitionLoopWhileLClass extends STYLE {
+  constructor(TRANSITION) {
+    super("Continiously loop a transition while CONDITION > 0",arguments);
+    this.add_arg("TRANSITION", "TRANSITION", "Transition");
+    this.add_arg("END_TRANSITION", "TRANSITION", "End Transition");
+      this.add_arg("CONDITION", "FUNCTION", "Condition");
+      this.run_ = false;
+      this.end = false;
+  }
+  run(blade) {
+      this.CONDITION.run(blade);
+      const cond = this.CONDITION.getInteger(0) > 0;
+      if (!this.run_ && cond) {
+	  this.run_ = true;
+	  this.TRANSITION.begin();
+      }
+      if (this.run_ && !cond && !this.end_) {
+	  this.end_ = true;
+	  this.END_TRANSITION.begin();
+      }
+      if (this.run_) {
+	  this.TRANSITION.run(blade);
+	  if (this.TRANSITION.done()) this.TRANSITION.begin();
+	  if (this.end_) {
+	      this.END_TRANSITION.run(blade);
+	      if (this.END_TRANSITION.done()) {
+		  this.end_ = false;
+		  this.run_ = false;
+	      }
+	  }
+      }
+  }
+    getColor(led) {
+	var ret = Transparent();
+	if (this.run_) {
+	    ret = this.TRANSITION.getColor(ret, ret, led);
+	    if (this.end_) ret = this.END_TRANSITION.getColor(ret, Transparent(), led);
+	}
+	return ret;
+  }
+};
+
+function TransitionLoopWhileL(T,E,C) { return new TransitionLoopWhileLClass(T, E, C); }
+
+// MultiTransitionEffectL
 
 class MultiTransitionEffectLClass extends STYLE {
   constructor(TRANSITION, EFFECT_ARG, N) {
@@ -7487,6 +7540,7 @@ function newCall(Cls) {
     StaticFire : StaticFire,
     TransitionLoop : TransitionLoop,
     TransitionLoopL : TransitionLoopL,
+    TransitionLoopWhileL : TransitionLoopWhileL,
     TransitionEffect : TransitionEffect,
     TransitionEffectL : TransitionEffectL,
     MultiTransitionEffect : MultiTransitionEffect,
