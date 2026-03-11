@@ -339,6 +339,10 @@ function AddIdentifier(name, value) {
   identifiers[name] = value;
 }
 
+function LNK(words, link) {
+    return "<a href='"+link+"'>"+words+"</a>";
+}
+
 class ARG {
   constructor(name, type, comment, default_value) {
     this.name = name;
@@ -353,11 +357,16 @@ class STYLE {
     this.comment = comment;
     // if (args) console.log(args);
     this.args = args;
+    this.url=null;
     this.argnum = 0;
     this.argdefs = [];
     this.super_short_desc = false;
     this.ID = next_id;
     next_id ++;
+  }
+
+  add_url(url) {
+    this.url = url;
   }
 
   add_arg(name, expected_type, comment, default_value) {
@@ -486,8 +495,8 @@ class STYLE {
   }
 
   PP(name, note) {
-    if (pp_is_url) {
-      return this.PPURL.apply(this, arguments);
+    if (pp_is_url) { 
+       return this.PPURL.apply(this, arguments);
     }
     var id = this.get_id();
     var ret = "";
@@ -496,6 +505,11 @@ class STYLE {
       console.log("RET = " + ret);
     }
     ret += "<div id=X" + id + " class='pp-container' onclick='FocusOn(" + id + ",event)'>\n";
+      if (this.url) {
+	  name = LNK(name, this.url);
+      } else {
+	  name = LNK(name, "https://pod.hubbe.net/search.html?q="+name);
+      }
     ret += "<span title='" + note + "'>" + name + "</span>&lt;\n";
     ret += this.valueBox();
     ret += "<div class='pp-content'>\n";
@@ -2780,6 +2794,7 @@ function AudioFlicker(A, B) {
 class RandomFClass extends FUNCTION {
   constructor(A, B) {
     super("Random number 0 - 32768.", arguments);
+    this.add_url("https://pod.hubbe.net/config/functions/RandomF.html");
   }
   run(blade) {
     this.var_ = Math.random() * 32768;;
