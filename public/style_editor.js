@@ -1481,6 +1481,7 @@ AddLayer("BrownNoiseFlickerL<Magenta, Int<50>>");
 AddEffect("ColorChange<TrInstant, Red, Green, Blue>");
 AddEffect("ColorSelect<Variation, TrInstant, Red, Green, Blue>");
 AddFunction("IntSelect<Variation, 0, 8192,32768>");
+AddFunction("IntSelectX<Variation, BatteryLevel, VolumeLevel, Int<32768> >");
 AddEffect("ColorCycle<Blue, 0, 1, Cyan, 100, 3000, 5000>");
 AddEffect("ColorSequence<500, Red, Green, Blue>");
 AddEffect("EffectSequence<EFFECT_CLASH, Red, Green, Blue>");
@@ -4197,6 +4198,9 @@ function ColorSelect(F, T, A, B) {
   return new ColorSelectClass(Array.from(arguments));
 }
 
+
+// IntSelect
+
 class IntSelectClass extends FUNCTION {
   constructor(ARGS) {
     super("Select number based on function", ARGS);
@@ -4208,7 +4212,7 @@ class IntSelectClass extends FUNCTION {
   run(blade) {
     this.F.run(blade);
     var f = this.F.getInteger(0);
-    while (f < 0) f += this.COLORS.length * 256;
+    while (f < 0) f += this.INTS.length * 256;
     f = f % this.INTS.length;
     this.value = this.INTS[f];
   }
@@ -4219,6 +4223,30 @@ class IntSelectClass extends FUNCTION {
 
 function IntSelect(ARGS) {
   return new IntSelectClass(Array.from(arguments));
+}
+
+// IntSelectX
+class IntSelectXClass extends FUNCTION {
+  constructor(ARGS) {
+    super("Select number based on function", ARGS);
+    this.INTS = Array.from(ARGS).slice(1);
+    this.add_arg("F", "FUNCTION","Selector function");
+    for (var i = 1; i <= this.INTS.length; i++)
+      this.add_arg("INT" + i, "FUNCTION", "Value " + i);
+  }
+  run(blade) {
+    super.run(blade);
+    this.f = this.F.getInteger(0);
+    while (this.f < 0) this.f += this.INTS.length * 256;
+    this.f = this.f % this.INTS.length;
+  }
+  getInteger(led) {
+    return this.INTS[this.f].getInteger(led);
+  }
+};
+
+function IntSelectX(ARGS) {
+  return new IntSelectXClass(Array.from(arguments));
 }
 
 // TransitionLoopL
@@ -7461,6 +7489,7 @@ function newCall(Cls) {
     ColorChange : ColorChange,
     ColorSelect : ColorSelect,
     IntSelect : IntSelect,
+    IntSelectX : IntSelectX,
     ColorSequence : ColorSequence,
     EffectSequence : EffectSequence,
     Cylon : Cylon,
